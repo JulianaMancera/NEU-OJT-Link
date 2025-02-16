@@ -1,0 +1,64 @@
+/* Auth.module.css */
+
+/* 📌 Fullscreen container */
+.container {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+}
+
+/* 📌 Left side - University Image */
+.imageContainer {
+  flex: 1.3; /* 65% of screen */
+  height: 100%;
+}
+
+.image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* 📌 Right side - Login Panel */
+.loginContainer {
+  flex: 1; /* 35% of screen */
+  background-color: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.title {
+  font-size: 2.5rem;
+  font-weight: bold;
+}
+
+.subtitle {
+  font-size: 1.2rem;
+  margin-bottom: 1.5rem;
+}
+
+/* 📌 Google Sign-in Button */
+.googleButton {
+  display: flex;
+  align-items: center;
+  background-color: white;
+  border: 1px solid #ccc;
+  padding: 0.7rem 1rem;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background 0.3s;
+}
+
+.googleButton:hover {
+  background-color: #f1f1f1;
+}
+
+.googleIcon {
+  width: 20px;
+  margin-right: 10px;
+}
