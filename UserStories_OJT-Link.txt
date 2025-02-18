@@ -1,0 +1,14 @@
+﻿1. As a student, I want to log in using my Google account so that I can easily access my OJT portal.
+2. As an admin, I want to log in using my email and password so that I can securely manage the system.
+3. As a faculty member, I want to log in using my email and password so that I can monitor student progress.
+4. As a student, I want to browse a list of companies affiliated with NEU so that I can choose where to apply for OJT.
+5. As a student, I want to see company details so that I can decide which company fits my career goals.
+6. As an admin, I want to add, update, and remove affiliated companies from the system so that the list remains accurate and up to date.
+7. As a student, I want to submit my weekly report through the website so that my faculty adviser can track my progress.
+8. As a student, I want to submit my monthly report summarizing my work hours and tasks so that I can comply with OJT requirements.
+9. As a faculty member, I want to review and provide feedback on student reports so that I can ensure they are meeting OJT requirements.
+10. As an admin, I want to generate reports on student attendance and submissions so that I can monitor overall compliance.
+11. As a faculty member, I want to be notified when a student submits a report so that I can review it promptly.
+12. As an admin, I want to manage user roles and permissions so that only authorized users can access specific features.
+13. As a student, I want to update my personal profile and contact details so that my information is accurate.
+14. As an admin, I want to deactivate accounts of students who have completed their OJT so that the system remains organized.
