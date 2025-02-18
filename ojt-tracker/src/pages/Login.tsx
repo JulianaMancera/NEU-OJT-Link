@@ -1,9 +1,9 @@
 import { supabase } from "../../supabase";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import styles from "../styles/Auth.module.css"; // ✅ Import CSS Module
-import universityImage from "../assets/new-era-university.jpg"; // ✅ Import Image
-import googleLogo from "../assets/google-logo.jpg"; // ✅ Import the Google Logo
+import universityImage from "../assets/new-era-university.jpg";
+import googleLogo from "../assets/google-logo.jpg";
+
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -33,24 +33,28 @@ const Auth = () => {
   };
 
   return (
-    <div className={styles.container}>
+    <div className="flex h-screen w-full bg-gray-100">
       {/* Left Side - Image */}
-      <div className={styles.imageContainer}>
-        <img src={universityImage} alt="New Era University" className={styles.image} />
+      <div className="flex-1">
+        <img
+          src={universityImage}
+          alt="New Era University"
+          className="min-w min-h-screen object-cover"
+        />
       </div>
 
       {/* Right Side - Login Section */}
-      <div className={styles.loginContainer}>
-        <h1 className={styles.title}>NEU OJT LINK</h1>
-        <p className={styles.subtitle}>Welcome, User!</p>
+      <div className="flex-1 flex flex-col justify-center items-center bg-white p-10">
+      <h1 className="text-4xl font-bold text-gray-900 mb-4">NEU OJT LINK</h1>
+        <p className="text-lg text-gray-600 mb-6">Welcome, User!</p>
         {!loading && (
-          <button onClick={signInWithGoogle} className={styles.googleButton}>
-          <img src={googleLogo} alt="Google Logo" className={styles.googleIcon} />
-          <span>Sign in with Google</span>
-        </button>
-        
-        
-        
+          <button
+            onClick={signInWithGoogle}
+            className="flex items-center px-6 py-3 border rounded-lg shadow-md bg-white hover:bg-gray-100 transition"
+          >
+            <img src={googleLogo} alt="Google Logo" className="w-6 h-6 mr-1" />
+            <span className="text-gray-700 font-medium text-lg">Sign in with Google</span>
+          </button>
         )}
       </div>
     </div>
