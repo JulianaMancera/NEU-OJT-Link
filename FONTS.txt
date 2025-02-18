@@ -1,0 +1,16 @@
+FONT STYLES
+- Poppins
+- Saira Condensed
+- Baloo
+- Aerial Bold
+
+
+
+FONT SIZES
+- 128
+- 90
+- 88
+- 32
+- 26
+- 24
+- 12
