@@ -41,6 +41,12 @@ const Dashboard = () => {
             View Companies
           </button>
           <button 
+            className="bg-blue-500 text-white px-4 py-2 rounded mr-4"
+            onClick={() => navigate("/weekly-report")}
+          >
+            Submit Weekly Report
+          </button>
+          <button 
             className="bg-red-500 text-white px-4 py-2 rounded"
             onClick={handleLogout}
           >
