@@ -30,10 +30,25 @@ const Dashboard = () => {
   if (loading) return <p>Loading...</p>;
 
   return (
-    <div>
-      <h1>Welcome to the Dashboard</h1>
-      {user && <p>Logged in as: {user.email}</p>}
-      <button onClick={handleLogout}>Logout</button>
+    <div className="p-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold">Welcome to the Dashboard</h1>
+        <div>
+          <button 
+            className="bg-blue-500 text-white px-4 py-2 rounded mr-4"
+            onClick={() => navigate("/companies")}
+          >
+            View Companies
+          </button>
+          <button 
+            className="bg-red-500 text-white px-4 py-2 rounded"
+            onClick={handleLogout}
+          >
+            Logout
+          </button>
+        </div>
+      </div>
+      {user && <p className="mt-4">Logged in as: {user.email}</p>}
     </div>
   );
 };
