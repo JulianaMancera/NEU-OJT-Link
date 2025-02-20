@@ -4,6 +4,7 @@
 4.	As a student, I want to search for a specific company so that I can quickly find relevant opportunities. - Search
 5.	As a student, I want to filter companies based on industry, location, or requirements so that I can refine my choices. - Search
 6.	As a student, I want to select a company for my OJT if I haven't chosen one yet so that I can start my application process. - Dashboard
+7. As a student, I want to be notified when my OJT application is approved or rejected so that I can proceed accordingly. - Dashboard
 7.	As a student, I want to submit my weekly report through the website so that my faculty adviser can track my progress. - Report Management
 8.	As a student, I want to submit my monthly report summarizing my work hours and tasks so that I can comply with OJT requirements. - Report Submission
 9.	As a student, I want to include holiday exceptions in my report so that my recorded work hours are accurate. - Report Submission
@@ -14,7 +15,7 @@
 14.	As a student, I want to update my personal profile and contact details so that my information is accurate. - User Management
 
 
-15.	As a faculty member, I want to log in using my institutional email so that I can securely access my faculty dashboard. - Login
+15.	As a faculty member, I want to log in using my email and password so that I can securely access my faculty dashboard. - Login
 16.	As a faculty member, I want to see a list of students assigned to each company so that I can monitor their placements. - Student Monitoring
 17.	As a faculty member, I want to check the OJT status of each student so that I can track their progress. - Student Monitoring
 18.	As a faculty member, I want to see a dashboard summary of pending reports so that I can prioritize reviews. - Dashboard
@@ -25,7 +26,7 @@
 23.	As a faculty member, I want to search for a specific student's OJT details so that I can quickly find relevant information. - Search
 
 
-24.	As an admin, I want to log in using my institutional email so that I can securely access the admin dashboard. – Login
+24.	As an admin, I want to log in using my email and password so that I can securely access the admin dashboard. – Login
 25.	As an admin, I want to add new affiliated companies so that students have updated options for their OJT. - Company Management
 26.	As an admin, I want to update company details so that students receive accurate and relevant information. - Company Management
 27.	As an admin, I want to remove companies that are no longer affiliated with the university so that students do not apply to outdated listings. - Company Management
