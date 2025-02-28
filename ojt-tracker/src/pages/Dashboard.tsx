@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../../supabase";
 import { useNavigate } from "react-router-dom";
+import { User } from "@supabase/supabase-js";
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User>();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
