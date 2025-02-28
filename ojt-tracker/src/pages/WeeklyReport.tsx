@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { supabase } from "../../supabase";
-import { useNavigate } from "react-router-dom";
 
 const WeeklyReport = () => {
   const [formData, setFormData] = useState({
