@@ -10,15 +10,28 @@ const Dashboard = () => {
 
   useEffect(() => {
     const fetchUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user }, error } = await supabase.auth.getUser();
 
-      if (!user || !user.email?.endsWith("@neu.edu.ph")) {
+      if (error||!user || !user.email?.endsWith("@neu.edu.ph")) {
         navigate("/"); // ✅ Redirect to login if not logged in
-      } else {
-        setUser(user);
-      }
+      }else{
+      const fullname = user.user_metadata?.full_name || "User";
+      const {error } = await supabase.from("user").insert({
+          user_id: user.id,
+          name: fullname,
+          email: user.email,
+          date_registered: new Date().toISOString(),
+          course: null
+        })
+        if(error) console.error("Error here", error)
+        console.log("The User Creation was success")
+
+      setUser(user);
       setLoading(false);
-    };
+ 
+      }
+      
+   };
 
     fetchUser();
   }, [navigate]);
@@ -55,7 +68,7 @@ const Dashboard = () => {
           </button>
         </div>
       </div>
-      {user && <p className="mt-4">Logged in as: {user.email}</p>}
+      {user && <p className="mt-4">Logged in as: {user.user_metadata?.full_name}</p>}
     </div>
   );
 };
