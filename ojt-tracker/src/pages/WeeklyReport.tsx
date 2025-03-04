@@ -1,18 +1,15 @@
 import { useState } from "react";
 import { supabase } from "../../supabase";
-
 const WeeklyReport = () => {
   const [formData, setFormData] = useState({
-    trainee_name: "",
-    department: "",
-    company: "",
-    month_covered: "",
-    date: "",
-    time_in: "",
-    time_out: "",
-    hours: "",
+    submitted_by: "",
+    start_date: "",
+    hours_rendered: "",
     task_completed: "",
-    remarks: "",
+    end_date: "",
+    week_number: "",
+    status: "pending",
+    created_at: new Date().toISOString(),
   });
 
   const [loading, setLoading] = useState(false);
@@ -30,158 +27,122 @@ const WeeklyReport = () => {
     setMessage("");
 
     // Convert hours to number
-    const reportData = { ...formData, hours: parseInt(formData.hours, 10) };
+// Convert date to proper format
+    const reportData = {
+    ...formData,
+    start_date: formData.start_date ? new Date(formData.start_date).toISOString().split("T")[0] : null,
+    end_date: formData.end_date ? new Date(formData.end_date).toISOString().split("T")[0] : null,
+    };
 
-    const { error } = await supabase.from("ojt_reports").insert([reportData]);
+    const { error } = await supabase.from("weekly_report").insert([reportData]);
 
     if (error) {
       setMessage("❌ Error submitting report: " + error.message);
+      
     } else {
       setMessage("✅ Weekly report submitted successfully!");
       setFormData({
-        trainee_name: "",
-        department: "",
-        company: "",
-        month_covered: "",
-        date: "",
-        time_in: "",
-        time_out: "",
-        hours: "",
-        task_completed: "",
-        remarks: "",
-      });
+      submitted_by: "",
+      start_date: "",
+      end_date: "",
+      hours_rendered: "",
+      task_completed: "",
+      week_number: "",
+      status:"pending",
+      created_at: new Date().toISOString(),
+    });
     }
 
     setLoading(false);
   };
 
   return (
+  <div className="flex items-center justify-center w-screen min-h-screen bg-gray-500">
     <div className="max-w-3xl mx-auto p-8 bg-gray-100 shadow-lg rounded-xl">
-  <h2 className="text-3xl font-bold mb-6 text-gray-800">Submit Weekly OJT Report</h2>
+        <h2 className="text-3xl font-bold mb-6 text-gray-800">Submit Weekly OJT Report</h2>
 
-  {message && (
-    <p className="mb-6 text-lg text-center font-semibold text-green-600 bg-green-100 p-2 rounded">
+      {message && (
+        <p className="mb-6 text-lg text-center font-semibold text-green-600 bg-green-100 p-2 rounded">
       {message}
-    </p>
-  )}
+      </p>
+    )}
 
-  <form onSubmit={handleSubmit} className="space-y-5">
-    {/* Trainee Name */}
-    <input
-      type="text"
-      name="trainee_name"
-      placeholder="Trainee Name"
-      value={formData.trainee_name}
-      onChange={handleChange}
-      required
-      className="w-full p-3 text-lg border border-gray-500 rounded-lg bg-white text-gray-900"
-    />
+    <form onSubmit={handleSubmit} className="space-y-5">
+      {/* Trainee Name */}
+      <input
+        type="text"
+        name="submitted_by"
+        placeholder="Name"
+        value={formData.submitted_by}
+        onChange={handleChange}
+        required
+        className="w-full p-3 text-lg border border-gray-500 rounded-lg bg-white text-gray-900"
+      />
+      {/* Start-Date */}
 
-    {/* Department */}
-    <input
-      type="text"
-      name="department"
-      placeholder="Department"
-      value={formData.department}
-      onChange={handleChange}
-      required
-      className="w-full p-3 text-lg border border-gray-500 rounded-lg bg-white text-gray-900"
-    />
+      <input
+        type="date"
+        name="start_date"
+        placeholder="Start date"
+        value={formData.start_date}
+        onChange={handleChange}
+        required
+        className="w-full p-3 text-lg border border-gray-500 rounded-lg bg-white text-gray-900"
+      />
+      {/* End-Date */}
+      <input
+        type="date"
+        name="end_date"
+        placeholder="End date"
+        value={formData.end_date}
+        onChange={handleChange}
+        required
+        className="w-full p-3 text-lg border border-gray-500 rounded-lg bg-white text-gray-900"
+      />
+        {/* Hours Rendered */}
+      <input
+        type="number"
+        name="hours_rendered"
+        placeholder="Hours rendered"
+        value={formData.hours_rendered}
+        onChange={handleChange}
+        required
+        className="w-full p-3 text-lg border border-gray-500 rounded-lg bg-white text-gray-900"
+      />
 
-    {/* Company */}
-    <input
-      type="text"
-      name="company"
-      placeholder="Company"
-      value={formData.company}
-      onChange={handleChange}
-      required
-      className="w-full p-3 text-lg border border-gray-500 rounded-lg bg-white text-gray-900"
-    />
+      {/* Task Completed */}
+      <input
+        type="text"
+        name="task_completed"
+        placeholder="Task completed"
+        value={formData.task_completed}
+        onChange={handleChange}
+        required
+        className="w-full p-3 text-lg border border-gray-500 rounded-lg bg-white text-gray-900"
+      />
 
-    {/* Month Covered */}
-    <input
-      type="text"
-      name="month_covered"
-      placeholder="Month Covered (e.g., January 2025)"
-      value={formData.month_covered}
-      onChange={handleChange}
-      required
-      className="w-full p-3 text-lg border border-gray-500 rounded-lg bg-white text-gray-900"
-    />
+      {/* Hours */}
+      <input
+        type="number"
+        name="week_number"
+        placeholder="Week_number "
+        value={formData.week_number}
+        onChange={handleChange}
+        required
+        className="w-full p-3 text-lg border border-gray-500 rounded-lg bg-white text-gray-900"
+      />
 
-    {/* Date */}
-    <input
-      type="date"
-      name="date"
-      value={formData.date}
-      onChange={handleChange}
-      required
-      className="w-full p-3 text-lg border border-gray-500 rounded-lg bg-white text-gray-900"
-    />
-
-    {/* Time In */}
-    <input
-      type="time"
-      name="time_in"
-      value={formData.time_in}
-      onChange={handleChange}
-      required
-      className="w-full p-3 text-lg border border-gray-500 rounded-lg bg-white text-gray-900"
-    />
-
-    {/* Time Out */}
-    <input
-      type="time"
-      name="time_out"
-      value={formData.time_out}
-      onChange={handleChange}
-      required
-      className="w-full p-3 text-lg border border-gray-500 rounded-lg bg-white text-gray-900"
-    />
-
-    {/* Hours */}
-    <input
-      type="number"
-      name="hours"
-      placeholder="Hours Worked"
-      value={formData.hours}
-      onChange={handleChange}
-      required
-      className="w-full p-3 text-lg border border-gray-500 rounded-lg bg-white text-gray-900"
-    />
-
-    {/* Task Completed */}
-    <textarea
-      name="task_completed"
-      placeholder="Task Completed"
-      value={formData.task_completed}
-      onChange={handleChange}
-      required
-      className="w-full p-4 text-lg border border-gray-500 rounded-lg bg-white text-gray-900 h-28"
-    ></textarea>
-
-    {/* Remarks */}
-    <textarea
-      name="remarks"
-      placeholder="Remarks"
-      value={formData.remarks}
-      onChange={handleChange}
-      required
-      className="w-full p-4 text-lg border border-gray-500 rounded-lg bg-white text-gray-900 h-28"
-    ></textarea>
-
-    {/* Submit Button */}
-    <button
-      type="submit"
-      className="w-full bg-blue-600 text-white p-3 rounded-xl text-lg font-semibold hover:bg-blue-700 transition"
-      disabled={loading}
-    >
-      {loading ? "Submitting..." : "Submit Report"}
-    </button>
-  </form>
-</div>
-
+      {/* Submit Button */}
+      <button
+        type="submit"
+        className="w-full bg-blue-600 text-white p-3 rounded-xl text-lg font-semibold hover:bg-blue-700 transition"
+        disabled={loading}
+      >
+            {loading ? "Submitting..." : "Submit Report"}
+        </button>
+    </form>
+  </div>
+  </div>
   );
 };
 
