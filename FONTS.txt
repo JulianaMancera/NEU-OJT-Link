@@ -3,7 +3,8 @@ FONT STYLES
 - Saira Condensed
 - Baloo
 - Aerial Bold
-
+- Roboto
+- Inter
 
 
 FONT SIZES
