@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../../supabase";
+import CompanyApplication from "../components/CompanyApplication";
 
 interface Company {
   company_id: string;
   name: string;
   address: string;
-  email?: string;
+  email: string;
   contact_no: string;
 }
 
@@ -13,6 +14,7 @@ interface Company {
 const CompanyList = () => {
   const [companies, setCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedCompany, setSelectedCompany] = useState<Company | null>();
 
   useEffect(() => {
     const fetchCompanies = async () => {
@@ -37,10 +39,11 @@ const CompanyList = () => {
 
   return (
     <div className="p-8">
+      {/*Default UI When User Nothing Clicks*/}
       <h1 className="text-3xl font-bold text-center mb-6">Affiliated Companies</h1>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {companies.map((company) => (
-          <div key={company.company_id} className="border rounded-lg shadow-md p-6 bg-white">
+          <div key={company.company_id} onClick={() => setSelectedCompany(company)} className="border rounded-lg shadow-md p-6 bg-white">
             <h2 className="text-xl text-gray-600 font-semibold">{company.name}</h2>
             <p className="text-gray-600">{company.address} - {company.email}</p>
             <p className="text-gray-700 mt-2">{company.contact_no}</p>
@@ -48,7 +51,16 @@ const CompanyList = () => {
           </div>
         ))}
       </div>
+      
+      {/*This will be shown when User select company*/}
+    { selectedCompany && (
+      <CompanyApplication company={selectedCompany} onClose={() => setSelectedCompany(null)}/>
+    )
+
+    }
     </div>
+    
+    
   );
 };
 
