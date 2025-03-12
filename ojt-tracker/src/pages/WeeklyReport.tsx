@@ -1,148 +1,158 @@
 import { useState } from "react";
 import { supabase } from "../../supabase";
-const WeeklyReport = () => {
-  const [formData, setFormData] = useState({
-    submitted_by: "",
-    start_date: "",
-    hours_rendered: "",
-    task_completed: "",
-    end_date: "",
-    week_number: "",
-    status: "pending",
-    created_at: new Date().toISOString(),
-  });
+import { FaCloudUploadAlt, FaTrash } from "react-icons/fa";
 
-  const [loading, setLoading] = useState(false);
+const WeeklyReport = () => {
+  const [files, setFiles] = useState<File[]>([]);
+  const [uploading, setUploading] = useState(false);
+  const [progress, setProgress] = useState<number | null>(null);
   const [message, setMessage] = useState("");
 
-  // Handle input change
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+  // Handle file selection and drag-drop
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const selectedFiles = Array.from(e.target.files);
+      setFiles((prevFiles) => [...prevFiles, ...selectedFiles]);
+    }
   };
 
-  // Handle form submission
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleDrop = (e: React.DragEvent<HTMLLabelElement>) => {
     e.preventDefault();
-    setLoading(true);
-    setMessage("");
+    const droppedFiles = Array.from(e.dataTransfer.files);
+    setFiles((prevFiles) => [...prevFiles, ...droppedFiles]);
+  };
 
-    // Convert hours to number
-// Convert date to proper format
-    const reportData = {
-    ...formData,
-    start_date: formData.start_date ? new Date(formData.start_date).toISOString().split("T")[0] : null,
-    end_date: formData.end_date ? new Date(formData.end_date).toISOString().split("T")[0] : null,
-    };
+  const removeFile = (index: number) => {
+    setFiles(files.filter((_, i) => i !== index));
+  };
 
-    const { error } = await supabase.from("weekly_report").insert([reportData]);
-
-    if (error) {
-      setMessage("❌ Error submitting report: " + error.message);
-      
-    } else {
-      setMessage("✅ Weekly report submitted successfully!");
-      setFormData({
-      submitted_by: "",
-      start_date: "",
-      end_date: "",
-      hours_rendered: "",
-      task_completed: "",
-      week_number: "",
-      status:"pending",
-      created_at: new Date().toISOString(),
-    });
+  // Handle file upload
+  const handleUpload = async () => {
+    if (files.length === 0) {
+      setMessage("❌ Please select a file.");
+      return;
     }
 
-    setLoading(false);
+    setUploading(true);
+    setProgress(0);
+    setMessage("");
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const fileName = `${Date.now()}_${file.name}`;
+      const filePath = `weekly_reports/${fileName}`;
+
+      // Upload to Supabase Storage
+      const { error } = await supabase.storage.from("weekly_reports").upload(filePath, file);
+      if (error) {
+        setMessage(`❌ Error uploading: ${error.message}`);
+        setUploading(false);
+        return;
+      }
+
+      // Get public URL
+      const { data: fileData } = supabase.storage.from("weekly_reports").getPublicUrl(filePath);
+
+      // Get logged-in user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setMessage("❌ You must be logged in to upload.");
+        setUploading(false);
+        return;
+      }
+
+      // Get user metadata
+      const userName = user.user_metadata.full_name || "Unknown User";
+
+      // Save file info to database
+      const { error: insertError } = await supabase.from("weekly_report").insert([
+        {
+          file_name: file.name,
+          file_url: fileData.publicUrl,
+          uploaded_at: new Date().toISOString(),
+          submitted_by: userName,
+          start_date: new Date().toISOString(),
+        },
+      ]);
+
+      if (insertError) {
+        setMessage(`❌ Database error: ${insertError.message}`);
+      }
+
+      setProgress(((i + 1) / files.length) * 100);
+    }
+
+    setUploading(false);
+    setFiles([]); // Clear file list
+    setMessage("✅ File uploaded successfully!");
   };
 
   return (
-  <div className="flex items-center justify-center w-screen min-h-screen bg-gray-500">
-    <div className="max-w-3xl mx-auto p-8 bg-gray-100 shadow-lg rounded-xl">
-        <h2 className="text-3xl font-bold mb-6 text-gray-800">Submit Weekly OJT Report</h2>
+    <div className="flex items-center justify-center w-screen min-h-screen bg-blue-100">
+      {/* Modal/Card Container */}
+      <div className="w-full max-w-2xl bg-gray-200 shadow-xl rounded-lg p-6 border border-gray-400">
+        {/* Header */}
+        <h2 className="text-2xl font-semibold text-gray-800 text-center mb-4">UPLOAD WEEKLY REPORT</h2>
 
-      {message && (
-        <p className="mb-6 text-lg text-center font-semibold text-green-600 bg-green-100 p-2 rounded">
-      {message}
-      </p>
-    )}
+        {/* Drag & Drop Area */}
+        <label
+          className="flex flex-col items-center justify-center border-2 border-dashed border-gray-400 bg-white p-6 rounded-lg cursor-pointer hover:bg-gray-300"
+          onDrop={handleDrop}
+          onDragOver={(e) => e.preventDefault()}
+        >
+          <FaCloudUploadAlt className="text-4xl text-gray-600 mb-2" />
+          <p className="text-gray-600">
+            Drag & drop files or <span className="text-blue-600 font-semibold">Browse</span>
+          </p>
+          <input type="file" accept="application/pdf" multiple onChange={handleFileChange} className="hidden" />
+        </label>
 
-    <form onSubmit={handleSubmit} className="space-y-5">
-      {/* Trainee Name */}
-      <input
-        type="text"
-        name="submitted_by"
-        placeholder="Name"
-        value={formData.submitted_by}
-        onChange={handleChange}
-        required
-        className="w-full p-3 text-lg border border-gray-500 rounded-lg bg-white text-gray-900"
-      />
-      {/* Start-Date */}
+        {/* Upload Progress */}
+        {uploading && progress !== null && (
+          <div className="mt-4">
+            <p className="text-sm text-gray-700">Uploading... {Math.round(progress)}%</p>
+            <div className="w-full bg-gray-300 h-2 rounded">
+              <div className="bg-blue-600 h-2 rounded" style={{ width: `${progress}%` }}></div>
+            </div>
+          </div>
+        )}
 
-      <input
-        type="date"
-        name="start_date"
-        placeholder="Start date"
-        value={formData.start_date}
-        onChange={handleChange}
-        required
-        className="w-full p-3 text-lg border border-gray-500 rounded-lg bg-white text-gray-900"
-      />
-      {/* End-Date */}
-      <input
-        type="date"
-        name="end_date"
-        placeholder="End date"
-        value={formData.end_date}
-        onChange={handleChange}
-        required
-        className="w-full p-3 text-lg border border-gray-500 rounded-lg bg-white text-gray-900"
-      />
-        {/* Hours Rendered */}
-      <input
-        type="number"
-        name="hours_rendered"
-        placeholder="Hours rendered"
-        value={formData.hours_rendered}
-        onChange={handleChange}
-        required
-        className="w-full p-3 text-lg border border-gray-500 rounded-lg bg-white text-gray-900"
-      />
+        {/* Uploaded Files List */}
+        {files.length > 0 && (
+          <div className="mt-4">
+            <h3 className="text-gray-700 font-medium mb-2">Uploaded</h3>
+            {files.map((file, index) => (
+              <div key={index} className="flex items-center justify-between bg-white p-2 border rounded mb-2">
+                <span className="text-gray-700 truncate">{file.name}</span>
+                <button onClick={() => removeFile(index)} className="text-red-600 hover:text-red-800">
+                  <FaTrash />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
 
-      {/* Task Completed */}
-      <input
-        type="text"
-        name="task_completed"
-        placeholder="Task completed"
-        value={formData.task_completed}
-        onChange={handleChange}
-        required
-        className="w-full p-3 text-lg border border-gray-500 rounded-lg bg-white text-gray-900"
-      />
+        {/* Message Display */}
+        {message && (
+          <p
+            className={`mt-4 text-center font-medium p-2 rounded ${
+              message.includes("❌") ? "bg-red-100 text-red-600" : "bg-green-100 text-green-600"
+            }`}
+          >
+            {message}
+          </p>
+        )}
 
-      {/* Hours */}
-      <input
-        type="number"
-        name="week_number"
-        placeholder="Week_number "
-        value={formData.week_number}
-        onChange={handleChange}
-        required
-        className="w-full p-3 text-lg border border-gray-500 rounded-lg bg-white text-gray-900"
-      />
-
-      {/* Submit Button */}
-      <button
-        type="submit"
-        className="w-full bg-blue-600 text-white p-3 rounded-xl text-lg font-semibold hover:bg-blue-700 transition"
-        disabled={loading}
-      >
-            {loading ? "Submitting..." : "Submit Report"}
+        {/* Upload Button */}
+        <button
+          onClick={handleUpload}
+          className="w-full bg-blue-600 text-white py-2 mt-4 rounded-lg text-lg font-semibold hover:bg-blue-700 transition-all disabled:bg-gray-400"
+          disabled={uploading || files.length === 0}
+        >
+          {uploading ? "Uploading..." : "UPLOAD FILES"}
         </button>
-    </form>
-  </div>
-  </div>
+      </div>
+    </div>
   );
 };
 
