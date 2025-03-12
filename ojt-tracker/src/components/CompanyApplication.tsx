@@ -34,6 +34,7 @@ const CompanyApplication = ({company, onClose}: CompanyProps) => {
             }
             else{
                 console.log(data)
+                setRequirement
                 setJobDetail(data);
             }
             
