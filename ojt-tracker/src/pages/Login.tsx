@@ -1,9 +1,8 @@
 import { supabase } from "../../supabase";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import universityImage from "../assets/new-era-university.jpg";
-import googleLogo from "../assets/google-logo.jpg";
-
+import backgroundImage from "../assets/login-page.png"; // Background Image
+import googleButton from "../assets/google-button.png"; // Your Google Sign-In Button Image
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -33,28 +32,23 @@ const Auth = () => {
   };
 
   return (
-    <div className="flex h-screen w-full bg-gray-100">
-      {/* Left Side - Image */}
-      <div className="flex-1">
-        <img
-          src={universityImage}
-          alt="New Era University"
-          className="min-w min-h-screen object-cover"
-        />
-      </div>
+    <div className="relative h-screen w-screen">
+      {/* Background Image */}
+      <img
+        src={backgroundImage}
+        alt="New Era University"
+        className="absolute inset-0 w-full h-full object-cover"
+      />
 
-      {/* Right Side - Login Section */}
-      <div className="flex-1 flex flex-col justify-center items-center bg-white p-10">
-      <h1 className="text-4xl font-bold text-gray-900 mb-4">NEU OJT LINK</h1>
-        <p className="text-lg text-gray-600 mb-6">Welcome, User!</p>
+      {/* Google Sign-In Button (Right Aligned, No Text) */}
+      <div className="absolute top-[75%] right-[15%] transform -translate-y-1/2">
         {!loading && (
-          <button
+          <img
+            src={googleButton}
+            alt="Sign in with Google"
             onClick={signInWithGoogle}
-            className="flex items-center px-6 py-3 border rounded-lg shadow-md bg-white hover:bg-gray-100 transition"
-          >
-            <img src={googleLogo} alt="Google Logo" className="w-6 h-6 mr-1" />
-            <span className="text-gray-700 font-medium text-lg">Sign in with Google</span>
-          </button>
+            className="cursor-pointer transition-transform transform hover:scale-105 hover:shadow-lg"
+          />
         )}
       </div>
     </div>
