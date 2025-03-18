@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../supabase";
-import landingPic from "../assets/landingPic.jpg";
+import landingPic from "../assets/landingPic.png";
+import ojt_logo from "../assets/ojt-logo.png";
 
 const LandingPage = () => {
   const navigate = useNavigate();
@@ -22,9 +23,9 @@ const LandingPage = () => {
   }, [navigate]);
 
   return (
-    <div className="h-screen w-screen flex flex-col bg-white overflow-hidden">
+    <div className="h-screen w-screen flex flex-col relative">
       {/* Top Section */}
-      <div className="flex flex-col lg:flex-row items-center justify-between p-8 h-1/2">
+      <div className="flex flex-col lg:flex-row items-center justify-between p-8 relative z-10">
         {/* Left Side: Welcome Text */}
         <div className="lg:w-1/2 p-6">
           <h1 className="text-5xl font-bold text-gray-900">
@@ -42,18 +43,18 @@ const LandingPage = () => {
           </button>
         </div>
 
-        {/* Right Side: Logo */}  
+        {/* Right Side: Logo */}
         <div className="lg:w-1/2 flex justify-center">
-          <img src="/logo.png" alt="NEU OJT LINK Logo" className="h-16" />
+          <img src={ojt_logo} alt="NEU OJT LINK Logo" className="relative -mt-[180px]" />
         </div>
       </div>
 
       {/* Bottom Section: Background Image */}
-      <div className="h-1/2 w-full">
+      <div className="absolute inset-0 w-full h-full">
         <img
           src={landingPic}
           alt="Presentation"
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover opacity-80"
         />
       </div>
     </div>
