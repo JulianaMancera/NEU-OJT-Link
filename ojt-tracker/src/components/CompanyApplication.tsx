@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { supabase } from "../../supabase";
+import EndorsementButton from "./EndorsementButton";
 
 interface CompanyProps{
     company:{
@@ -197,7 +198,7 @@ const CompanyApplication = ({company, onClose}: CompanyProps) => {
                 <p>Position {selectedJob?.position}</p>
                 <p>Posistion Selected </p>
                     {resumeUploaded && coverLetterUploaded ? 
-                    <div>You already Submit for this posistion</div> :
+                    <div>You already Submit for this posistion  <EndorsementButton/></div> :
                     <div>
                         <p>Please Submit Requirement</p>
                         {resumeUploaded ? <p>The Resume is Uploaded</p>: 
