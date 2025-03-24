@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../supabase";
 import landingPic from "../assets/landingPic.png";
-import ojt_logo from "../assets/ojt-logo.png";
+
 
 const LandingPage = () => {
   const navigate = useNavigate();
@@ -27,13 +27,18 @@ const LandingPage = () => {
       {/* Top Section */}
       <div className="flex flex-col lg:flex-row items-center justify-between p-8 relative z-10">
         {/* Left Side: Welcome Text */}
-        <div className="lg:w-1/2 p-6">
+        <div className="lg:w-1/2 p-9 mt-6">
           <h1 className="text-5xl font-bold text-gray-900">
-            Welcome, {userName} to the <br />
-            <span className="text-black">NEU OJT LINK</span>
+            Welcome, {userName} to the 
+            <span className="text-black"> NEU OJT LINK</span>
           </h1>
-          <p className="text-gray-600 mt-4 text-lg">
-            Connecting students and companies seamlessly for a better OJT experience.
+         
+        </div>
+
+        {/* Right Side: Logo */}
+        <div className="lg:w-1/2 flex justify-center">
+        <p className="text-gray-600 mt-4 text-lg">
+            Connecting students and companies seamlessly <br/> for a better OJT experience.
           </p>
           <button
             onClick={() => navigate("/dashboard")}
@@ -41,11 +46,6 @@ const LandingPage = () => {
           >
             Proceed to Dashboard
           </button>
-        </div>
-
-        {/* Right Side: Logo */}
-        <div className="lg:w-1/2 flex justify-center">
-          <img src={ojt_logo} alt="NEU OJT LINK Logo" className="relative -mt-[180px]" />
         </div>
       </div>
 
