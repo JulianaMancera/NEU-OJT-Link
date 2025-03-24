@@ -29,11 +29,23 @@ const CompanyApplication = ({company, onClose}: CompanyProps) => {
     const [jobDetail, setJobDetail] = useState<Job[] |null>(null);
     //User Requirements/Data
     const [selectedJob, setSelectedJob] = useState<Job | null>(null);
-    const [resume, setResume] = useState<File | null>(null);
     const [coverLetter, setCoverLetter] = useState<File | null>(null);
+    const [resume, setResume] = useState<File | null>(null);
+    const [com, setCOM] = useState<File | null>(null);
+    const [cv, setCV] = useState<File | null>(null);
+    const [medCert, setMedcert] = useState<File | null>(null);
+    const [notarized, setNotarized] = useState<File | null>(null);
+    const [poi, setPOI] = useState<File | null>(null);
+    const [psyTest, setPsyTest] = useState<File | null>(null);
     //Checker for User Uploads
     const [resumeUploaded, setResumeUploaded] = useState(false);
     const [coverLetterUploaded, setCoverLetterUploaded] = useState(false);
+    const [comUploaded, setComUploaded] = useState(false) 
+    const [cvUploaded, setCVUploaded] = useState(false) 
+    const [medCertUploaded, setMedcertUploaded] = useState(false) 
+    const [notarizeUploaded, setNotarizedUploaded] = useState(false) 
+    const [poiUploaded, setPoiUploaded] = useState(false) 
+    const [psyTestUploaded, setPsyTestUploaded] = useState(false) 
 
     useEffect(() => {
         const fetchJob = async () => {
@@ -52,8 +64,8 @@ const CompanyApplication = ({company, onClose}: CompanyProps) => {
     },[company]);
 
    
-         const handleRequirementSubmit = async () => {
-        if(!resume || !coverLetter){
+    const handleRequirementSubmit = async () => {
+        if(!resume || !coverLetter || !com || !cv || !medCert || !notarized || !poi || !psyTest){
             alert("Please Upload Both Files")
             return;
         }
@@ -68,11 +80,56 @@ const CompanyApplication = ({company, onClose}: CompanyProps) => {
         .storage
         .from("applicant-documents")
         .upload(`cover-letter/${user.data.user?.id}_${company.company_id}_${coverLetter.name}`,coverLetter);
+        //Upload Com
+        const{data:comData, error:comError} = await supabase
+        .storage
+        .from("applicant-documents")
+        .upload(`com/${user.data.user?.id}_${company.company_id}_${com.name}`,com);
+        //Upload CV 
+        const{data:cvData, error:cvError} = await supabase
+        .storage
+        .from("applicant-documents")
+        .upload(`cv/${user.data.user?.id}_${company.company_id}_${cv.name}`,cv);
+        //Upload Medcert
+        const{data:medCertData, error:medCertError} = await supabase
+        .storage
+        .from("applicant-documents")
+        .upload(`medCert/${user.data.user?.id}_${company.company_id}_${medCert.name}`,medCert);
+        //Upload Notarize Parent
+        const{data:notarizeData, error:notarizeError} = await supabase
+        .storage
+        .from("applicant-documents")
+        .upload(`notarized/${user.data.user?.id}_${company.company_id}_${notarized.name}`,notarized);
+        //Upload POI
+        const{data:poiData, error:poiError} = await supabase
+        .storage
+        .from("applicant-documents")
+        .upload(`poi/${user.data.user?.id}_${company.company_id}_${poi.name}`,poi);
+        //Upload Psy Test
+        const{data:psyTestData, error:psyTestError} = await supabase
+        .storage
+        .from("applicant-documents")
+        .upload(`psyTest/${user.data.user?.id}_${company.company_id}_${psyTest.name}`,psyTest);
+
+
+
 
         //hanlde errors
         if(resumeError ){
             console.error("Error Uploadingg", resumeError)
         }if(coverLetterError ){
+            console.error("Error Uploadingg", coverLetterError)
+        }if(comError ){
+            console.error("Error Uploadingg", resumeError)
+        }if(cvError ){
+            console.error("Error Uploadingg", coverLetterError)
+        }if(medCertError ){
+            console.error("Error Uploadingg", resumeError)
+        }if(notarizeError ){
+            console.error("Error Uploadingg", coverLetterError)
+        }if(poiError ){
+            console.error("Error Uploadingg", resumeError)
+        }if(psyTestError ){
             console.error("Error Uploadingg", coverLetterError)
         }
         
@@ -83,6 +140,12 @@ const CompanyApplication = ({company, onClose}: CompanyProps) => {
                 created_at: new Date().toISOString(),
                 resume_url: resumeData?.path,
                 cover_letter_url: coverLetterData?.path,
+                com_url : comData?.path,
+                cv_url : cvData?.path,
+                medCert_url : medCertData?.path,
+                notarize_url : notarizeData?.path,
+                poi_url : poiData?.path,
+                psyTest_url : psyTestData?.path,
                 company_id: company.company_id,
                 job_id: selectedJob?.job_id,
             }
@@ -118,8 +181,21 @@ const CompanyApplication = ({company, onClose}: CompanyProps) => {
                     setResume(event.target.files[0]);
                 }else if (type == "coverLetter"){
                     setCoverLetter(event.target.files[0]);
+                }else if (type == "com"){
+                    setCOM(event.target.files[0]);
+                }else if (type == "cv"){
+                    setCV(event.target.files[0]);
+                }else if (type == "medCert"){
+                    setMedcert(event.target.files[0]);
+                }else if (type == "notarized"){
+                    setNotarized(event.target.files[0]);
+                }else if (type == "poi"){
+                    setPOI(event.target.files[0]);
+                }else if (type == "psyTest"){
+                    setPsyTest(event.target.files[0]);
                 }
-            }
+
+           }
         }
     const handleSelectedJob = async (job: Job) => {
             const user = await supabase.auth.getUser()
@@ -140,12 +216,16 @@ const CompanyApplication = ({company, onClose}: CompanyProps) => {
             .single()
 
             if(data){
-                if(data.resume_url){
+                if(data.resume_url && data.cover_letter_url){
                     console.log(data)
                     setResumeUploaded(true)
-                }
-                if(data.cover_letter_url){
                     setCoverLetterUploaded(true)
+                    setComUploaded(true)
+                    setCVUploaded(true)
+                    setMedcertUploaded(true)
+                    setNotarizedUploaded(true)
+                    setPoiUploaded(true)
+                    setPsyTestUploaded(true)
                 }
             }else{
                 console.log(error)
@@ -212,10 +292,41 @@ const CompanyApplication = ({company, onClose}: CompanyProps) => {
                             <label>Cover Letter </label>
                             <input type="file" accept=".pdf" onChange={(e)=>handleFileChange(e,"coverLetter")} />
                         </div>}
+                        {comUploaded ? <p>The COM is Uploaded</p>: 
+                        <div>
+                            <label>COM </label>
+                            <input type="file" accept=".pdf" onChange={(e)=>handleFileChange(e,"com")} />
+                        </div>}
+                            {cvUploaded ? <p>The CV is Uploaded</p>: 
+                        <div>
+                            <label>CV </label>
+                            <input type="file" accept=".pdf" onChange={(e)=>handleFileChange(e,"cv")} />
+                        </div>}
+                        {medCertUploaded ? <p>The Medcert is Uploaded</p>: 
+                        <div>
+                            <label>Med Cert </label>
+                            <input type="file" accept=".pdf" onChange={(e)=>handleFileChange(e,"medCert")} />
+                        </div>}
+                        {notarizeUploaded ? <p>The Notartize is Uploaded</p>: 
+                        <div>
+                            <label>Notarized Parent Consent </label>
+                            <input type="file" accept=".pdf" onChange={(e)=>handleFileChange(e,"notarized")} />
+                        </div>}
+                        {poiUploaded ? <p>The POI is Uploaded</p>: 
+                        <div>
+                            <label>Proof of Assurance</label>
+                            <input type="file" accept=".pdf" onChange={(e)=>handleFileChange(e,"poi")} />
+                        </div>}
+                        {psyTestUploaded ? <p>The Psy Test  is Uploaded</p>: 
+                        <div>
+                            <label>Psychological Test</label>
+                            <input type="file" accept=".pdf" onChange={(e)=>handleFileChange(e,"psyTest")} />
+                        </div>}
                         <div>
                             <button onClick={handleRequirementSubmit}>Submit</button>
                             <button onClick={onClose}>Cancel</button>
                         </div>
+
                     </div>
             
 
