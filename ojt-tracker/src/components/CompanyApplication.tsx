@@ -112,7 +112,6 @@ const CompanyApplication = ({company, onClose}: CompanyProps) => {
         .storage
         .from("applicant-documents")
         .upload(`psyTest/${user.data.user?.id}_${company.company_id}_${psyTest.name}`,psyTest);
-
         //hanlde errors
         if(resumeError ){
             console.error("Error Uploadingg", resumeError)
