@@ -14,7 +14,7 @@ export default function App() {
         <Route path="/landing-page" element={<LandingPage />} /> {/*  Landing Route */}
         <Route path="/dashboard" element={<Dashboard />} /> {/* Dashboard Route */}
         <Route path="/weekly-report" element={<WeeklyReport />} /> {/* WeeklyReport */}
-        <Route path="/application-approval" element={<ApplicationApproval />} /> {/* ApplicationApproval */}
+        
       </Routes>
     </Router>
   );
