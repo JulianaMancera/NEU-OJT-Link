@@ -4,7 +4,7 @@ import Dashboard from "./pages/Dashboard";
 import './App.css'
 import WeeklyReport from "./pages/WeeklyReport";
 import LandingPage from "./pages/LandingPage";
-import ApplicationApproval from "./pages/ApplicationApproval";
+
 
 export default function App() {
   return (
