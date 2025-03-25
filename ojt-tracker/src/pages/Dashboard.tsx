@@ -77,8 +77,8 @@ const Dashboard = () => {
     alt="Ojt Logo" 
     className="w-[180px] h-[180px] rounded-[60px] ml-4"
   />
-
-  {/* Center logged-in text */}
+  
+  {/*/* Center logged-in text */}
   {user && (
     <p className="text-white text-lg font-semibold absolute left-1/2 transform -translate-x-1/2">
       Logged in as: {user.user_metadata?.full_name}
