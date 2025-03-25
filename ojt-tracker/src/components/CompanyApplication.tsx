@@ -157,34 +157,34 @@ const CompanyApplication = ({company, onClose}: CompanyProps) => {
     return(
         <div className="flex items-center justify-center">
             {step === "apply" && (
-                <div>
+                <div className="text-black">
                 <p>Want to apply to {company.name}</p>
                 <div className="justify-between">
                 { jobDetail && jobDetail.length > 0 ? (
                     jobDetail.map((job, index) => (
                 <div key={index} className="mb-4">
                     <p className="font-bold">Position</p>
-                    <p>{job?.position}</p>
+                    <p className="text-black">{job?.position}</p>
                     <p className="font-bold">Description</p>
-                    <p>{job?.description}</p>
+                    <p className="text-black">{job?.description}</p>
                     <p className="font-bold">Responsiblity</p>
-                    <ul className="list-disc text-white">
+                    <ul className="list-disc">
                         {job?.responsibility.map((resp,index)=>(
                             <li key={index}>{resp}</li>
                         ))}
                     </ul>
                     <p className="font-bold">Compentencies</p>
-                    <ul className="list-disc text-white">
+                    <ul className="list-disc text-black">
                         {job?.qualifications.map((compe,index)=>(
                             <li key={index}>{compe}</li>
                         ))}
                     </ul>
-                    <button onClick={() => handleSelectedJob(job)}>Proceed</button>
-                    <button onClick={onClose}>Cancel</button>
+                    <button onClick={() => handleSelectedJob(job)} className="text-white">Proceed</button>
+                    <button onClick={onClose} className="text-white">Cancel</button>
  
                 </div>
                     ))
-                ) : ( <p>No Jobs Availabel in this company</p>)
+                ) : ( <p>No Jobs Available in this company</p>)
 
                 }
                 </div>
@@ -192,7 +192,7 @@ const CompanyApplication = ({company, onClose}: CompanyProps) => {
 
             )}
             {step === "requirement" && (
-                <div>
+                <div className="text-black">
                 <p>Company Selected {company.name}</p>
                 <p>Position {selectedJob?.position}</p>
                 <p>Posistion Selected </p>
@@ -212,8 +212,8 @@ const CompanyApplication = ({company, onClose}: CompanyProps) => {
                             <input type="file" accept=".pdf" onChange={(e)=>handleFileChange(e,"coverLetter")} />
                         </div>}
                         <div>
-                            <button onClick={handleRequirementSubmit}>Submit</button>
-                            <button onClick={onClose}>Cancel</button>
+                            <button onClick={handleRequirementSubmit} className="text-white">Submit</button>
+                            <button onClick={onClose} className="text-white">Cancel</button>
                         </div>
                     </div>
             
