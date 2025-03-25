@@ -28,7 +28,7 @@ interface Job{
 
 const CompanyApplication = ({company, onClose}: CompanyProps) => {
     const [step, setStep] = useState<"apply" | "requirement" | "dashboard">("apply");
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [jobDetail, setJobDetail] = useState<Job[] |null>(null);
     //User Requirements/Data
     const [selectedJob, setSelectedJob] = useState<Job | null>(null);
@@ -234,6 +234,7 @@ const CompanyApplication = ({company, onClose}: CompanyProps) => {
         setStep("requirement")
     }
     return(
+
         <div className="flex items-center justify-center">
             {step === "apply" && (
                 <div className="text-black">
