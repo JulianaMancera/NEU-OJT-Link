@@ -36,5 +36,4 @@ const EndorsementButton = () => {
         </div>
     )
 }
-
 export default EndorsementButton;
