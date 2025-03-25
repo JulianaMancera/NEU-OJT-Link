@@ -3,8 +3,8 @@ import { supabase } from "../../supabase";
 import { useNavigate } from "react-router-dom";
 import { User } from "@supabase/supabase-js";
 import CompanyApplication from "../components/CompanyApplication";
-import OJTLogo from "/src/assets/ojt-logo.png";
-import { Search } from "lucide-react";
+import OJTLogo from "/src/assets/ojt-logo-dashboard.svg";
+import { Search, X } from "lucide-react";
 
 interface Company {
   company_id: string;
@@ -76,7 +76,7 @@ const Dashboard = () => {
       <img 
         src={OJTLogo} 
         alt="Ojt Logo" 
-        className="w-[180px] h-[180px] rounded-[60px] ml-4"
+        className="w-[220px] h-[220px] ml-4"
       />
 
       {/* Center logged-in text
@@ -106,7 +106,7 @@ const Dashboard = () => {
       {/* Companies Section */}
       <div className="w-screen min-h-screen bg-gradient-to-b from-[#D0E8FF] to-[#FFFFFF] flex flex-col items-center p-28">
       {/* Search Section */}
-      <div className="relative w-[520px] h-12 bg-[#fcfbf4]/75 border-2 border-black flex items-center px-4 mb-4">
+      <div className="relative w-[520px] h-12 bg-[#fcfbf4]/75 border-2 border-black flex items-center px-4 mb-10">
         <span className="text-[#716969] text-2xl font-normal font-inter">
           Job title, keyword, or company
         </span>
@@ -116,27 +116,42 @@ const Dashboard = () => {
       </div>
 
       {/* Heading */}
-      <h2 className="text-3xl font-bold text-center text-black mt-6">Explore Companies</h2>
+      <h2 className="text-4xl font-bold text-center text-black mt-6">Explore Companies</h2>
 
-      {/* Company Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
-      {companies.map((company) => (
-        <div 
-          key={company.company_id} 
-          onClick={() => setSelectedCompany(company)} 
-          className="border rounded-lg shadow-[0_0_15px_4px_rgba(169,162,255,0.5)] p-6 bg-white cursor-pointer">
-            <h2 className="text-xl text-gray-600 font-semibold">{company.name}</h2>
-            <p className="text-gray-600">{company.address} - {company.email}</p>
-            <p className="text-gray-700 mt-2">{company.contact_no}</p>
+        {/* Company Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
+        {companies.map((company) => (
+          <div key={company.company_id} className="w-full">
+            {/* Company Card */}
+            <div
+              onClick={() => setSelectedCompany(selectedCompany === company ? null : company)}
+              className="border rounded-lg shadow-[0_0_15px_4px_rgba(169,162,255,0.5)] p-6 bg-white cursor-pointer"
+            >
+              <h2 className="text-xl text-gray-600 font-semibold">{company.name}</h2>
+              <p className="text-gray-600">{company.address} - {company.email}</p>
+              <p className="text-gray-700 mt-2">{company.contact_no}</p>
+            </div>
+
+            {/* Expanded Company Details (if selected) */}
+            {selectedCompany === company && (
+              <div className="border mt-2 p-6 bg-white rounded-lg shadow-lg">
+                {/* Close Button */}
+                <div className="flex justify-between items-center">
+                  <h3 className="text-lg font-bold text-black">{company.name}</h3>
+                  <button onClick={() => setSelectedCompany(null)}>
+                    <X size={24} color="white" />
+                  </button>
+                </div>
+
+
+                {/* Company Application Component Inside Expanding Box */}
+                <CompanyApplication company={company} onClose={() => setSelectedCompany(null)} />
+              </div>
+            )}
           </div>
         ))}
       </div>
-
-        {/* Show Company Details When Selected */}
-        {selectedCompany && (
-        <CompanyApplication company={selectedCompany} onClose={() => setSelectedCompany(null)} />
-          )}
-      </div>
+    </div>
     </div>
   );
 };
