@@ -79,12 +79,12 @@ const Dashboard = () => {
         className="w-[220px] h-[220px] ml-4"
       />
 
-      {/* Center logged-in text
+      {/* Center logged-in text*/}
       {user && (
         <p className="text-white text-lg font-semibold absolute left-1/2 transform -translate-x-1/2">
           Logged in as: {user.user_metadata?.full_name}
         </p>
-      )} */}
+      )} 
 
     <div className="flex space-x-4">
       {/*<button 
