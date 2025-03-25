@@ -3,6 +3,7 @@ import { supabase } from "../../supabase";
 import { useNavigate } from "react-router-dom";
 import { User } from "@supabase/supabase-js";
 import CompanyApplication from "../components/CompanyApplication";
+import OJTLogo from "/src/assets/ojt-logo.png";
 
 interface Company {
   company_id: string;
@@ -68,35 +69,49 @@ const Dashboard = () => {
   return (
     <div className="p-6">
       {/* Header */}
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Welcome to the Dashboard</h1>
-        <div>
-          <button 
-            className="bg-blue-500 text-white px-4 py-2 rounded mr-4"
-            onClick={() => navigate("/weekly-report")}
-          >
-            Submit Weekly Report
-          </button>
-          <button 
-            className="bg-red-500 text-white px-4 py-2 rounded"
-            onClick={handleLogout}
-          >
-            Logout
-          </button>
-        </div>
-      </div>
+      <div className="w-full h-[111px] absolute left-0 top-0 bg-gradient-to-b from-[#578FCA] to-[#2B4764] border-2 border-black flex items-center justify-between px-6">
+  
+  {/*logo bigger */}
+  <img 
+    src={OJTLogo} 
+    alt="Ojt Logo" 
+    className="w-[180px] h-[180px] rounded-[60px] ml-4"
+  />
 
-      {user && <p className="mt-4">Logged in as: {user.user_metadata?.full_name}</p>}
+  {/* Center logged-in text */}
+  {user && (
+    <p className="text-white text-lg font-semibold absolute left-1/2 transform -translate-x-1/2">
+      Logged in as: {user.user_metadata?.full_name}
+    </p>
+  )}
+
+  <div className="flex space-x-4">
+    <button 
+      className="bg-blue-500 text-white px-4 py-2 rounded mr-4"
+      onClick={() => navigate("/weekly-report")}
+    >
+      Submit Weekly Report
+    </button>
+    <button 
+      className="bg-red-500 text-white px-4 py-2 rounded"
+      onClick={handleLogout}
+    >
+      Logout
+    </button>
+  </div>
+</div>
+
 
       {/* Companies Section */}
-      <h2 className="text-3xl font-bold text-center mt-8 mb-6">Explore Companies</h2>
+      <div className="bg-gradient-to-b from-[#D0E8FF] to-[#FFFFFF] min-h-screen p-20">
+      <h2 className="text-3xl font-bold text-center mt-8 mb-6 text-black">Explore Companies</h2>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {companies.map((company) => (
           <div 
             key={company.company_id} 
             onClick={() => setSelectedCompany(company)} 
-            className="border rounded-lg shadow-md p-6 bg-white cursor-pointer hover:shadow-lg transition"
+            className="border rounded-lg shadow-[0_0_15px_4px_rgba(169,162,255,0.5)] p-6 bg-white cursor-pointer"
           >
             <h2 className="text-xl text-gray-600 font-semibold">{company.name}</h2>
             <p className="text-gray-600">{company.address} - {company.email}</p>
@@ -109,6 +124,7 @@ const Dashboard = () => {
       {selectedCompany && (
         <CompanyApplication company={selectedCompany} onClose={() => setSelectedCompany(null)} />
       )}
+      </div>
     </div>
   );
 };

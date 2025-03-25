@@ -35,50 +35,49 @@ const Auth = () => {
   };
 
   return (
-    <div className="relative h-screen w-screen">
-      {/* Background Image */}
+    <div className="relative min-h-screen w-screen">
       <img
         src={backgroundImage}
         alt="New Era University"
         className="absolute inset-0 w-full h-full object-cover"
       />
+    
+      <div className="relative w-full h-screen flex items-center justify-end">
+        <div className="w-full md:w-[750px] h-full absolute md:static right-0 top-0 bg-gradient-to-b from-[#7fb6dd] via-[#9fc8e6] to-white rounded-tl-[50px] rounded-bl-[50px] shadow-lg p-6 flex flex-col items-center">
+        
+        
+          <img src={backgroundImage1} 
+          alt="NEU LOGO" 
+          className="w-32 md:w-40 mt-10 md:mt-23" />
 
-      {/* Google Sign-In Button (Right Aligned, No Text) */}
-      
-      <div className="relative w-full h-screen">
-      <div className="w-[750px] h-full absolute right-0 top-0 bg-gradient-to-b from-[#7fb6dd] via-[#9fc8e6] to-white rounded-tl-[50px] rounded-bl-[50px] shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)]">
-        <div className="flex flex-col items-center pt-24">
-            <img
-            src={backgroundImage1}
-            alt="NEU LOGO"
-           />
-
-            <img
+          <img
             src={backgroundImage2}
             alt="OJT LINK"
-            className="obejct-contain relative -mt-[90px]"
-            />
+            className="object-contain relative -mt-10 md:-mt-[90px] w-48 md:w-auto"
+          />
 
-            <div className="flex flex-col items text-center relative -mt-[180px]">
-              <h2 className="text-black text-[30px] font-semibold font-poppins">
-              <p>Welcome User!</p>
-              </h2>
+        
+          <div className="flex flex-col text-center relative -mt-20 md:-mt-[180px]">
+            <h2 className="text-black text-[24px] md:text-[30px] font-semibold font-poppins">
+              Welcome User!
+            </h2>
 
-              <div className="w-[230px] h-[50px] flex items-center justify-center">
-                {!loading && (
-                  <img
+            {/* Google Sign-In Button */}
+            <div className="w-[180px] md:w-[230px] h-[80px] flex items-center justify-center">
+              {!loading && (
+                <img
                   src={googleButton}
                   alt="Sign in with Google"
                   onClick={signInWithGoogle}
-                  className="fixed top-[570px] center cursor-pointer transition-transform hover:scale-105 hover:shadow-lg justify-center"
-                  />
-                  )}
-                </div>
-              </div>
-          </div>
+                  className="cursor-pointer transition-transform hover:scale-105 hover:shadow-lg"
+                />
+              )}
         </div>
       </div>
     </div>
+  </div>
+</div>
+
   );
 };
 
