@@ -150,6 +150,7 @@ const CompanyApplication = ({company, onClose}: CompanyProps) => {
                 user_id: user.data.user?.id,
                 company_id: company.company_id,
                 email: user.data.user?.email,
+                job_id: selectedJob?.job_id,
                 status: "pending",
                 start_date: null,
                 end_date: null,
@@ -263,8 +264,8 @@ const CompanyApplication = ({company, onClose}: CompanyProps) => {
                 <p>Company Selected {company.name}</p>
                 <p>Position {selectedJob?.position}</p>
                 <p>Posistion Selected </p>
-                    {resumeUploaded && coverLetterUploaded ? 
-                    <div>You already Submit for this posistion  <EndorsementButton/></div> :
+                    {resumeUploaded && coverLetterUploaded && selectedJob ? 
+                    <div>You already Submit for this posistion  <EndorsementButton companyProps={{company, onClose}} job={selectedJob}/></div> :
                     <div>
                         <p className="font-semibold">Please Submit Requirements</p>
                         {resumeUploaded ? <p>The Resume is Uploaded</p>: 
