@@ -5,6 +5,7 @@ import './App.css'
 import WeeklyReport from "./pages/WeeklyReport";
 import LandingPage from "./pages/LandingPage";
 
+
 export default function App() {
   return (
     <Router>
@@ -13,6 +14,7 @@ export default function App() {
         <Route path="/landing-page" element={<LandingPage />} /> {/*  Landing Route */}
         <Route path="/dashboard" element={<Dashboard />} /> {/* Dashboard Route */}
         <Route path="/weekly-report" element={<WeeklyReport />} /> {/* WeeklyReport */}
+        
       </Routes>
     </Router>
   );
