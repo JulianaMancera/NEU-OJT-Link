@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../../supabase";
 import { useNavigate } from "react-router-dom";
-import { User } from "@supabase/supabase-js";
 import CompanyApplication from "../components/CompanyApplication";
 import OJTLogo from "/src/assets/ojt-logo-dashboard.svg";
 import { Search, X } from "lucide-react";
@@ -16,7 +15,6 @@ interface Company {
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const [user, setUser] = useState<User>();
   const [loading, setLoading] = useState(true);
   const [companies, setCompanies] = useState<Company[]>([]);
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
@@ -40,7 +38,6 @@ const Dashboard = () => {
         if (error) console.error("Error inserting user:", error);
         console.log("User creation success");
 
-        setUser(user);
         setLoading(false);
       }
     };
@@ -79,20 +76,7 @@ const Dashboard = () => {
         className="w-[220px] h-[220px] ml-4"
       />
 
-      {/* Center logged-in text
-      {user && (
-        <p className="text-white text-lg font-semibold absolute left-1/2 transform -translate-x-1/2">
-          Logged in as: {user.user_metadata?.full_name}
-        </p>
-      )} */}
-
     <div className="flex space-x-4">
-      {/*<button 
-        className="bg-blue-500 text-white px-4 py-2 rounded mr-4"
-        onClick={() => navigate("/weekly-report")}
-      >
-        Submit Weekly Report
-      </button> */}
       <button 
         className="bg-red-500 text-white px-4 py-2 rounded"
         onClick={handleLogout}
@@ -104,9 +88,9 @@ const Dashboard = () => {
 
 
       {/* Companies Section */}
-      <div className="w-screen min-h-screen bg-gradient-to-b from-[#D0E8FF] to-[#FFFFFF] flex flex-col items-center p-28">
+      <div className="w-screen min-h-screen bg-[linear-gradient(to_bottom,#091545_1%,#1735AB_59%)] flex flex-col items-center p-28">
       {/* Search Section */}
-      <div className="relative w-[520px] h-12 bg-[#fcfbf4]/75 border-2 border-black flex items-center px-4 mb-10">
+      <div className="relative w-[520px] h-12 bg-[#fcfbf4]/75 border-2 border-black flex items-center px-4 mb-4">
         <span className="text-[#716969] text-2xl font-normal font-inter">
           Job title, keyword, or company
         </span>
@@ -116,7 +100,7 @@ const Dashboard = () => {
       </div>
 
       {/* Heading */}
-      <h2 className="text-4xl font-bold text-center text-black mt-6">Explore Companies</h2>
+      <h2 className="text-5xl font-bold text-center text-white p-10">Explore Companies</h2>
 
         {/* Company Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
@@ -128,25 +112,26 @@ const Dashboard = () => {
               className="border rounded-lg shadow-[0_0_15px_4px_rgba(169,162,255,0.5)] p-6 bg-white cursor-pointer"
             >
               <h2 className="text-xl text-gray-600 font-semibold">{company.name}</h2>
-              <p className="text-gray-600">{company.address} - {company.email}</p>
+              <p className="text-gray-600 text-[1em] break-words">{company.address} - {company.email}</p>
               <p className="text-gray-700 mt-2">{company.contact_no}</p>
             </div>
 
             {/* Expanded Company Details (if selected) */}
-            {selectedCompany === company && (
-              <div className="border mt-2 p-6 bg-white rounded-lg shadow-lg">
-                {/* Close Button */}
-                <div className="flex justify-between items-center">
-                  <h3 className="text-lg font-bold text-black">{company.name}</h3>
-                  <button onClick={() => setSelectedCompany(null)}>
-                    <X size={24} color="white" />
-                  </button>
+                {selectedCompany === company && (
+                  <div className="fixed inset-0 flex items-center justify-center bg-opacity-50">
+                    <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-[80vh] h-[60vh] overflow-y-auto overflow-x-hidden relative">
+                
+                      {/* Close Button */}
+                      <div className="flex justify-between items-center">
+                        <h3 className="text-xl font-bold text-black sticky top-0 bg-white">{company.name}</h3>
+                        <button onClick={() => setSelectedCompany(null)}>
+                          <X size={15} color="white" />
+                        </button>
+                      </div>
+                  {/* Company Application Component Inside Expanding Box */}
+                  <CompanyApplication company={company} onClose={() => setSelectedCompany(null)} />
                 </div>
-
-
-                {/* Company Application Component Inside Expanding Box */}
-                <CompanyApplication company={company} onClose={() => setSelectedCompany(null)} />
-              </div>
+                </div>
             )}
           </div>
         ))}
