@@ -6,6 +6,7 @@ import Dashboard from "./pages/Dashboard";
 import WeeklyReport from "./pages/WeeklyReport";
 import LandingPage from "./pages/LandingPage";
 import ApplicationApproval from "./pages/ApplicationApproval";
+import StudentDashboard from "./pages/StudentDashboard";
 
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
@@ -16,6 +17,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/weekly-report" element={<WeeklyReport />} />
       <Route path="/application-approval" element={<ApplicationApproval />} /> {/* ApplicationApproval */}
+      <Route path="/student-dashboard" element={<StudentDashboard />} />
 
     </Routes>
   </BrowserRouter>
