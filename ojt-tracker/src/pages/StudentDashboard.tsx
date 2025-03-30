@@ -13,8 +13,8 @@ const StudentDashboard: React.FC = () => {
   const [jobPosition, setJobPosition] = useState<string | null>(null);
 
   const [isWeeklyReportModalOpen, setIsWeeklyReportModalOpen] = useState(false);
-  const [isWeeklyJournalModalOpen, setIsWeeklyJournalModalOpen] = useState(false);
-  const [isMonthlyReportModalOpen, setIsMonthlyReportModalOpen] = useState(false);
+  const [isWeeklyJournalModalOpen, setIsWeeklyJournalModalOpen] = useState(false);  //Do not merge with Vercel yet
+  const [isMonthlyReportModalOpen, setIsMonthlyReportModalOpen] = useState(false);  //Do not merge with Vercel yet, it will cause error
 
   const templates = [
     { name: "Weekly Report", file: "WeeklyReport_Surname.pdf" },
