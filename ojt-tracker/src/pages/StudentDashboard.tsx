@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-// import { useNavigate } from "react-router-dom"; Comment ko muna ito as well since Modals na ginagamit sa reports, hindi na sya magnanavigate
+// import { useNavigate } from "react-router-dom"; Comment ko muna ito as well since Modals na ginagamit sa reports, hindi na sya magnana                                                vigate
 import { File } from "lucide-react";
 import { supabase } from "../../supabase";
 import logo from "../assets/ojt-link-logo FINAL.png";
