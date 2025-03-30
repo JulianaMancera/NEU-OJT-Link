@@ -1,20 +1,22 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+// import { useNavigate } from "react-router-dom"; Comment ko muna ito as well since Modals na ginagamit sa reports, hindi na sya magnanavigate
 import { File } from "lucide-react";
 import { supabase } from "../../supabase";
 import logo from "../assets/ojt-link-logo FINAL.png";
 import WeeklyReport from "../components/WeeklyReport";
+import WeeklyJournal from "../components/WeeklyJournal";
+import MonthlyReport from "../components/MonthlyReport";
 
 const StudentDashboard: React.FC = () => {
-  const navigate = useNavigate();
+ // const navigate = useNavigate(); Comment ko muna ito as well since Modals na ito, hindi na sya navigate
   const [loading, setLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [companyName, setCompanyName] = useState<string | null>(null);
   const [jobPosition, setJobPosition] = useState<string | null>(null);
 
   const [isWeeklyReportModalOpen, setIsWeeklyReportModalOpen] = useState(false);
-  const [isWeeklyJournalModalOpen, setIsWeeklyJournalModalOpen] = useState(false);  //Do not merge with Vercel yet
-  const [isMonthlyReportModalOpen, setIsMonthlyReportModalOpen] = useState(false);  //Do not merge with Vercel yet, it will cause error
+  const [isWeeklyJournalModalOpen, setIsWeeklyJournalModalOpen] = useState(false);
+  const [isMonthlyReportModalOpen, setIsMonthlyReportModalOpen] = useState(false);
 
   const templates = [
     { name: "Weekly Report", file: "WeeklyReport_Surname.pdf" },
@@ -104,14 +106,15 @@ const StudentDashboard: React.FC = () => {
     setLoading(null);
   };  
 
-  const handleNavigateToSubmission = (reportType: string) => {
-    const routes: { [key: string]: string } = {
-      "Weekly Report": "/weekly-report",
-      "Weekly Journal": "/weekly-journal",
-      "Monthly Report": "/monthly-report",
-    };
-    navigate(routes[reportType]);
-  };
+   // const handleNavigateToSubmission = (reportType: string) => { Comment ko muna ito kasi 
+//   const routes: { [key: string]: string } = { since Modals na ginagamit sa reports, 
+//     "Weekly Report": "/weekly-report",   hindi na to ginagamit
+//     "Weekly Journal": "/weekly-journal",   Pwede na to i-remove
+//     "Monthly Report": "/monthly-report",    Palagay 1 point po for error logic handling hehe :)
+//   };
+//   navigate(routes[reportType]);
+// };
+
 
   const handleOpenSubmissionModal = (reportType: string) => {
     switch (reportType) {
@@ -244,6 +247,8 @@ const StudentDashboard: React.FC = () => {
             </div>
         </div>
         <WeeklyReport isOpen={isWeeklyReportModalOpen} onClose={() => setIsWeeklyReportModalOpen(false)} />
+        <WeeklyJournal isOpen={isWeeklyJournalModalOpen} onClose={() => setIsWeeklyJournalModalOpen(false)} />
+        <MonthlyReport isOpen={isMonthlyReportModalOpen} onClose={() => setIsMonthlyReportModalOpen(false)} />
           <div className="bg-white shadow-md rounded-lg p-4 border border-black">
             <h3 className="text-lg font-semibold mb-2">Reports Submitted</h3>
             <div className="space-y-2">
