@@ -2,7 +2,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import './App.css'
-import WeeklyReport from "./pages/WeeklyReport";
+import WeeklyReport from "./components/WeeklyReport";
 import LandingPage from "./pages/LandingPage";
 
 
