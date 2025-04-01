@@ -2,11 +2,18 @@ import { useState } from "react";
 import { supabase } from "../../supabase";
 import { FaCloudUploadAlt, FaTrash } from "react-icons/fa";
 
-const WeeklyReport = () => {
+interface WeeklyReportProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+const WeeklyReport = ({ isOpen, onClose }: WeeklyReportProps) => {
   const [files, setFiles] = useState<File[]>([]);
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState<number | null>(null);
   const [message, setMessage] = useState("");
+
+  if (!isOpen) return null;
 
   // Handle file selection and drag-drop
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -88,10 +95,12 @@ const WeeklyReport = () => {
   };
 
   return (
-    <div className="flex items-center justify-center w-screen min-h-screen bg-blue-100">
-      {/* Modal/Card Container */}
-      <div className="w-full max-w-2xl bg-gray-200 shadow-xl rounded-lg p-6 border border-gray-400">
-        {/* Header */}
+    <div className={`fixed inset-0 bg-opacity-50 backdrop-blur-sm flex items-center justify-center ${isOpen ? "visible" : "invisible"}`}>
+      {/* Blurred Background */}
+      <div className="fixed inset-0" onClick={onClose}></div>
+
+      {/* Modal */}
+      <div className="relative bg-gray-200 shadow-xl rounded-lg p-6 border-2 border-black-400 w-full max-w-2xl z-50">
         <h2 className="text-2xl font-semibold text-gray-800 text-center mb-4">UPLOAD WEEKLY REPORT</h2>
 
         {/* Drag & Drop Area */}

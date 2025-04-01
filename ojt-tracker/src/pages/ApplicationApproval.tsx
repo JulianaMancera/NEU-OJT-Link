@@ -27,7 +27,6 @@ const ApplicationApproval = () => {
 
       setUser(user);
 
-      // Fetch applications
       const { data, error } = await supabase.from("application").select("*");
 
       if (error) {
@@ -37,14 +36,12 @@ const ApplicationApproval = () => {
       }
 
       const fetchNames = await Promise.all(data.map(async (app) => {
-        // Fetch username
         const { data: userData } = await supabase
           .from("user")
           .select("name")
           .eq("user_id", app.user_id)
           .single();
 
-        // Fetch company name
         const { data: companyData } = await supabase
           .from("company")
           .select("name")

@@ -2,6 +2,7 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.48.1",
     "@tailwindcss/vite": "^4.0.6",
+    "buffer": "^6.0.3",
     "lucide-react": "^0.483.0",
     "react-icons": "^5.5.0",
     "react-router-dom": "^7.1.5"
