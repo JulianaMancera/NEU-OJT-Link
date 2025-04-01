@@ -5,9 +5,9 @@ import './index.css'
 import Dashboard from "./pages/Dashboard";
 import WeeklyReport from "./pages/WeeklyReport";
 import LandingPage from "./pages/LandingPage";
+
 import ApplicationApproval from "./pages/ApplicationApproval";
 import StudentDashboard from "./pages/StudentDashboard";
-
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <BrowserRouter>
