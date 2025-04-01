@@ -7,9 +7,6 @@ import LandingPage from "./pages/LandingPage";
 import ApplicationApproval from "./pages/ApplicationApproval";
 import StudentDashboard from "./pages/StudentDashboard";
 
-import ApplicationApproval from "./pages/ApplicationApproval";
-import StudentDashboard from "./pages/StudentDashboard";
-
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <BrowserRouter>
     <Routes>
