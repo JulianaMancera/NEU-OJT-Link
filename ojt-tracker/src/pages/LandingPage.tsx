@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../supabase";
 import landingPic from "../assets/landingPic.png";
-import ojt_logo from "../assets/ojt-logo.png";
 
 const LandingPage = () => {
   const navigate = useNavigate();
@@ -23,39 +22,59 @@ const LandingPage = () => {
   }, [navigate]);
 
   return (
-    <div className="h-screen w-screen flex flex-col relative">
-      {/* Top Section */}
-      <div className="flex flex-col lg:flex-row items-center justify-between p-8 relative z-10">
-        {/* Left Side: Welcome Text */}
-        <div className="lg:w-1/2 p-6">
-          <h1 className="text-5xl font-bold text-gray-900">
-            Welcome, {userName} to the <br />
-            <span className="text-black">NEU OJT LINK</span>
-          </h1>
-          <p className="text-gray-600 mt-4 text-lg">
-            Connecting students and companies seamlessly for a better OJT experience.
-          </p>
-          <button
-            onClick={() => navigate("/dashboard")}
-            className="mt-6 px-6 py-3 bg-black text-white rounded-lg hover:bg-gray-800 transition-all"
-          >
-            Proceed to Dashboard
-          </button>
-        </div>
-
-        {/* Right Side: Logo */}
-        <div className="lg:w-1/2 flex justify-center">
-          <img src={ojt_logo} alt="NEU OJT LINK Logo" className="relative -mt-[180px]" />
-        </div>
-      </div>
-
-      {/* Bottom Section: Background Image */}
-      <div className="absolute inset-0 w-full h-full">
+    <div className="h-screen w-screen overflow-hidden relative">
+      <div className="absolute inset-0 w-full h-full -z-10">
         <img
           src={landingPic}
-          alt="Presentation"
-          className="w-full h-full object-cover opacity-80"
+          alt="Students"
+          className="w-full h-full object-cover"
         />
+      </div>
+      {/* Content */}
+      <div className="max-w-7xl mx-auto h-full flex flex-col lg:flex-row items-center justify-center relative z-15 -top-75">
+        {/* Left Column */}
+        <div className="lg:w-1/2 space-y-6 animate-fade-in" style={{ animationDelay: "0.1s" }}>
+          <div className="space-y-3">
+            <h1 className="text-5xl sm:text-6xl font-bold text-black leading-tight">
+              Welcome,
+              <span className="block text-black/90">{userName}</span>
+            </h1>
+            <h2 className="text-5xl sm:text-6xl font-bold bg-gradient-to-r from-black to-black/80 bg-clip-text text-transparent">
+              to the NEU OJT LINK
+            </h2>
+          </div>
+          
+          <div className="h-1 w-24 bg-black/50 rounded-full my-6"></div>
+          
+          <p className="text-xl text-black/90 max-w-md">
+            Connecting students and companies seamlessly for a better OJT experience.
+          </p>
+        </div>
+
+        {/* Right Column */}
+        <div className="lg:w-1/2 mt-10 lg:mt-0 flex justify-center lg:justify-end animate-fade-in" style={{ animationDelay: "0.3s" }}>
+          <div className="glass-card p-8 w-full max-w-md bg-white/70">
+            <h3 className="text-2xl font-medium text-gray-800 mb-6">Ready to explore opportunities?</h3>
+            <p className="text-gray-600 mb-8">
+              Find your perfect OJT match from our curated selection of partner companies.
+            </p>
+            <button
+              onClick={() => navigate("/dashboard")}
+              className="btn-neu w-full flex items-center justify-center group"
+            >
+              <span>Proceed to Dashboard</span>
+              <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                className="h-5 w-5 ml-2 transform group-hover:translate-x-1 transition-transform" 
+                fill="none" 
+                viewBox="0 0 24 24" 
+                stroke="currentColor"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+              </svg>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
