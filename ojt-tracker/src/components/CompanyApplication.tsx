@@ -242,25 +242,26 @@ const CompanyApplication = ({company, onClose}: CompanyProps) => {
                 <div className="justify-between">
                 { jobDetail && jobDetail.length > 0 ? (
                     jobDetail.map((job, index) => (
-                <div key={index} className="mb-4">
-                    <p className="font-bold">Position</p>
-                    <p className="text-black">{job?.position}</p>
-                    <p className="font-bold">Description</p>
-                    <p className="text-black">{job?.description}</p>
-                    <p className="font-bold">Responsiblity</p>
-                    <ul className="list-disc">
+                <div key={index} className="mb-6">
+                    <button onClick={() => handleSelectedJob(job)} className="text-black !font-semibold !bg-[#5fbff9] !rounded-[1.5em] !border-black">Apply Now</button>
+                    <p className="font-bold mt-4 text-[1.15rem]">Position</p>
+                    <p className="text-black leading-relaxed">{job?.position}</p>
+                    <p className="font-bold mt-3 text-[1.15rem]">Description</p>
+                    <p className="text-black leading-relaxed">{job?.description}</p>
+                    <p className="font-bold mt-3 text-[1.15rem]">Responsiblity</p>
+                    <ul className="list-disc leading-relaxed">
                         {job?.responsibility.map((resp,index)=>(
                             <li key={index}>{resp}</li>
                         ))}
                     </ul>
-                    <p className="font-bold">Compentencies</p>
-                    <ul className="list-disc text-black">
+                    <p className="font-bold mt-3 text-[1.15rem]">Compentencies</p>
+                    <ul className="list-disc text-black leading-relaxed">
                         {job?.qualifications.map((compe,index)=>(
                             <li key={index}>{compe}</li>
                         ))}
                     </ul>
-                    <button onClick={() => handleSelectedJob(job)} className="text-white">Proceed</button>
-                    <button onClick={onClose} className="text-white">Cancel</button>
+                    
+                    {/* <button onClick={onClose} className="text-white">Cancel</button> */}
  
                 </div>
                     ))
