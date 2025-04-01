@@ -1,18 +1,27 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+// import { useNavigate } from "react-router-dom"; Comment ko muna ito as well since Modals na ginagamit sa reports, hindi na sya magnana                                                vigate
 import { File } from "lucide-react";
 import { supabase } from "../../supabase";
 import logo from "../assets/ojt-link-logo FINAL.png";
+import WeeklyReport from "../components/WeeklyReport";
+import WeeklyJournal from "../components/WeeklyJournal";
+import MonthlyReport from "../components/MonthlyReport";
 
 const StudentDashboard: React.FC = () => {
-  const navigate = useNavigate();
+ // const navigate = useNavigate(); Comment ko muna ito as well since Modals na ito, hindi na sya navigate
   const [loading, setLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [companyName, setCompanyName] = useState<string | null>(null);
+  const [jobPosition, setJobPosition] = useState<string | null>(null);
+
+  const [isWeeklyReportModalOpen, setIsWeeklyReportModalOpen] = useState(false);
+  const [isWeeklyJournalModalOpen, setIsWeeklyJournalModalOpen] = useState(false);
+  const [isMonthlyReportModalOpen, setIsMonthlyReportModalOpen] = useState(false);
 
   const templates = [
-    { name: "Weekly Report", file: "WeeklyReportTemplate.pdf" },
-    { name: "Weekly Journal", file: "WeeklyJournalTemplate.pdf" },
-    { name: "Monthly Report", file: "MonthlyReportTemplate.pdf" },
+    { name: "Weekly Report", file: "WeeklyReport_Surname.pdf" },
+    { name: "Weekly Journal", file: "WeeklyJournal_Surname.pdf" },
+    { name: "Monthly Report", file: "MonthlyReport_Surname.pdf" },
   ];
 
   const reports = [
@@ -20,6 +29,58 @@ const StudentDashboard: React.FC = () => {
     { week: 2, dueDate: "March 23, 2025", status: "Pending" },
     { week: 3, dueDate: "March 30, 2025", status: "Pending" },
   ];
+
+  useEffect(() => {
+    const fetchApplicationDetails = async () => {
+      const { data: userData, error: userError } = await supabase.auth.getUser();
+      if (userError || !userData?.user) {
+        console.error("User not found:", userError?.message);
+        return;
+      }
+      const { data: application, error: applicationError } = await supabase
+        .from("application")
+        .select("company_id, job_id")
+        .eq("user_id", userData.user.id)
+        .eq("status", "approved")
+        .single();
+
+      if (applicationError || !application) {
+        console.error("No approved application found:", applicationError?.message);
+        return;
+      }
+
+      const { company_id, job_id } = application;
+
+      // Fetch the company name
+      const { data: company, error: companyError } = await supabase
+        .from("company")
+        .select("name")
+        .eq("company_id", company_id)
+        .single();
+
+      if (companyError || !company) {
+        console.error("Company not found:", companyError?.message);
+        return;
+      }
+
+      // Fetch the job position
+      const { data: job, error: jobError } = await supabase
+        .from("job")
+        .select("position")
+        .eq("job_id", job_id)
+        .single();
+
+      if (jobError || !job) {
+        console.error("Job position not found:", jobError?.message);
+        return;
+      }
+
+      setCompanyName(company.name);
+      setJobPosition(job.position);
+    };
+
+    fetchApplicationDetails();
+  }, []);
 
   const handleDownload = async (fileName: string) => {
     setLoading(fileName);
@@ -45,13 +106,30 @@ const StudentDashboard: React.FC = () => {
     setLoading(null);
   };  
 
-  const handleNavigateToSubmission = (reportType: string) => {
-    const routes: { [key: string]: string } = {
-      "Weekly Report": "/weekly-report",
-      "Weekly Journal": "/weekly-journal",
-      "Monthly Report": "/monthly-report",
-    };
-    navigate(routes[reportType]);
+   // const handleNavigateToSubmission = (reportType: string) => { Comment ko muna ito kasi 
+//   const routes: { [key: string]: string } = { since Modals na ginagamit sa reports, 
+//     "Weekly Report": "/weekly-report",   hindi na to ginagamit
+//     "Weekly Journal": "/weekly-journal",   Pwede na to i-remove
+//     "Monthly Report": "/monthly-report",    Palagay 1 point po for error logic handling hehe :)
+//   };
+//   navigate(routes[reportType]);
+// };
+
+
+  const handleOpenSubmissionModal = (reportType: string) => {
+    switch (reportType) {
+      case "Weekly Report":
+        setIsWeeklyReportModalOpen(true);
+        break;
+      case "Weekly Journal":
+        setIsWeeklyJournalModalOpen(true);
+        break;
+      case "Monthly Report":
+        setIsMonthlyReportModalOpen(true);
+        break;
+      default:
+        break;
+    }
   };
 
   const fetchReport = async (week: number) => { 
@@ -115,8 +193,12 @@ const StudentDashboard: React.FC = () => {
               <span className="text-gray-500">Logo</span>
             </div>
             <div>
-              <h2 className="text-lg font-semibold">ABC Technology Solutions</h2>
-              <p className="text-sm text-gray-600">Quality Assurance Intern</p>
+              <h2 className="text-lg font-semibold">
+                {companyName || "Loading company..."}
+              </h2>
+              <p className="text-sm text-gray-600">
+                {jobPosition || "Loading position..."}
+              </p>
             </div>
           </div>
           <div className="bg-white shadow-md rounded-lg p-4 border border-black">
@@ -152,18 +234,21 @@ const StudentDashboard: React.FC = () => {
           <div className="bg-white shadow-md rounded-lg p-4 border border-black">
             <h3 className="text-lg font-semibold mb-2">Submissions</h3>
             <div className="space-y-2">
-              {templates.map((template) => (
+                {templates.map((template) => (
                 <button
-                  key={template.file}
-                  onClick={() => handleNavigateToSubmission(template.name)}
-                  className="w-full bg-blue-100 text-blue-600 p-2 rounded hover:bg-blue-200 flex items-center justify-start"
+                    key={template.file}
+                    onClick={() => handleOpenSubmissionModal(template.name)}
+                    className="w-full bg-blue-100 text-blue-600 p-2 rounded hover:bg-blue-200 flex items-center justify-start"
                 >
-                  <File className="mr-2" />
-                  {template.name}
+                    <File className="mr-2" />
+                    {template.name}
                 </button>
-              ))}
+                ))}
             </div>
-          </div>
+        </div>
+        <WeeklyReport isOpen={isWeeklyReportModalOpen} onClose={() => setIsWeeklyReportModalOpen(false)} />
+        <WeeklyJournal isOpen={isWeeklyJournalModalOpen} onClose={() => setIsWeeklyJournalModalOpen(false)} />
+        <MonthlyReport isOpen={isMonthlyReportModalOpen} onClose={() => setIsMonthlyReportModalOpen(false)} />
           <div className="bg-white shadow-md rounded-lg p-4 border border-black">
             <h3 className="text-lg font-semibold mb-2">Reports Submitted</h3>
             <div className="space-y-2">
