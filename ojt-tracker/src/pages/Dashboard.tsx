@@ -72,6 +72,67 @@ const Dashboard = () => {
       {/* Header */}
       <div className="w-full h-[80px] absolute left-0 top-0 bg-gradient-to-b from-[#578FCA] to-[#2B4764] border-1 border-black flex items-center justify-between px-6">
   
+
+        {/* Logo */}
+        <img 
+          src={OJTLogo} 
+          alt="Ojt Logo" 
+          className="w-[180px] h-[180px] rounded-[60px] ml-4"
+        />
+
+        {/* Center logged-in text */}
+        {user && (
+          <p className="text-white text-lg font-semibold absolute left-1/2 transform -translate-x-1/2">
+            Logged in as: {user.user_metadata?.full_name}
+          </p>
+        )}
+
+        {/* Buttons */}
+        <div className="flex space-x-4">
+          <button 
+            className="bg-blue-500 text-white px-4 py-2 rounded"
+            onClick={() => navigate("/weekly-report")}
+          >
+            Submit Weekly Report
+          </button>
+          <button 
+            className="bg-green-500 text-white px-4 py-2 rounded"
+            onClick={() => navigate("/student-dashboard")}
+          >
+            Go to Student Dashboard
+          </button>
+          <button 
+            className="bg-red-500 text-white px-4 py-2 rounded"
+            onClick={handleLogout}
+          >
+            Logout
+          </button>
+        </div>
+      </div>
+
+      {/* Companies Section */}
+      <div className="bg-gradient-to-b from-[#D0E8FF] to-[#FFFFFF] min-h-screen p-20">
+        <h2 className="text-3xl font-bold text-center mt-8 mb-6 text-black">Explore Companies</h2>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {companies.map((company) => (
+            <div 
+              key={company.company_id} 
+              onClick={() => setSelectedCompany(company)} 
+              className="border rounded-lg shadow-[0_0_15px_4px_rgba(169,162,255,0.5)] p-6 bg-white cursor-pointer"
+            >
+              <h2 className="text-xl text-gray-600 font-semibold">{company.name}</h2>
+              <p className="text-gray-600">{company.address} - {company.email}</p>
+              <p className="text-gray-700 mt-2">{company.contact_no}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* Show Company Details When Selected */}
+        {selectedCompany && (
+          <CompanyApplication company={selectedCompany} onClose={() => setSelectedCompany(null)} />
+        )}
+      </div>
       {/*logo bigger */}
       <img 
         src={OJTLogo} 
