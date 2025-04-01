@@ -41,6 +41,26 @@ const Dashboard = () => {
         setLoading(false);
       }
     };
+    const checkApplicationStatus = async () => {
+      const user = await supabase.auth.getUser();
+      if (!user.data.user) return;
+
+      const { data, error } = await supabase
+          .from("application")
+          .select("status")
+          .eq("user_id", user.data.user.id)
+          .single();
+
+      if (error) {
+          console.error("Error fetching application status:", error.message);
+          return;
+      }
+
+      if (data?.status === "approved") {
+          navigate("/student-dashboard");
+      }
+  };
+  checkApplicationStatus();
 
     const fetchCompanies = async () => {
       const { data, error } = await supabase.from("company").select("*");
