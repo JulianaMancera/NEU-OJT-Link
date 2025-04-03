@@ -1,7 +1,7 @@
 import { supabase } from "../../supabase";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import backgroundImage from "/src/assets/School.png"; // Background Image
+import backgroundImage from "/src/assets/officialschool.jpg"; // Background Image
 import backgroundImage1 from "/src/assets/neu-logo.png"; // NEU Logo
 import backgroundImage2 from "/src/assets/ojt-logo.png"; // OJT Logo
 import googleButton from "/src/assets/google-button.png"; // Your Google Sign-In Button Image
@@ -39,7 +39,7 @@ const Auth = () => {
       <img
         src={backgroundImage}
         alt="New Era University"
-        className="absolute inset-0 w-full h-full object-cover"
+        className="absolute inset-0 w-full h-full object-cover transform translate-x-[-80px]"
       />
     
       <div className="relative w-full h-screen flex items-center justify-end">
