@@ -18,7 +18,13 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [companies, setCompanies] = useState<Company[]>([]);
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
+
+  const filteredCompany  = companies.filter(company => 
+    company.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    company.address.toLowerCase().includes(searchQuery.toLowerCase())
+  )
   useEffect(() => {
     const fetchUser = async () => {
       const { data: { user }, error } = await supabase.auth.getUser();
@@ -41,6 +47,8 @@ const Dashboard = () => {
         setLoading(false);
       }
     };
+
+
     const checkApplicationStatus = async () => {
       const user = await supabase.auth.getUser();
       if (!user.data.user) return;
@@ -112,7 +120,7 @@ const Dashboard = () => {
       {/* Search Section */}
       <div className="relative w-[520px] h-12 bg-[#fcfbf4]/75 border-2 border-black flex items-center px-4 mb-4">
         <span className="text-[#716969] text-2xl font-normal font-inter">
-          Job title, keyword, or company
+          <input type="text" placeholder="Company Name" value={searchQuery} onChange={(eventChange) => setSearchQuery(eventChange.target.value)} />
         </span>
         <div className="absolute right-4">
           <Search size={24} color="black"/>
@@ -124,7 +132,7 @@ const Dashboard = () => {
 
         {/* Company Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
-        {companies.map((company) => (
+        {filteredCompany.map((company) => (
           <div key={company.company_id} className="w-full">
             {/* Company Card */}
             <div
