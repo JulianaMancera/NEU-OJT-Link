@@ -28,14 +28,12 @@ interface Job{
 
 const CompanyApplication = ({company, onClose}: CompanyProps) => {
     const [step, setStep] = useState<"apply" | "requirement" | "dashboard">("apply");
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [jobDetail, setJobDetail] = useState<Job[] |null>(null);
     //User Requirements/Data
     const [selectedJob, setSelectedJob] = useState<Job | null>(null);
     const [coverLetter, setCoverLetter] = useState<File | null>(null);
     const [resume, setResume] = useState<File | null>(null);
     const [com, setCOM] = useState<File | null>(null);
-    const [cv, setCV] = useState<File | null>(null);
     const [medCert, setMedcert] = useState<File | null>(null);
     const [notarized, setNotarized] = useState<File | null>(null);
     const [psyTest, setPsyTest] = useState<File | null>(null);
@@ -43,7 +41,6 @@ const CompanyApplication = ({company, onClose}: CompanyProps) => {
     const [resumeUploaded, setResumeUploaded] = useState(false);
     const [coverLetterUploaded, setCoverLetterUploaded] = useState(false);
     const [comUploaded, setComUploaded] = useState(false) 
-    const [cvUploaded, setCVUploaded] = useState(false) 
     const [medCertUploaded, setMedcertUploaded] = useState(false) 
     const [notarizeUploaded, setNotarizedUploaded] = useState(false) 
     const [psyTestUploaded, setPsyTestUploaded] = useState(false) 
@@ -66,7 +63,7 @@ const CompanyApplication = ({company, onClose}: CompanyProps) => {
 
    
     const handleRequirementSubmit = async () => {
-        if(!resume || !coverLetter || !com || !cv || !medCert || !notarized  || !psyTest){
+        if(!resume || !coverLetter || !com  || !medCert || !notarized  || !psyTest){
             alert("Please Upload Both Files")
             return;
         }
@@ -86,12 +83,6 @@ const CompanyApplication = ({company, onClose}: CompanyProps) => {
         .storage
         .from("applicant-documents")
         .upload(`com/${user.data.user?.id}_${company.company_id}_${com.name}`,com);
-        //Upload CV 
-        const{data:cvData, error:cvError} = await supabase
-        .storage
-        .from("applicant-documents")
-        .upload(`cv/${user.data.user?.id}_${company.company_id}_${cv.name}`,cv);
-        //Upload Medcert
         const{data:medCertData, error:medCertError} = await supabase
         .storage
         .from("applicant-documents")
@@ -113,8 +104,6 @@ const CompanyApplication = ({company, onClose}: CompanyProps) => {
             console.error("Error Uploadingg", coverLetterError)
         }if(comError ){
             console.error("Error Uploadingg", resumeError)
-        }if(cvError ){
-            console.error("Error Uploadingg", coverLetterError)
         }if(medCertError ){
             console.error("Error Uploadingg", resumeError)
         }if(notarizeError ){
@@ -130,7 +119,6 @@ const CompanyApplication = ({company, onClose}: CompanyProps) => {
                 resume_url: resumeData?.path,
                 cover_letter_url: coverLetterData?.path,
                 com_url : comData?.path,
-                cv_url : cvData?.path,
                 medCert_url : medCertData?.path,
                 notarize_url : notarizeData?.path,
                 psyTest_url : psyTestData?.path,
@@ -172,8 +160,6 @@ const CompanyApplication = ({company, onClose}: CompanyProps) => {
                     setCoverLetter(event.target.files[0]);
                 }else if (type == "com"){
                     setCOM(event.target.files[0]);
-                }else if (type == "cv"){
-                    setCV(event.target.files[0]);
                 }else if (type == "medCert"){
                     setMedcert(event.target.files[0]);
                 }else if (type == "notarized"){
@@ -208,7 +194,6 @@ const CompanyApplication = ({company, onClose}: CompanyProps) => {
                     setResumeUploaded(true)
                     setCoverLetterUploaded(true)
                     setComUploaded(true)
-                    setCVUploaded(true)
                     setMedcertUploaded(true)
                     setNotarizedUploaded(true)
                     setPsyTestUploaded(true)
@@ -294,12 +279,7 @@ const CompanyApplication = ({company, onClose}: CompanyProps) => {
                             <label className="font-bold">COM </label>
                             <input className="file:bg-[#5fbff9] file:text-black file:rounded-[15px] file:border file:border-black file:px-4 file:py-2 ml-auto cursor-pointer" type="file" accept=".pdf" onChange={(e)=>handleFileChange(e,"com")} />
                         </div>}
-                            {cvUploaded ? <p>The CV is Uploaded</p>: 
-                        <div className="flex items-center gap-2 mb-4">
-                        <File size={20} className="text-black-500" />
-                            <label className="font-bold">CV </label>
-                            <input className="file:bg-[#5fbff9] file:text-black file:rounded-[15px] file:border file:border-black file:px-4 file:py-2 ml-auto cursor-pointer" type="file" accept=".pdf" onChange={(e)=>handleFileChange(e,"cv")} />
-                        </div>}
+         
                         {medCertUploaded ? <p>The Medcert is Uploaded</p>: 
                         <div className="flex items-center gap-2 mb-4">
                         <File size={20} className="text-black-500" />
