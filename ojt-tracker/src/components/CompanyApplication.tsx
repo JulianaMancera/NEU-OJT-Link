@@ -265,64 +265,72 @@ const CompanyApplication = ({company, onClose}: CompanyProps) => {
                 <p>Company Selected {company.name}</p>
                 <p>Position {selectedJob?.position}</p>
                 <p>Posistion Selected </p>
+
+                <br />
                     {resumeUploaded && coverLetterUploaded && selectedJob ? 
                     <div>You already Submit for this posistion  <EndorsementButton companyProps={{company, onClose}} job={selectedJob}/></div> :
-                    <div>
+                    <div className="border border-black rounded-lg p-5">
                         <p className="font-semibold">Please Submit Requirements</p>
+                        <br />
                         {resumeUploaded ? <p>The Resume is Uploaded</p>: 
-                        <div className="flex items-center gap-2">
-                            <File size={20} className="text-gray-500" />
+
+                        <div className="flex items-center gap-2 mb-4">
+
+                             <File size={20} className="text-black-500" />
                             <label className="font-bold">Resume </label>
                             <input className="file:bg-[#5fbff9] file:text-black file:rounded-[15px] file:border file:border-black file:px-4 file:py-2" type="file" accept=".pdf" onChange={(e)=>handleFileChange(e,"resume")} />
                         </div> }
                         
                         {coverLetterUploaded ? <p>The CoverLetter is Uploaded</p>: 
-                        <div className="flex items-center gap-2">
-                            <File size={20} className="text-gray-500"/>
+
+                        <div className="flex items-center gap-2 mb-4">
+                            <File size={20} className="text-black-500"/>
                             <label className="font-bold">Cover Letter </label>
-                            <input className="file:bg-[#5fbff9] file:text-black file:rounded-[15px] file:border file:border-black file:px-4 file:py-2" type="file" accept=".pdf" onChange={(e)=>handleFileChange(e,"coverLetter")} />
+                            <input className="file:bg-[#5fbff9] file:text-black file:rounded-[15px] file:border file:border-black file:px-4 file:py-2 ml-auto cursor-pointer" type="file" accept=".pdf" onChange={(e)=>handleFileChange(e,"coverLetter")} />
                         </div>}
                         {comUploaded ? <p>The COM is Uploaded</p>: 
-                        <div className="flex items-center gap-2">
-                            <File size={20} className="text-gray-500" />
+                        <div className="flex items-center gap-2 mb-4">
+                            <File size={20} className="text-black-500" />
                             <label className="font-bold">COM </label>
-                            <input className="file:bg-[#5fbff9] file:text-black file:rounded-[15px] file:border file:border-black file:px-4 file:py-2" type="file" accept=".pdf" onChange={(e)=>handleFileChange(e,"com")} />
+                            <input className="file:bg-[#5fbff9] file:text-black file:rounded-[15px] file:border file:border-black file:px-4 file:py-2 ml-auto cursor-pointer" type="file" accept=".pdf" onChange={(e)=>handleFileChange(e,"com")} />
                         </div>}
                             {cvUploaded ? <p>The CV is Uploaded</p>: 
-                        <div className="flex items-center gap-2">
-                        <File size={20} className="text-gray-500" />
+                        <div className="flex items-center gap-2 mb-4">
+                        <File size={20} className="text-black-500" />
                             <label className="font-bold">CV </label>
-                            <input className="file:bg-[#5fbff9] file:text-black file:rounded-[15px] file:border file:border-black file:px-4 file:py-2" type="file" accept=".pdf" onChange={(e)=>handleFileChange(e,"cv")} />
+                            <input className="file:bg-[#5fbff9] file:text-black file:rounded-[15px] file:border file:border-black file:px-4 file:py-2 ml-auto cursor-pointer" type="file" accept=".pdf" onChange={(e)=>handleFileChange(e,"cv")} />
                         </div>}
                         {medCertUploaded ? <p>The Medcert is Uploaded</p>: 
-                        <div className="flex items-center gap-2">
-                        <File size={20} className="text-gray-500" />
+                        <div className="flex items-center gap-2 mb-4">
+                        <File size={20} className="text-black-500" />
                             <label className="font-bold">Med Cert </label>
-                            <input className="file:bg-[#5fbff9] file:text-black file:rounded-[15px] file:border file:border-black file:px-4 file:py-2"type="file" accept=".pdf" onChange={(e)=>handleFileChange(e,"medCert")} />
+                            <input className="file:bg-[#5fbff9] file:text-black file:rounded-[15px] file:border file:border-black file:px-4 file:py-2 ml-auto cursor-pointer"type="file" accept=".pdf" onChange={(e)=>handleFileChange(e,"medCert")} />
                         </div>}
                         {notarizeUploaded ? <p>The Notartize is Uploaded</p>: 
-                        <div className="flex items-center gap-4">
-                        <File size={40} className="text-gray-500" />
+                        <div className="flex items-center gap-2 mb-4">
+                        <File size={20} className="text-black-500" />
                             <label className="font-bold">Notarized Parent Consent </label>
-                            <input className="file:bg-[#5fbff9] file:text-black file:rounded-[15px] file:border file:border-black file:px-4 file:py-2"type="file" accept=".pdf" onChange={(e)=>handleFileChange(e,"notarized")} />
+                            <input className="file:bg-[#5fbff9] file:text-black file:rounded-[15px] file:border file:border-black file:px-4 file:py-2 ml-auto cursor-pointer"type="file" accept=".pdf" onChange={(e)=>handleFileChange(e,"notarized")} />
+
                         </div>}
                         
                         {psyTestUploaded ? <p>The Psy Test  is Uploaded</p>: 
                         <div className="flex items-center gap-2">
                         <File size={30} className="text-gray-500" />
                             <label className="font-bold">Psychological Test</label>
-                            <input className="file:bg-[#5fbff9] file:text-black file:rounded-[15px] file:border file:border-black file:px-4 file:py-2" type="file" accept=".pdf" onChange={(e)=>handleFileChange(e,"psyTest")} />
+
+                            <input className="file:bg-[#5fbff9] file:text-black file:rounded-[15px] file:border file:border-black file:px-4 file:py-2 ml-auto cursor-pointer" type="file" accept=".pdf" onChange={(e)=>handleFileChange(e,"psyTest")} />
                         </div>}
+
+                    </div>
+                    }
+                    
+                    <br />
                         <div>
                             <button onClick={handleRequirementSubmit} className="text-white">Submit</button>
                             <button onClick={onClose} className="text-white">Cancel</button>
-                        </div>
+                        </div>                                
 
-                    </div>
-            
-
-                    }
-                                                    
                 </div>
 
             )}
