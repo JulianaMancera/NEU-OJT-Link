@@ -278,7 +278,7 @@ const CompanyApplication = ({company, onClose}: CompanyProps) => {
 
                              <File size={20} className="text-black-500" />
                             <label className="font-bold">Resume </label>
-                            <input className="file:bg-[#5fbff9] file:text-black file:rounded-[15px] file:border file:border-black file:px-4 file:py-2" type="file" accept=".pdf" onChange={(e)=>handleFileChange(e,"resume")} />
+                            <input className="file:bg-[#5fbff9] file:text-black file:rounded-[15px] file:border file:border-black file:px-4 file:py-2 ml-auto cursor-pointer" type="file" accept=".pdf" onChange={(e)=>handleFileChange(e,"resume")} />
                         </div> }
                         
                         {coverLetterUploaded ? <p>The CoverLetter is Uploaded</p>: 
@@ -316,7 +316,7 @@ const CompanyApplication = ({company, onClose}: CompanyProps) => {
                         
                         {psyTestUploaded ? <p>The Psy Test  is Uploaded</p>: 
                         <div className="flex items-center gap-2">
-                        <File size={30} className="text-gray-500" />
+                        <File size={20} className="text-black-500" />
                             <label className="font-bold">Psychological Test</label>
 
                             <input className="file:bg-[#5fbff9] file:text-black file:rounded-[15px] file:border file:border-black file:px-4 file:py-2 ml-auto cursor-pointer" type="file" accept=".pdf" onChange={(e)=>handleFileChange(e,"psyTest")} />
@@ -327,7 +327,7 @@ const CompanyApplication = ({company, onClose}: CompanyProps) => {
                     
                     <br />
                         <div>
-                            <button onClick={handleRequirementSubmit} className="text-white">Submit</button>
+                            <button onClick={handleRequirementSubmit} className="text-white mr-2">Submit</button>
                             <button onClick={onClose} className="text-white">Cancel</button>
                         </div>                                
 
