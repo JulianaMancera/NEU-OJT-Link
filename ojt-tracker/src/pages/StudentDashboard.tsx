@@ -1,19 +1,25 @@
-import React, { useState, useEffect } from "react";
-// import { useNavigate } from "react-router-dom"; Comment ko muna ito as well since Modals na ginagamit sa reports, hindi na sya magnana                                                vigate
+import React, { useState, useEffect } from "react";                                              
 import { File } from "lucide-react";
 import { supabase } from "../../supabase";
 import logo from "../assets/ojt-link-logo FINAL.png";
 import WeeklyReport from "../components/WeeklyReport";
 import WeeklyJournal from "../components/WeeklyJournal";
 import MonthlyReport from "../components/MonthlyReport";
+import { User, Settings, LogOut, CircleHelp, MoonStar } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
-const StudentDashboard: React.FC = () => {
- // const navigate = useNavigate(); Comment ko muna ito as well since Modals na ito, hindi na sya navigate
+
+
+const StudentDashboard: React.FC = () => {  //Facade na kaya natin ito kasi andami na.
+  const navigate = useNavigate(); 
   const [loading, setLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [companyName, setCompanyName] = useState<string | null>(null);
   const [jobPosition, setJobPosition] = useState<string | null>(null);
-
+  const [isProfileOpen, setProfileOpen] = useState(false);
+  const [userName, setUserName] = useState("");
+  const [userRole, setUserRole] = useState<string | null>(null);
+  const [profilePicture, setProfilePicture] = useState<string | null>(null);
   const [isWeeklyReportModalOpen, setIsWeeklyReportModalOpen] = useState(false);
   const [isWeeklyJournalModalOpen, setIsWeeklyJournalModalOpen] = useState(false);
   const [isMonthlyReportModalOpen, setIsMonthlyReportModalOpen] = useState(false);
@@ -31,146 +37,163 @@ const StudentDashboard: React.FC = () => {
   ];
 
   useEffect(() => {
-    const fetchApplicationDetails = async () => {
-      const { data: userData, error: userError } = await supabase.auth.getUser();
-      if (userError || !userData?.user) {
-        console.error("User not found:", userError?.message);
-        return;
+    const fetchUserData = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setUserName(user.user_metadata?.full_name || "User");
+        const { data: roleData } = await supabase
+          .from("user")
+          .select("role, profilePicture")
+          .eq("user_id", user.id)
+          .single();
+
+        if (roleData) {
+          setUserRole(roleData.role);
+          setProfilePicture(roleData.profilePicture);
+        }
       }
-      const { data: application, error: applicationError } = await supabase
-        .from("application")
-        .select("company_id, job_id")
-        .eq("user_id", userData.user.id)
-        .eq("status", "approved")
-        .single();
-
-      if (applicationError || !application) {
-        console.error("No approved application found:", applicationError?.message);
-        return;
-      }
-
-      const { company_id, job_id } = application;
-
-      // Fetch the company name
-      const { data: company, error: companyError } = await supabase
-        .from("company")
-        .select("name")
-        .eq("company_id", company_id)
-        .single();
-
-      if (companyError || !company) {
-        console.error("Company not found:", companyError?.message);
-        return;
-      }
-
-      // Fetch the job position
-      const { data: job, error: jobError } = await supabase
-        .from("job")
-        .select("position")
-        .eq("job_id", job_id)
-        .single();
-
-      if (jobError || !job) {
-        console.error("Job position not found:", jobError?.message);
-        return;
-      }
-
-      setCompanyName(company.name);
-      setJobPosition(job.position);
     };
 
-    fetchApplicationDetails();
+    fetchUserData();
   }, []);
 
-  const handleDownload = async (fileName: string) => {
-    setLoading(fileName);
-    setError(null);
+    const handleLogout = async () => {
+      await supabase.auth.signOut();
+      navigate("/"); // Redirect to login after logout
+    };
+
+
+    useEffect(() => {
+      const fetchApplicationDetails = async () => {
+        const { data: userData, error: userError } = await supabase.auth.getUser();
+        if (userError || !userData?.user) {
+          console.error("User not found:", userError?.message);
+          return;
+        }
   
-    const { data, error } = await supabase.storage.from("templates").download(fileName);
-    
-    if (error) {
-      console.error("Download error:", error);
-      setError(`Failed to download ${fileName}: ${error.message}`);
-    } else {
-      console.log("Downloaded file:", fileName);
-      const url = URL.createObjectURL(data);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = fileName;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-    }
-    
-    setLoading(null);
-  };  
-
-   // const handleNavigateToSubmission = (reportType: string) => { Comment ko muna ito kasi 
-//   const routes: { [key: string]: string } = { since Modals na ginagamit sa reports, 
-//     "Weekly Report": "/weekly-report",   hindi na to ginagamit
-//     "Weekly Journal": "/weekly-journal",   Pwede na to i-remove
-//     "Monthly Report": "/monthly-report",    Palagay 1 point po for error logic handling hehe :)
-//   };
-//   navigate(routes[reportType]);
-// };
-
-
-  const handleOpenSubmissionModal = (reportType: string) => {
-    switch (reportType) {
-      case "Weekly Report":
-        setIsWeeklyReportModalOpen(true);
-        break;
-      case "Weekly Journal":
-        setIsWeeklyJournalModalOpen(true);
-        break;
-      case "Monthly Report":
-        setIsMonthlyReportModalOpen(true);
-        break;
-      default:
-        break;
-    }
-  };
-
-  const fetchReport = async (week: number) => { 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+        const { data: application, error: applicationError } = await supabase
+          .from("application")
+          .select("company_id, job_id")
+          .eq("user_id", userData.user.id)
+          .eq("status", "approved")
+          .single();
   
-    if (!user) {
-      alert("User not logged in");
-      return;
-    }
-
-    const { data, error } = await supabase
-      .from("weekly_report")
-      .select("file_url")
-      .eq("submitted_by", user.user_metadata?.name)
-      .eq("week_number", week)
-      .order("uploaded_at", { ascending: false })
-      .limit(1)
-      .single();
-
-    if (error || !data) {
-      alert(`No report found for Week ${week}.`);
-      return;
-    }
-
-    const filePath = data.file_url.startsWith("https://")
-      ? data.file_url.split("/weekly_reports/").pop()
-      : data.file_url;
-
-    const { data: signedUrlData, error: signedUrlError } = await supabase.storage
-      .from("weekly_reports")
-      .createSignedUrl(filePath, 60);
-
-    if (signedUrlError || !signedUrlData) {
-      alert("Failed to fetch report securely.");
-      return;
-    }
-
-    window.open(signedUrlData.signedUrl, "_blank");
-};
+        if (applicationError || !application) {
+          console.error("No approved application found:", applicationError?.message);
+          return;
+        }
+  
+        const { company_id, job_id } = application;
+  
+        const { data: company, error: companyError } = await supabase
+          .from("company")
+          .select("name")
+          .eq("company_id", company_id)
+          .single();
+  
+        if (companyError || !company) {
+          console.error("Company not found:", companyError?.message);
+          return;
+        }
+  
+        const { data: job, error: jobError } = await supabase
+          .from("job")
+          .select("position")
+          .eq("job_id", job_id)
+          .single();
+  
+        if (jobError || !job) {
+          console.error("Job position not found:", jobError?.message);
+          return;
+        }
+  
+        setCompanyName(company.name);
+        setJobPosition(job.position);
+      };
+  
+      fetchApplicationDetails();
+    }, []);
+  
+   
+  
+    const handleDownload = async (fileName: string) => {
+      setLoading(fileName);
+      setError(null);
+  
+      const { data, error } = await supabase.storage.from("templates").download(fileName);
+  
+      if (error) {
+        console.error("Download error:", error);
+        setError(`Failed to download ${fileName}: ${error.message}`);
+      } else {
+        const url = URL.createObjectURL(data);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      }
+  
+      setLoading(null);
+    };
+  
+    const handleOpenSubmissionModal = (reportType: string) => {
+      switch (reportType) {
+        case "Weekly Report":
+          setIsWeeklyReportModalOpen(true);
+          break;
+        case "Weekly Journal":
+          setIsWeeklyJournalModalOpen(true);
+          break;
+        case "Monthly Report":
+          setIsMonthlyReportModalOpen(true);
+          break;
+        default:
+          break;
+      }
+    };
+  
+    const fetchReport = async (week: number) => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+  
+      if (!user) {
+        alert("User not logged in");
+        return;
+      }
+  
+      const { data, error } = await supabase
+        .from("weekly_report")
+        .select("file_url")
+        .eq("submitted_by", user.user_metadata?.name)
+        .eq("week_number", week)
+        .order("uploaded_at", { ascending: false })
+        .limit(1)
+        .single();
+  
+      if (error || !data) {
+        alert(`No report found for Week ${week}.`);
+        return;
+      }
+  
+      const filePath = data.file_url.startsWith("https://")
+        ? data.file_url.split("/weekly_reports/").pop()
+        : data.file_url;
+  
+      const { data: signedUrlData, error: signedUrlError } = await supabase.storage
+        .from("weekly_reports")
+        .createSignedUrl(filePath, 60);
+  
+      if (signedUrlError || !signedUrlData) {
+        alert("Failed to fetch report securely.");
+        return;
+      }
+  
+      window.open(signedUrlData.signedUrl, "_blank");
+    };
 
 
 
@@ -183,7 +206,82 @@ const StudentDashboard: React.FC = () => {
           <button className="bg-blue-100 text-black px-4 py-2 rounded">HOME</button>
           <span className="text-lg font-semibold">Explore Jobs</span>
         </div>
-        <button className="bg-white text-black p-2 rounded-full border border-black">X</button>
+        <button 
+        onClick={() => setProfileOpen(!isProfileOpen)}
+        className="relative p-2 hover:bg-violet-100 rounded-full transition-colors overflow-hidden"
+    >
+        {profilePicture ? (
+            <img
+                src={profilePicture}
+                alt="Profile"
+                className="w-8 h-8 rounded-full object-cover"
+            />
+        ) : (
+            <User className="w-6 h-6 text-violet-800" />
+        )}
+    </button>
+
+    {isProfileOpen && (
+        <div className="absolute right-0 top-[4.5rem] bg-white text-gray-800 shadow-lg rounded-md overflow-hidden z-50 w-64 min-w-[16rem]">
+            <div className="bg-violet-800 text-white p-4 text-center">
+                <div className="w-16 h-16 rounded-full mx-auto overflow-hidden mb-2">
+                    {profilePicture ? (
+                        <img src={profilePicture} alt="Profile" className="w-full h-full object-cover" />
+                    ) : (
+                        <User className="w-8 h-8 mx-auto text-white" />
+                    )}
+                </div>
+                <p className="font-semibold">{userName}</p>
+                <p className="text-xs text-violet-200">{userRole}</p>
+            </div>
+            <ul className="text-sm">
+                <li>
+                    <button 
+                        onClick={() => {
+                            navigate('/profile');
+                            setProfileOpen(false);
+                        }}
+                        className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center"
+                    >
+                        <User className="w-4 h-4 mr-2" /> Profile
+                    </button>
+                </li>
+                <li>
+                    <button className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center">
+                        <Settings className="w-4 h-4 mr-2" /> Settings
+                    </button>
+                </li>
+                <li>
+                    <button className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center">
+                        <MoonStar className="w-4 h-4 mr-2" /> Appearance
+                    </button>
+                </li>
+                <li>
+                    <button className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center">
+                        <CircleHelp className="w-4 h-4 mr-2" /> Help & Support
+                    </button>
+                </li>
+                {userRole === "admin" && (
+                    <li>
+                        <button
+                            onClick={() => navigate('/application-approval')}
+                            className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center"
+                        >
+                            🛠️ Application Approval
+                        </button>
+                    </li>
+                )}
+                <li>
+                    <button 
+                        onClick={handleLogout}
+                        className="w-full text-left px-4 py-2 hover:bg-red-100 text-red-600 flex items-center"
+                    >
+                        <LogOut className="w-4 h-4 mr-2" /> Log out
+                    </button>
+                </li>
+            </ul>
+        </div>
+    )}
       </header>
 
       <div className="container mx-auto px-6 mt-35">
