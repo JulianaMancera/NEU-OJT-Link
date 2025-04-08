@@ -32,7 +32,8 @@ const Dashboard = () => {
           name: fullname,
           email: user.email,
           date_registered: new Date().toISOString(),
-          course: null
+          course: null,
+          profilePicture: user.user_metadata?.avatar_url, // Bale delete nyo sarili nyo from Supabase "user" table para auto insert ito pag naglogin kayo
         });
 
         if (error) console.error("Error inserting user:", error);
