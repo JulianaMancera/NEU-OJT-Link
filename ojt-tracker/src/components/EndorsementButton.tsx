@@ -1,6 +1,7 @@
 import { pdf } from "@react-pdf/renderer";
 import EndorsementPDF from "../services/EndorsementPDF";
 import { supabase } from "../../supabase";
+import Job from "../services/Tables/Job";
 
 interface CompanyProps{
     company:{
@@ -12,17 +13,7 @@ interface CompanyProps{
     };    
     onClose: () => void;
 }
-interface Job{
-    job_id: string,
-    company_id: string,
-    created_at: string,
-    position: string,
-    description: string,
-    responsibility: string[],
-    qualifications: string[],
-    work_hrs: string,
-    schedule: string,
-}
+
 
 interface EndorsmentProps{
     companyProps: CompanyProps;

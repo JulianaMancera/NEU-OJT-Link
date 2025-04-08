@@ -31,15 +31,13 @@ const CompanyApplication = ({company, onClose}: CompanyProps) => {
     const [jobDetail, setJobDetail] = useState<Job[] |null>(null);
     //User Requirements/Data
     const [selectedJob, setSelectedJob] = useState<Job | null>(null);
-    const [coverLetter, setCoverLetter] = useState<File | null>(null);
-    const [resume, setResume] = useState<File | null>(null);
+    const [cv, setCV] = useState<File | null>(null);
     const [com, setCOM] = useState<File | null>(null);
     const [medCert, setMedcert] = useState<File | null>(null);
     const [notarized, setNotarized] = useState<File | null>(null);
     const [psyTest, setPsyTest] = useState<File | null>(null);
     //Checker for User Uploads
-    const [resumeUploaded, setResumeUploaded] = useState(false);
-    const [coverLetterUploaded, setCoverLetterUploaded] = useState(false);
+    const [cvUploaded, setCVUploaded] = useState(false);
     const [comUploaded, setComUploaded] = useState(false) 
     const [medCertUploaded, setMedcertUploaded] = useState(false) 
     const [notarizeUploaded, setNotarizedUploaded] = useState(false) 
@@ -63,21 +61,16 @@ const CompanyApplication = ({company, onClose}: CompanyProps) => {
 
    
     const handleRequirementSubmit = async () => {
-        if(!resume || !coverLetter || !com  || !medCert || !notarized  || !psyTest){
+        if(!cv || !com  || !medCert || !notarized  || !psyTest){
             alert("Please Upload Both Files")
             return;
         }
         const user = await supabase.auth.getUser();
         //Upload Resume
-        const{data:resumeData, error:resumeError} = await supabase
+        const{data:cvData, error:cvError} = await supabase
         .storage
         .from("applicant-documents")
-        .upload(`resumes/${user.data.user?.id}_${company.company_id}_${resume.name}`,resume);
-        //Upload Cover Letter 
-        const{data:coverLetterData, error:coverLetterError} = await supabase
-        .storage
-        .from("applicant-documents")
-        .upload(`cover-letter/${user.data.user?.id}_${company.company_id}_${coverLetter.name}`,coverLetter);
+        .upload(`cv/${user.data.user?.id}_${company.company_id}_${cv.name}`,cv);
         //Upload Com
         const{data:comData, error:comError} = await supabase
         .storage
@@ -98,26 +91,23 @@ const CompanyApplication = ({company, onClose}: CompanyProps) => {
         .from("applicant-documents")
         .upload(`psyTest/${user.data.user?.id}_${company.company_id}_${psyTest.name}`,psyTest);
         //hanlde errors
-        if(resumeError ){
-            console.error("Error Uploadingg", resumeError)
-        }if(coverLetterError ){
-            console.error("Error Uploadingg", coverLetterError)
+        if(cvError ){
+            console.error("Error Uploadingg", cvError)
         }if(comError ){
-            console.error("Error Uploadingg", resumeError)
+            console.error("Error Uploadingg", comError)
         }if(medCertError ){
-            console.error("Error Uploadingg", resumeError)
+            console.error("Error Uploadingg", medCertError)
         }if(notarizeError ){
-            console.error("Error Uploadingg", coverLetterError)
+            console.error("Error Uploadingg", notarizeError)
         }if(psyTestError ){
-            console.error("Error Uploadingg", coverLetterError)
+            console.error("Error Uploadingg", psyTestError)
         }
         
         const{data , error} = await supabase.from("requirements").insert([
             {
                 student_id: user.data.user?.id,
                 created_at: new Date().toISOString(),
-                resume_url: resumeData?.path,
-                cover_letter_url: coverLetterData?.path,
+                cv_url: cvData?.path,
                 com_url : comData?.path,
                 medCert_url : medCertData?.path,
                 notarize_url : notarizeData?.path,
@@ -155,9 +145,7 @@ const CompanyApplication = ({company, onClose}: CompanyProps) => {
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>, type:string) => {
             if(event.target.files && event.target.files[0]){
                 if(type == 'resume'){
-                    setResume(event.target.files[0]);
-                }else if (type == "coverLetter"){
-                    setCoverLetter(event.target.files[0]);
+                    setCV(event.target.files[0]);
                 }else if (type == "com"){
                     setCOM(event.target.files[0]);
                 }else if (type == "medCert"){
@@ -191,8 +179,7 @@ const CompanyApplication = ({company, onClose}: CompanyProps) => {
             if(data){
                 if(data.resume_url && data.cover_letter_url){
                     console.log(data)
-                    setResumeUploaded(true)
-                    setCoverLetterUploaded(true)
+                    setCVUploaded(true)
                     setComUploaded(true)
                     setMedcertUploaded(true)
                     setNotarizedUploaded(true)
@@ -252,12 +239,12 @@ const CompanyApplication = ({company, onClose}: CompanyProps) => {
                 <p>Posistion Selected </p>
 
                 <br />
-                    {resumeUploaded && coverLetterUploaded && selectedJob ? 
+                    {cvUploaded && selectedJob ? 
                     <div>You already Submit for this posistion  <EndorsementButton companyProps={{company, onClose}} job={selectedJob}/></div> :
                     <div className="border border-black rounded-lg p-5">
                         <p className="font-semibold">Please Submit Requirements</p>
                         <br />
-                        {resumeUploaded ? <p>The Resume is Uploaded</p>: 
+                        {cvUploaded ? <p>The Resume is Uploaded</p>: 
 
                         <div className="flex items-center gap-2 mb-4">
 
@@ -266,13 +253,6 @@ const CompanyApplication = ({company, onClose}: CompanyProps) => {
                             <input className="file:bg-[#5fbff9] file:text-black file:rounded-[15px] file:border file:border-black file:px-4 file:py-2" type="file" accept=".pdf" onChange={(e)=>handleFileChange(e,"resume")} />
                         </div> }
                         
-                        {coverLetterUploaded ? <p>The CoverLetter is Uploaded</p>: 
-
-                        <div className="flex items-center gap-2 mb-4">
-                            <File size={20} className="text-black-500"/>
-                            <label className="font-bold">Cover Letter </label>
-                            <input className="file:bg-[#5fbff9] file:text-black file:rounded-[15px] file:border file:border-black file:px-4 file:py-2 ml-auto cursor-pointer" type="file" accept=".pdf" onChange={(e)=>handleFileChange(e,"coverLetter")} />
-                        </div>}
                         {comUploaded ? <p>The COM is Uploaded</p>: 
                         <div className="flex items-center gap-2 mb-4">
                             <File size={20} className="text-black-500" />
