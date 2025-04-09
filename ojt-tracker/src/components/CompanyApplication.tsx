@@ -237,9 +237,10 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
     <div className="flex items-center justify-center">
       {step === "selectJob" && (
         <div className="text-black">
-          <h4 className="text-lg font-semibold text-gray-800 mb-4">Possible Jobs</h4>
+          <br></br>
+          <h3 className="text-lg font-semibold text-gray-800 mb-4 text-center">Possible Jobs</h3>
           {jobDetail && jobDetail.length > 0 ? (
-            <div className="space-y-4">
+            <div className="space-y-5">
               {jobDetail.map((job, index) => (
                 <div
                   key={index}
