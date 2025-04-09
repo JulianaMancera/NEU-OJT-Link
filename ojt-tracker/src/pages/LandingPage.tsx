@@ -22,24 +22,26 @@ const LandingPage = () => {
   }, [navigate]);
 
   return (
-    <div className="h-screen w-screen overflow-hidden relative">
-      <div className="absolute inset-0 w-full h-full -z-10">
-        <img
-          src={landingPic}
-          alt="Students"
-          className="w-full h-full object-cover"
-        />
-      </div>
+    <div className="min-h-screen w-screen overflow-hidden relative flex flex-col items-center justify-center">
+    {/* Background Image */}
+    <div className="absolute inset-0 w-full h-full -z-10">
+      <img
+        src={landingPic}
+        alt="Students"
+        className="w-full h-full object-cover"
+      />
+    </div>
       {/* Content */}
       <div className="max-w-7xl mx-auto h-full flex flex-col lg:flex-row items-center justify-center relative z-15 -top-75">
+       
         {/* Left Column */}
-        <div className="lg:w-1/2 space-y-6 animate-fade-in" style={{ animationDelay: "0.1s" }}>
-          <div className="space-y-3">
-            <h1 className="text-5xl sm:text-6xl font-bold text-black leading-tight">
+        <div className="lg:w-1/2 space-y-4 animate-fade-in text-center lg:text-left">
+          <div className="space-y-1">
+            <h1 className="text-3xl sm:text-2xl font-bold text-black leading-tight">
               Welcome,
-              <span className="block text-black/90">{userName}</span>
+              <span className="block text-black/80">{userName}</span>
             </h1>
-            <h2 className="text-5xl sm:text-6xl font-bold bg-gradient-to-r from-black to-black/80 bg-clip-text text-transparent">
+            <h2 className="text-3xl sm:text-5xl font-bold bg-gradient-to-r from-black to-black/80 bg-clip-text text-transparent">
               to the NEU OJT LINK
             </h2>
           </div>
@@ -52,7 +54,7 @@ const LandingPage = () => {
         </div>
 
         {/* Right Column */}
-        <div className="lg:w-1/2 mt-10 lg:mt-0 flex justify-center lg:justify-end animate-fade-in" style={{ animationDelay: "0.3s" }}>
+        <div className="lg:w-1/2 mt-9 lg:mt-0 flex justify-center lg:justify-end animate-fade-in" style={{ animationDelay: "0.3s" }}>
           <div className="glass-card p-8 w-full max-w-md bg-white/70">
             <h3 className="text-2xl font-medium text-gray-800 mb-6">Ready to explore opportunities?</h3>
             <p className="text-gray-600 mb-8">

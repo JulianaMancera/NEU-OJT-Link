@@ -222,8 +222,8 @@ const StudentDashboard: React.FC = () => {  //Facade na kaya natin ito kasi anda
     </button>
 
     {isProfileOpen && (
-        <div className="absolute right-0 top-[4.5rem] bg-white text-gray-800 shadow-lg rounded-md overflow-hidden z-50 w-64 min-w-[16rem]">
-            <div className="bg-violet-800 text-white p-4 text-center">
+        <div className="absolute right-0 top-[4.5rem] bg-white text-gray-800 shadow-lg rounded-md overflow-hidden z-50 w-64 min-w-[16rem] ">
+            <div className="bg-violet-800 text-black p-4 text-center">
                 <div className="w-16 h-16 rounded-full mx-auto overflow-hidden mb-2">
                     {profilePicture ? (
                         <img src={profilePicture} alt="Profile" className="w-full h-full object-cover" />
@@ -284,7 +284,7 @@ const StudentDashboard: React.FC = () => {  //Facade na kaya natin ito kasi anda
     )}
       </header>
 
-      <div className="container mx-auto px-6 mt-35">
+      <div className="container mx-auto px-6 mt-35 text-black">
         <div className="grid grid-cols-3 gap-4 mb-6">
           <div className="bg-white shadow-md rounded-lg p-4 flex items-center space-x-4 border border-black">
             <div className="w-20 h-20 bg-gray-200 rounded flex items-center justify-center">
