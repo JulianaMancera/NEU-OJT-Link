@@ -46,9 +46,9 @@ const LandingPage = () => {
             </h2>
           </div>
           
-          <div className="h-1 w-24 bg-black/50 rounded-full my-6"></div>
+          <div className="h-1 w-40 bg-black/50 rounded-full my-5"></div>
           
-          <p className="text-xl text-black/90 max-w-md">
+          <p className="text-xl text-black/80 max-w-xl">
             Connecting students and companies seamlessly for a better OJT experience.
           </p>
         </div>

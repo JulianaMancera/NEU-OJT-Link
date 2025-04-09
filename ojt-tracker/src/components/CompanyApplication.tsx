@@ -27,9 +27,10 @@ interface Job {
 }
 
 const CompanyApplication = ({ company, onClose }: CompanyProps) => {
-  const [step, setStep] = useState<"selectJob" | "apply" | "requirement" | "dashboard">("selectJob"); // Add "selectJob" step
+  const [step, setStep] = useState<"selectJob" | "apply" | "requirement" | "availability" | "dashboard">("selectJob"); // Add "availability" step
   const [jobDetail, setJobDetail] = useState<Job[] | null>(null);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
+  const [applicationId, setApplicationId] = useState<string | null>(null); // Store the application ID
   // User Requirements/Data
   const [coverLetter, setCoverLetter] = useState<File | null>(null);
   const [resume, setResume] = useState<File | null>(null);
@@ -46,6 +47,11 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
   const [medCertUploaded, setMedcertUploaded] = useState(false);
   const [notarizeUploaded, setNotarizedUploaded] = useState(false);
   const [psyTestUploaded, setPsyTestUploaded] = useState(false);
+  // Availability Form State
+  const [availability, setAvailability] = useState<{ day: string; startTime: string; endTime: string }[]>([]); // Store multiple availability slots
+  const [currentDay, setCurrentDay] = useState<string>("");
+  const [currentStartTime, setCurrentStartTime] = useState<string>("");
+  const [currentEndTime, setCurrentEndTime] = useState<string>("");
 
   useEffect(() => {
     const fetchJob = async () => {
@@ -144,7 +150,7 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
         job_id: selectedJob?.job_id,
       },
     ]);
-
+    
     if (error) {
       console.error("Error Submitting Requirements:", error.message);
     } else {
@@ -152,7 +158,8 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
       setStep("dashboard");
     }
 
-    const { data: applicationData, error: appplicationError } = await supabase.from("application").insert([
+    // Insert the application record and store the application_id
+    const { data: applicationData, error: applicationError } = await supabase.from("application").insert([
       {
         user_id: user.data.user?.id,
         company_id: company.company_id,
@@ -162,13 +169,70 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
         start_date: null,
         end_date: null,
       },
-    ]);
+    ]).select(); // Use .select() to return the inserted record
 
-    if (applicationData) {
-      console.log("Success", applicationData);
-    } else if (appplicationError) {
-      console.log(appplicationError);
+    if (applicationError) {
+      console.error("Error creating application:", applicationError);
+      return;
     }
+
+    if (applicationData && applicationData.length > 0) {
+      console.log("Application created:", applicationData);
+      setApplicationId(applicationData[0].application_id); // Store the application_id
+      setStep("availability"); // Move to the availability step
+    }
+  };
+
+  const handleAvailabilitySubmit = async () => {
+    if (availability.length === 0) {
+      alert("Please add at least one availability slot.");
+      return;
+    }
+
+    // Insert all availability slots into the availability table
+    const availabilityEntries = availability.map(slot => ({
+      application_id: applicationId,
+      day_of_week: slot.day,
+      start_time: slot.startTime,
+      end_time: slot.endTime,
+    }));
+
+    const { data, error } = await supabase
+      .from("availability")
+      .insert(availabilityEntries);
+
+    if (error) {
+      console.error("Error submitting availability:", error.message);
+      alert("Failed to submit availability. Please try again.");
+      return;
+    }
+
+    console.log("Availability submitted:", data);
+    setStep("dashboard"); // Move to the dashboard step
+  };
+
+  const handleAddAvailabilitySlot = () => {
+    if (!currentDay || !currentStartTime || !currentEndTime) {
+      alert("Please fill in all availability fields.");
+      return;
+    }
+
+    // Validate that start time is before end time
+    if (currentStartTime >= currentEndTime) {
+      alert("Start time must be before end time.");
+      return;
+    }
+
+    setAvailability([...availability, {
+      day: currentDay,
+      startTime: currentStartTime,
+      endTime: currentEndTime,
+    }]);
+
+    // Reset the form fields
+    setCurrentDay("");
+    setCurrentStartTime("");
+    setCurrentEndTime("");
   };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>, type: string) => {
@@ -257,16 +321,16 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
       )}
 
       {step === "apply" && (
-        <div className="text-black">
+        <div className="text-black"> 
           <button
             onClick={() => setStep("selectJob")} // Go back to the "Possible Jobs" modal
-            className="text-blue-500 mb-4"
+            className="text-blue-500 mb-4 mr-4"
           >
             Back to Job List
           </button>
           <button
-            onClick={() => handleSelectedJob(selectedJob!)}
-            className="bg-[#5fbff9] text-black font-semibold px-4 py-2 rounded-[1.5em] border border-black mb-4"
+            onClick={() => handleSelectedJob(selectedJob!)} 
+            className="text-blue-500 mb-4"
           >
             Apply Now
           </button>
@@ -289,179 +353,253 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
         </div>
       )}
 
-{step === "requirement" && (
-  <div className="text-black">
-    <p className="text-center text-xl font-bold mb-4">{company.name}</p>
-    <p>Position: {selectedJob?.position}</p>
-    <br />
-    {resumeUploaded && coverLetterUploaded && selectedJob ? (
-      <div>
-        You already submitted for this position 
-        <EndorsementButton companyProps={{ company, onClose }} job={selectedJob} />
-      </div>
-    ) : (
-      <div className="border border-black rounded-lg p-5 w-[600px]"> {/* Set a fixed width */}
-        <p className="font-semibold">Please Submit Requirements</p>
-        <br />
-        {resumeUploaded ? (
-          <p>The Resume is Uploaded</p>
-        ) : (
-          <div className="flex items-center gap-2 mb-4">
-            <File size={20} className="text-black-500" />
-            <label className="font-bold min-w-[150px]">Resume</label>
-            <label className="bg-[#5fbff9] text-black rounded-[15px] border border-black px-4 py-2 cursor-pointer">
-              Choose File
-              <input
-                type="file"
-                accept=".pdf"
-                onChange={(e) => handleFileChange(e, "resume")}
-                className="hidden"
-              />
-            </label>
-            <span className="text-gray-500 pointer-events-none truncate max-w-[200px]">
-              {resume ? resume.name : "No file chosen"}
-            </span>
-          </div>
-        )}
+      {step === "requirement" && (
+        <div className="text-black">
+          <p className="text-center text-xl font-bold mb-4">{company.name}</p>
+          <p>Position: {selectedJob?.position}</p>
+          <br />
+          {resumeUploaded && coverLetterUploaded && selectedJob ? (
+            <div>
+              You already submitted for this position 
+              <EndorsementButton companyProps={{ company, onClose }} job={selectedJob} />
+            </div>
+          ) : (
+            <div className="border border-black rounded-lg p-5 w-[600px]">
+              <p className="font-semibold">Please Submit Requirements</p>
+              <br />
+              {resumeUploaded ? (
+                <p>The Resume is Uploaded</p>
+              ) : (
+                <div className="flex items-center gap-2 mb-4">
+                  <File size={20} className="text-black-500" />
+                  <label className="font-bold min-w-[150px]">Resume</label>
+                  <label className="bg-[#5fbff9] text-black rounded-[15px] border border-black px-4 py-2 cursor-pointer">
+                    Choose File
+                    <input
+                      type="file"
+                      accept=".pdf"
+                      onChange={(e) => handleFileChange(e, "resume")}
+                      className="hidden"
+                    />
+                  </label>
+                  <span className="text-gray-500 pointer-events-none truncate max-w-[200px]">
+                    {resume ? resume.name : "No file chosen"}
+                  </span>
+                </div>
+              )}
 
-        {coverLetterUploaded ? (
-          <p>The Cover Letter is Uploaded</p>
-        ) : (
-          <div className="flex items-center gap-2 mb-4">
-            <File size={20} className="text-black-500" />
-            <label className="font-bold min-w-[150px]">Cover Letter</label>
-            <label className="bg-[#5fbff9] text-black rounded-[15px] border border-black px-4 py-2 cursor-pointer">
-              Choose File
-              <input
-                type="file"
-                accept=".pdf"
-                onChange={(e) => handleFileChange(e, "coverLetter")}
-                className="hidden"
-              />
-            </label>
-            <span className="text-gray-500 pointer-events-none truncate max-w-[200px]">
-              {coverLetter ? coverLetter.name : "No file chosen"}
-            </span>
-          </div>
-        )}
+              {coverLetterUploaded ? (
+                <p>The Cover Letter is Uploaded</p>
+              ) : (
+                <div className="flex items-center gap-2 mb-4">
+                  <File size={20} className="text-black-500" />
+                  <label className="font-bold min-w-[150px]">Cover Letter</label>
+                  <label className="bg-[#5fbff9] text-black rounded-[15px] border border-black px-4 py-2 cursor-pointer">
+                    Choose File
+                    <input
+                      type="file"
+                      accept=".pdf"
+                      onChange={(e) => handleFileChange(e, "coverLetter")}
+                      className="hidden"
+                    />
+                  </label>
+                  <span className="text-gray-500 pointer-events-none truncate max-w-[200px]">
+                    {coverLetter ? coverLetter.name : "No file chosen"}
+                  </span>
+                </div>
+              )}
 
-        {comUploaded ? (
-          <p>The COM is Uploaded</p>
-        ) : (
-          <div className="flex items-center gap-2 mb-4">
-            <File size={20} className="text-black-500" />
-            <label className="font-bold min-w-[150px]">COM</label>
-            <label className="bg-[#5fbff9] text-black rounded-[15px] border border-black px-4 py-2 cursor-pointer">
-              Choose File
-              <input
-                type="file"
-                accept=".pdf"
-                onChange={(e) => handleFileChange(e, "com")}
-                className="hidden"
-              />
-            </label>
-            <span className="text-gray-500 pointer-events-none truncate max-w-[200px]">
-              {com ? com.name : "No file chosen"}
-            </span>
-          </div>
-        )}
+              {comUploaded ? (
+                <p>The COM is Uploaded</p>
+              ) : (
+                <div className="flex items-center gap-2 mb-4">
+                  <File size={20} className="text-black-500" />
+                  <label className="font-bold min-w-[150px]">COM</label>
+                  <label className="bg-[#5fbff9] text-black rounded-[15px] border border-black px-4 py-2 cursor-pointer">
+                    Choose File
+                    <input
+                      type="file"
+                      accept=".pdf"
+                      onChange={(e) => handleFileChange(e, "com")}
+                      className="hidden"
+                    />
+                  </label>
+                  <span className="text-gray-500 pointer-events-none truncate max-w-[200px]">
+                    {com ? com.name : "No file chosen"}
+                  </span>
+                </div>
+              )}
 
-        {cvUploaded ? (
-          <p>The CV is Uploaded</p>
-        ) : (
-          <div className="flex items-center gap-2 mb-4">
-            <File size={20} className="text-black-500" />
-            <label className="font-bold min-w-[150px]">CV</label>
-            <label className="bg-[#5fbff9] text-black rounded-[15px] border border-black px-4 py-2 cursor-pointer">
-              Choose File
-              <input
-                type="file"
-                accept=".pdf"
-                onChange={(e) => handleFileChange(e, "cv")}
-                className="hidden"
-              />
-            </label>
-            <span className="text-gray-500 pointer-events-none truncate max-w-[200px]">
-              {cv ? cv.name : "No file chosen"}
-            </span>
-          </div>
-        )}
+              {cvUploaded ? (
+                <p>The CV is Uploaded</p>
+              ) : (
+                <div className="flex items-center gap-2 mb-4">
+                  <File size={20} className="text-black-500" />
+                  <label className="font-bold min-w-[150px]">CV</label>
+                  <label className="bg-[#5fbff9] text-black rounded-[15px] border border-black px-4 py-2 cursor-pointer">
+                    Choose File
+                    <input
+                      type="file"
+                      accept=".pdf"
+                      onChange={(e) => handleFileChange(e, "cv")}
+                      className="hidden"
+                    />
+                  </label>
+                  <span className="text-gray-500 pointer-events-none truncate max-w-[200px]">
+                    {cv ? cv.name : "No file chosen"}
+                  </span>
+                </div>
+              )}
 
-        {medCertUploaded ? (
-          <p>The MedCert is Uploaded</p>
-        ) : (
-          <div className="flex items-center gap-2 mb-4">
-            <File size={20} className="text-black-500" />
-            <label className="font-bold min-w-[150px]">Med Cert</label>
-            <label className="bg-[#5fbff9] text-black rounded-[15px] border border-black px-4 py-2 cursor-pointer">
-              Choose File
-              <input
-                type="file"
-                accept=".pdf"
-                onChange={(e) => handleFileChange(e, "medCert")}
-                className="hidden"
-              />
-            </label>
-            <span className="text-gray-500 pointer-events-none truncate max-w-[200px]">
-              {medCert ? medCert.name : "No file chosen"}
-            </span>
-          </div>
-        )}
+              {medCertUploaded ? (
+                <p>The MedCert is Uploaded</p>
+              ) : (
+                <div className="flex items-center gap-2 mb-4">
+                  <File size={20} className="text-black-500" />
+                  <label className="font-bold min-w-[150px]">Med Cert</label>
+                  <label className="bg-[#5fbff9] text-black rounded-[15px] border border-black px-4 py-2 cursor-pointer">
+                    Choose File
+                    <input
+                      type="file"
+                      accept=".pdf"
+                      onChange={(e) => handleFileChange(e, "medCert")}
+                      className="hidden"
+                    />
+                  </label>
+                  <span className="text-gray-500 pointer-events-none truncate max-w-[200px]">
+                    {medCert ? medCert.name : "No file chosen"}
+                  </span>
+                </div>
+              )}
 
-        {notarizeUploaded ? (
-          <p>The Notarized Consent is Uploaded</p>
-        ) : (
-          <div className="flex items-center gap-2 mb-4">
-            <File size={20} className="text-black-500" />
-            <label className="font-bold min-w-[150px]">Notarized Parent Consent</label>
-            <label className="bg-[#5fbff9] text-black rounded-[15px] border border-black px-4 py-2 cursor-pointer">
-              Choose File
-              <input
-                type="file"
-                accept=".pdf"
-                onChange={(e) => handleFileChange(e, "notarized")}
-                className="hidden"
-              />
-            </label>
-            <span className="text-gray-500 pointer-events-none truncate max-w-[200px]">
-              {notarized ? notarized.name : "No file chosen"}
-            </span>
-          </div>
-        )}
+              {notarizeUploaded ? (
+                <p>The Notarized Consent is Uploaded</p>
+              ) : (
+                <div className="flex items-center gap-2 mb-4">
+                  <File size={20} className="text-black-500" />
+                  <label className="font-bold min-w-[150px]">Notarized Parent Consent</label>
+                  <label className="bg-[#5fbff9] text-black rounded-[15px] border border-black px-4 py-2 cursor-pointer">
+                    Choose File
+                    <input
+                      type="file"
+                      accept=".pdf"
+                      onChange={(e) => handleFileChange(e, "notarized")}
+                      className="hidden"
+                    />
+                  </label>
+                  <span className="text-gray-500 pointer-events-none truncate max-w-[200px]">
+                    {notarized ? notarized.name : "No file chosen"}
+                  </span>
+                </div>
+              )}
 
-        {psyTestUploaded ? (
-          <p>The Psy Test is Uploaded</p>
-        ) : (
-          <div className="flex items-center gap-2">
-            <File size={30} className="text-gray-500" />
-            <label className="font-bold min-w-[150px]">Psychological Test</label>
-            <label className="bg-[#5fbff9] text-black rounded-[15px] border border-black px-4 py-2 cursor-pointer">
-              Choose File
-              <input
-                type="file"
-                accept=".pdf"
-                onChange={(e) => handleFileChange(e, "psyTest")}
-                className="hidden"
-              />
-            </label>
-            <span className="text-gray-500 pointer-events-none truncate max-w-[200px]">
-              {psyTest ? psyTest.name : "No file chosen"}
-            </span>
+              {psyTestUploaded ? (
+                <p>The Psy Test is Uploaded</p>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <File size={20} className="text-black-500" />
+                  <label className="font-bold min-w-[150px]">Psychological Test</label>
+                  <label className="bg-[#5fbff9] text-black rounded-[15px] border border-black px-4 py-2 cursor-pointer">
+                    Choose File
+                    <input
+                      type="file"
+                      accept=".pdf"
+                      onChange={(e) => handleFileChange(e, "psyTest")}
+                      className="hidden"
+                    />
+                  </label>
+                  <span className="text-gray-500 pointer-events-none truncate max-w-[200px]">
+                    {psyTest ? psyTest.name : "No file chosen"}
+                  </span>
+                </div>
+              )}
+            </div>
+          )}
+          <br />
+          <div className="flex gap-4">
+            <button onClick={handleRequirementSubmit} className="text-white bg-blue-500 px-4 py-2 rounded">
+              Submit
+            </button>
+            <button onClick={onClose} className="text-white bg-gray-500 px-4 py-2 rounded">
+              Cancel
+            </button>
           </div>
-        )}
-      </div>
-    )}
-    <br />
-    <div className="flex gap-4">
-      <button onClick={handleRequirementSubmit} className="text-white bg-blue-500 px-4 py-2 rounded">
-        Submit
-      </button>
-      <button onClick={onClose} className="text-white bg-gray-500 px-4 py-2 rounded">
-        Cancel
-      </button>
-    </div>
-  </div>
-)}
+        </div>
+      )}
+
+      {step === "availability" && (
+        <div className="text-black">
+          <p className="text-center text-xl font-bold mb-4">Add Your OJT Availability</p>
+          <div className="border border-black rounded-lg p-5 w-[600px]">
+            <div className="mb-4">
+              <label className="font-bold min-w-[150px]">Day of Week</label>
+              <select
+                value={currentDay}
+                onChange={(e) => setCurrentDay(e.target.value)}
+                className="border border-gray-300 rounded px-2 py-1"
+              >
+                <option value="">Select a day</option>
+                <option value="Monday">Monday</option>
+                <option value="Tuesday">Tuesday</option>
+                <option value="Wednesday">Wednesday</option>
+                <option value="Thursday">Thursday</option>
+                <option value="Friday">Friday</option>
+                <option value="Saturday">Saturday</option>
+                <option value="Sunday">Sunday</option>
+              </select>
+            </div>
+
+            <div className="mb-4">
+              <label className="font-bold min-w-[150px]">Start Time</label>
+              <input
+                type="time"
+                value={currentStartTime}
+                onChange={(e) => setCurrentStartTime(e.target.value)}
+                className="border border-gray-300 rounded px-2 py-1"
+              />
+            </div>
+
+            <div className="mb-4">
+              <label className="font-bold min-w-[150px]">End Time</label>
+              <input
+                type="time"
+                value={currentEndTime}
+                onChange={(e) => setCurrentEndTime(e.target.value)}
+                className="border border-gray-300 rounded px-2 py-1"
+              />
+            </div>
+
+            <button
+              onClick={handleAddAvailabilitySlot}
+              className="text-white bg-green-500 px-4 py-2 rounded mb-4"
+            >
+              Add Availability Slot
+            </button>
+
+            {availability.length > 0 && (
+              <div className="mb-4">
+                <p className="font-semibold">Added Availability:</p>
+                <ul className="list-disc pl-5">
+                  {availability.map((slot, index) => (
+                    <li key={index}>
+                      {slot.day}: {slot.startTime} - {slot.endTime}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+
+          <div className="flex gap-4 mt-4">
+            <button onClick={handleAvailabilitySubmit} className="text-white bg-blue-500 px-4 py-2 rounded">
+              Submit Availability
+            </button>
+            <button onClick={onClose} className="text-white bg-gray-500 px-4 py-2 rounded">
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
 
       {step === "dashboard" && (
         <div>
