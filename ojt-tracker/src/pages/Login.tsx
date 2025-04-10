@@ -40,7 +40,8 @@ const Auth = () => {
       <img
         src={backgroundImage}
         alt="New Era University"
-        className="absolute inset-0 w-full h-full object-cover transform translate-x-[-200px]"
+        className="absolute inset-0 w-full h-full object-cover"
+        style={{ left: "-13%" }}
       />
     
       <div className="relative w-full h-screen flex items-center justify-end">

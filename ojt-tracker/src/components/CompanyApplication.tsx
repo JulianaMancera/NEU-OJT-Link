@@ -297,6 +297,7 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
     setStep("apply"); // Move to the job details modal
   };
 
+
   return (
     <div className="flex items-center justify-center">
       {step === "selectJob" && (
@@ -370,7 +371,7 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
             </div>
           ) : (
             <div className="border border-black rounded-lg p-5 w-[600px]">
-              <p className="font-semibold">Please Submit Requirements</p>
+              <p className="font-semibold text-center text-[1.2rem]">Please Submit Requirements</p>
               <br />
               {resumeUploaded ? (
                 <p>The Resume is Uploaded</p>
@@ -482,7 +483,7 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
               ) : (
                 <div className="flex items-center gap-2 mb-4">
                   <File size={20} className="text-black-500" />
-                  <label className="font-bold min-w-[150px]">Notarized Parent Consent</label>
+                  <label className="font-bold min-w-[150px]">Notarized Parent <br />Consent</label>
                   <label className="bg-[#5fbff9] text-black rounded-[15px] border border-black px-4 py-2 cursor-pointer">
                     Choose File
                     <input
