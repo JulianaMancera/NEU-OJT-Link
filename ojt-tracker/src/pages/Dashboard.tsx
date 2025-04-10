@@ -150,10 +150,9 @@ const Dashboard = () => {
               {/* Expanded Company Details (if selected) */}
               {selectedCompany === company && (
                 <div className="fixed inset-0 flex items-center justify-center z-50">
-                  <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-[80vh] h-[60vh] overflow-y-auto overflow-x-hidden relative z-50">
-                    {/* Close Button */}
+                  <div className="bg-[#FDFBF6] p-6 rounded-lg shadow-lg w-full max-w-[80vh] h-[60vh] overflow-y-auto overflow-x-hidden relative z-50">
                     <div className="flex justify-between items-center">
-                      <h3 className="text-xl font-bold text-black sticky top-0 bg-white">{company.name}</h3>
+                      <h3 className="text-xl font-bold text-black sticky top-0">{company.name}</h3>
                       <button onClick={() => setSelectedCompany(null)}>
                         <X size={15} color="white" />
                       </button>
