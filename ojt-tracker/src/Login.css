@@ -11,18 +11,18 @@
     /* Logo positioning */
     .neu-university-logo {
       width: 120px !important;
-      margin-top: 60px !important;
+      margin-top: 90px !important;
     }
     
     .neu-ojt-logo {
-      width: 200px !important;
+      width: 300px !important;
       margin-top: 40px !important;
       position: relative !important;
     }
     
     /* Text and button positioning */
     .neu-welcome-container {
-      margin-top: 30px !important;
+      margin-top: -50px !important;
       position: relative !important;
     }
     
@@ -66,15 +66,21 @@
     
     .neu-university-logo {
       width: 160px !important;
-      margin-top: 23px !important;
+      margin-top: 130px !important;
     }
     
     .neu-ojt-logo {
-      margin-top: -90px !important;
+      margin-top: -100px !important;
       width: auto !important;
     }
     
     .neu-welcome-container {
       margin-top: -180px !important;
     }
+
+    .neu-google-button-container {
+        width: 270px !important;
+        height: 60px !important;
+        margin-top: 20px !important;
+      }
   }

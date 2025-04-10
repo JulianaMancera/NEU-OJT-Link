@@ -40,7 +40,7 @@ const Auth = () => {
     <img
       src={backgroundImage}
       alt="New Era University"
-      className="absolute inset-0 w-full h-full object-cover"
+      className="absolute inset-0 w-full h-full object-cover transform translate-x-[-100px]"
     />
     
     <div className="relative w-full h-screen flex items-center justify-end">
@@ -55,7 +55,7 @@ const Auth = () => {
         <img
           src={backgroundImage2}
           alt="OJT LINK"
-          className="neu-ojt-logo object-contain relative -mt-10 md:-mt-[90px] w-48 md:w-auto"
+          className="neu-ojt-logo"
         />
         
         <div className="neu-welcome-container flex flex-col text-center relative -mt-20 md:-mt-[180px]">
