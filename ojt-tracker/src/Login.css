@@ -59,7 +59,7 @@
   }
   
   /* Full HD and larger screens */
-  @media screen and (min-width: 1601px) {
+  @media screen and (min-width: 1920px) and (max-width: 1080px) {
     .neu-login-panel {
       width: 750px !important;
     }
