@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { supabase } from "../../supabase";
 import EndorsementButton from "./EndorsementButton";
-import { File } from "lucide-react";
 import CompanyApplicationApply from "./CompanyApplicationApply";
+import FileUploadField from "./FileUploadField";
 
 interface CompanyProps {
   company: {
@@ -47,6 +47,17 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
   const [currentDay, setCurrentDay] = useState<string>("");
   const [currentStartTime, setCurrentStartTime] = useState<string>("");
   const [currentEndTime, setCurrentEndTime] = useState<string>("");
+  const fileFields = [
+    { key: "resume", label: "Resume", file: resume },
+    { key: "coverLetter", label: "Cover Letter", file: coverLetter },
+    { key: "com", label: "COM", file: com },
+    { key: "cv", label: "CV", file: cv },
+    { key: "medCert", label: "Med Cert", file: medCert },
+    { key: "notarized", label: "Notarized Parent Consent", file: notarized },
+    { key: "psyTest", label: "Psychological Test", file: psyTest },
+  ];
+
+
 
   useEffect(() => {
     const fetchJob = async () => {
@@ -284,177 +295,47 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
       )}
 
       {step === "requirement" && (
-        <div className="text-black">
-          <p className="text-center text-xl font-bold mb-4">{company.name}</p>
-          <p>Position: {selectedJob?.position}</p>
-          <br />
-          {requirementUploaded && selectedJob ? (
-            <div>
-              You already submitted for this position 
-              <EndorsementButton companyProps={{ company, onClose }} job={selectedJob} />
-            </div>
-          ) : (
-            <div className="border border-black rounded-lg p-5 w-[600px]">
-              <p className="font-semibold">Please Submit Requirements</p>
-              <br />
-              {requirementUploaded ? (
-                <p>The Resume is Uploaded</p>
-              ) : (
-                <div className="flex items-center gap-2 mb-4">
-                  <File size={20} className="text-black-500" />
-                  <label className="font-bold min-w-[150px]">Resume</label>
-                  <label className="bg-[#5fbff9] text-black rounded-[15px] border border-black px-4 py-2 cursor-pointer">
-                    Choose File
-                    <input
-                      type="file"
-                      accept=".pdf"
-                      onChange={(e) => handleFileChange(e, "resume")}
-                      className="hidden"
-                    />
-                  </label>
-                  <span className="text-gray-500 pointer-events-none truncate max-w-[200px]">
-                    {resume ? resume.name : "No file chosen"}
-                  </span>
-                </div>
-              )}
-
-              {requirementUploaded? (
-                <p>The Cover Letter is Uploaded</p>
-              ) : (
-                <div className="flex items-center gap-2 mb-4">
-                  <File size={20} className="text-black-500" />
-                  <label className="font-bold min-w-[150px]">Cover Letter</label>
-                  <label className="bg-[#5fbff9] text-black rounded-[15px] border border-black px-4 py-2 cursor-pointer">
-                    Choose File
-                    <input
-                      type="file"
-                      accept=".pdf"
-                      onChange={(e) => handleFileChange(e, "coverLetter")}
-                      className="hidden"
-                    />
-                  </label>
-                  <span className="text-gray-500 pointer-events-none truncate max-w-[200px]">
-                    {coverLetter ? coverLetter.name : "No file chosen"}
-                  </span>
-                </div>
-              )}
-
-              {requirementUploaded ? (
-                <p>The COM is Uploaded</p>
-              ) : (
-                <div className="flex items-center gap-2 mb-4">
-                  <File size={20} className="text-black-500" />
-                  <label className="font-bold min-w-[150px]">COM</label>
-                  <label className="bg-[#5fbff9] text-black rounded-[15px] border border-black px-4 py-2 cursor-pointer">
-                    Choose File
-                    <input
-                      type="file"
-                      accept=".pdf"
-                      onChange={(e) => handleFileChange(e, "com")}
-                      className="hidden"
-                    />
-                  </label>
-                  <span className="text-gray-500 pointer-events-none truncate max-w-[200px]">
-                    {com ? com.name : "No file chosen"}
-                  </span>
-                </div>
-              )}
-
-              {requirementUploaded ? (
-                <p>The CV is Uploaded</p>
-              ) : (
-                <div className="flex items-center gap-2 mb-4">
-                  <File size={20} className="text-black-500" />
-                  <label className="font-bold min-w-[150px]">CV</label>
-                  <label className="bg-[#5fbff9] text-black rounded-[15px] border border-black px-4 py-2 cursor-pointer">
-                    Choose File
-                    <input
-                      type="file"
-                      accept=".pdf"
-                      onChange={(e) => handleFileChange(e, "cv")}
-                      className="hidden"
-                    />
-                  </label>
-                  <span className="text-gray-500 pointer-events-none truncate max-w-[200px]">
-                    {cv ? cv.name : "No file chosen"}
-                  </span>
-                </div>
-              )}
-
-              {requirementUploaded ? (
-                <p>The MedCert is Uploaded</p>
-              ) : (
-                <div className="flex items-center gap-2 mb-4">
-                  <File size={20} className="text-black-500" />
-                  <label className="font-bold min-w-[150px]">Med Cert</label>
-                  <label className="bg-[#5fbff9] text-black rounded-[15px] border border-black px-4 py-2 cursor-pointer">
-                    Choose File
-                    <input
-                      type="file"
-                      accept=".pdf"
-                      onChange={(e) => handleFileChange(e, "medCert")}
-                      className="hidden"
-                    />
-                  </label>
-                  <span className="text-gray-500 pointer-events-none truncate max-w-[200px]">
-                    {medCert ? medCert.name : "No file chosen"}
-                  </span>
-                </div>
-              )}
-
-              {requirementUploaded ? (
-                <p>The Notarized Consent is Uploaded</p>
-              ) : (
-                <div className="flex items-center gap-2 mb-4">
-                  <File size={20} className="text-black-500" />
-                  <label className="font-bold min-w-[150px]">Notarized Parent Consent</label>
-                  <label className="bg-[#5fbff9] text-black rounded-[15px] border border-black px-4 py-2 cursor-pointer">
-                    Choose File
-                    <input
-                      type="file"
-                      accept=".pdf"
-                      onChange={(e) => handleFileChange(e, "notarized")}
-                      className="hidden"
-                    />
-                  </label>
-                  <span className="text-gray-500 pointer-events-none truncate max-w-[200px]">
-                    {notarized ? notarized.name : "No file chosen"}
-                  </span>
-                </div>
-              )}
-
-              {requirementUploaded ? (
-                <p>The Psy Test is Uploaded</p>
-              ) : (
-                <div className="flex items-center gap-2">
-                  <File size={20} className="text-black-500" />
-                  <label className="font-bold min-w-[150px]">Psychological Test</label>
-                  <label className="bg-[#5fbff9] text-black rounded-[15px] border border-black px-4 py-2 cursor-pointer">
-                    Choose File
-                    <input
-                      type="file"
-                      accept=".pdf"
-                      onChange={(e) => handleFileChange(e, "psyTest")}
-                      className="hidden"
-                    />
-                  </label>
-                  <span className="text-gray-500 pointer-events-none truncate max-w-[200px]">
-                    {psyTest ? psyTest.name : "No file chosen"}
-                  </span>
-                </div>
-              )}
-            </div>
-          )}
-          <br />
-          <div className="flex gap-4">
-            <button onClick={handleRequirementSubmit} className="text-white bg-blue-500 px-4 py-2 rounded">
-              Submit
-            </button>
-            <button onClick={onClose} className="text-white bg-gray-500 px-4 py-2 rounded">
-              Cancel
-            </button>
-          </div>
-        </div>
+       <div className="text-black">
+       <p className="text-center text-xl font-bold mb-4">{company.name}</p>
+       <p>Position: {selectedJob?.position}</p>
+       <br />
+       {requirementUploaded && selectedJob? (
+         <div>
+           You already submitted for this position
+           {/* Assuming you have EndorsementButton component */}
+            <EndorsementButton companyProps={{ company, onClose }} job={selectedJob} />
+         </div>
+       ) : (
+         <div className="border border-black rounded-lg p-5 w-[600px]">
+           <p className="font-semibold">Please Submit Requirements</p>
+           <br />
+           {fileFields.map(({ key, label, file }) => (
+             <FileUploadField
+               key={key}
+               fieldKey={key}
+               label={label}
+               file={file}
+               onChange={handleFileChange}
+             />
+           ))}
+         </div>
+       )}
+       <br />
+       <div className="flex gap-4">
+         <button
+           onClick={handleRequirementSubmit}
+           className="text-white bg-blue-500 px-4 py-2 rounded"
+         >
+           Submit
+         </button>
+         <button
+           onClick={onClose}
+           className="text-white bg-gray-500 px-4 py-2 rounded"
+         >
+           Cancel
+         </button>
+       </div>
+     </div> 
       )}
 
       {step === "availability" && (
