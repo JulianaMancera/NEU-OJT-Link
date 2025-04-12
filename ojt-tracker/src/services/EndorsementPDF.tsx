@@ -24,9 +24,10 @@ interface userInfo{
     companyEmail:string,
     date: string,
     signatureUrl: string
+    dean: string
 }
 
-const EndorsementPDF : React.FC<userInfo> =({name,position,company, companyAddress, companyEmail,date,signatureUrl}) => {
+const EndorsementPDF : React.FC<userInfo> =({name,position,company, companyAddress, companyEmail,date,signatureUrl,dean}) => {
     return(
     //Warning wag tularan 
     <Document>
@@ -60,7 +61,7 @@ const EndorsementPDF : React.FC<userInfo> =({name,position,company, companyAddre
         {/*Signature and Details*/} 
         <View>
             <Text>Sincerly,</Text>
-            <Text>Wonka</Text>
+            <Text>{dean}</Text>
             <Text>NEUCutie</Text>
             {/*This is the image */}
             {signatureUrl && (<Image src={signatureUrl} style={styles.signature}/>)}
