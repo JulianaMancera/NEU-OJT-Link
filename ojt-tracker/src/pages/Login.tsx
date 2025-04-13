@@ -42,7 +42,6 @@ const Auth = () => {
         alt="New Era University"
         className="absolute w-full h-full object-cover"
         style={{ left: "-13%",
-        
          }}
       />
     
@@ -61,7 +60,7 @@ const Auth = () => {
           />
 
         
-          <div className="flex flex-col text-center relative md:-mt-[8vw]">
+          <div className="flex flex-col text-center relative md:-mt-[9.5vw]">
             <h2 className="text-black text-[24px] h-15 md:text-[37px] font-semibold font-poppins">
               Welcome User!
             </h2>
