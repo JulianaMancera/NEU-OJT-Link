@@ -61,7 +61,7 @@ const Auth = () => {
 
         
           <div className="flex flex-col text-center relative md:-mt-[9.5vw]">
-            <h2 className="text-black text-[24px] h-15 md:text-[37px] font-semibold font-poppins">
+            <h2 className="text-black md:text-[37px] font-semibold font-poppins">
               Welcome User!
             </h2>
 
@@ -77,6 +77,7 @@ const Auth = () => {
               )}
         </div>
       </div>
+            <p className="!text-black h-15 md:text-[15px] font-semibold mt-50" style={{ fontFamily: 'Arial'}}>NEU OJT-LINK | Juliana Renard DL Vince Alyssa © 2025 · All rights reserved</p>
     </div>
   </div>
 </div>

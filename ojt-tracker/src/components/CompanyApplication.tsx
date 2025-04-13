@@ -234,9 +234,19 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
     setCurrentStartTime("");
     setCurrentEndTime("");
   };
-
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>, type: string) => {
     if (event.target.files && event.target.files[0]) {
+      const file = event.target.files[0];
+      if (file.type !== 'application/pdf') {
+        // Clear the input
+        event.target.value = '';
+        
+        // Show error popup
+        setErrorMessage(`Please upload only PDF files for your ${type === "com" ? "Certificate of Matriculation" : type}.`);
+        setShowErrorPopup(true);
+        return;
+      }
+
       if (type === "resume") {
         setResume(event.target.files[0]);
       } else if (type === "coverLetter") {
@@ -253,6 +263,25 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
         setPsyTest(event.target.files[0]);
       }
     }
+  };
+
+  const [showErrorPopup, setShowErrorPopup] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const ErrorPopup = () => {
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+        <div className="bg-white rounded-lg p-6 max-w-md">
+          <h3 className="text-xl font-bold text-red-600 mb-4">Invalid File Format</h3>
+          <p className="mb-6">{errorMessage}</p>
+          <button 
+            onClick={() => setShowErrorPopup(false)}
+            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 w-full"
+          >
+            OK
+          </button>
+        </div>
+      </div>
+    );
   };
 
   const handleSelectedJob = async (job: Job) => {
@@ -381,7 +410,7 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
           ) : (
             <div className="border border-black rounded-lg p-10 w-full max-w-[1000px] mx-auto">
               <p className="font-semibold text-center text-[1.2rem] mb-8">Please Submit Requirements</p>
-              
+              {showErrorPopup && <ErrorPopup />}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 {/* Resume Upload */}
                 <div className="flex flex-col items-center">
