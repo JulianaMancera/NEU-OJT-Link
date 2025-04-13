@@ -59,8 +59,8 @@ const Auth = () => {
           />
 
         
-          <div className="flex flex-col text-center relative md:-mt-[10vh]">
-            <h2 className="text-black text-[26px] h-15 md:text-[40px] font-semibold font-poppins">
+          <div className="flex flex-col text-center relative md:-mt-[8vw]">
+            <h2 className="text-black text-[24px] h-15 md:text-[37px] font-semibold font-poppins">
               Welcome User!
             </h2>
 
