@@ -264,10 +264,10 @@ const StudentDashboard: React.FC = () => {  //Facade na kaya natin ito kasi anda
                 {userRole === "admin" && (
                     <li>
                         <button
-                            onClick={() => navigate('/application-approval')}
+                            onClick={() => navigate('/admin')}
                             className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center"
                         >
-                            🛠️ Application Approval
+                            🛠️ Admin
                         </button>
                     </li>
                 )}
