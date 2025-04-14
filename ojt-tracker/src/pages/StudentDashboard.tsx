@@ -8,7 +8,11 @@ import MonthlyReport from "../components/MonthlyReport";
 import { User, Settings, LogOut, CircleHelp, MoonStar } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-
+interface WorkDay {
+  day_of_week: string;
+  start_time: string;
+  end_time: string;
+}
 
 const StudentDashboard: React.FC = () => {  //Facade na kaya natin ito kasi andami na.
   const navigate = useNavigate(); 
@@ -16,6 +20,7 @@ const StudentDashboard: React.FC = () => {  //Facade na kaya natin ito kasi anda
   const [error, setError] = useState<string | null>(null);
   const [companyName, setCompanyName] = useState<string | null>(null);
   const [jobPosition, setJobPosition] = useState<string | null>(null);
+  const [workDays, setWorkDays] = useState<WorkDay[]>([]);
   const [isProfileOpen, setProfileOpen] = useState(false);
   const [userName, setUserName] = useState("");
   const [userRole, setUserRole] = useState<string | null>(null);
@@ -73,7 +78,7 @@ const StudentDashboard: React.FC = () => {  //Facade na kaya natin ito kasi anda
   
         const { data: application, error: applicationError } = await supabase
           .from("application")
-          .select("company_id, job_id")
+          .select("company_id, job_id, application_id")
           .eq("user_id", userData.user.id)
           .eq("status", "approved")
           .single();
@@ -83,7 +88,7 @@ const StudentDashboard: React.FC = () => {  //Facade na kaya natin ito kasi anda
           return;
         }
   
-        const { company_id, job_id } = application;
+        const { company_id, job_id, application_id } = application;
   
         const { data: company, error: companyError } = await supabase
           .from("company")
@@ -109,11 +114,47 @@ const StudentDashboard: React.FC = () => {  //Facade na kaya natin ito kasi anda
   
         setCompanyName(company.name);
         setJobPosition(job.position);
+        await fetchWorkDays(application_id);
       };
   
       fetchApplicationDetails();
     }, []);
+    
+    const fetchWorkDays = async (applicationId: string) => {
+      const { data, error } = await supabase
+        .from("availability")
+        .select("day_of_week, start_time, end_time")
+        .eq("application_id", applicationId)
+        .order("day_of_week");
   
+      if (error) {
+        console.error("Error fetching work days:", error.message);
+        return;
+      }
+  
+      if (data && data.length > 0) {
+        const formattedWorkDays = data.map(day => {
+          return {
+            day_of_week: day.day_of_week,
+            start_time: formatTime(day.start_time),
+            end_time: formatTime(day.end_time)
+          };
+        });
+        
+        setWorkDays(formattedWorkDays);
+      }
+    };
+  
+    const formatTime = (time24: string): string => {
+      const timeParts = time24.split(':');
+      const hours = parseInt(timeParts[0], 10);
+      const minutes = timeParts[1];
+      
+      const period = hours >= 12 ? 'PM' : 'AM';
+      const formattedHours = hours % 12 || 12;
+      
+      return `${formattedHours}:${minutes} ${period}`;
+    };
    
   
     const handleDownload = async (fileName: string) => {
@@ -195,7 +236,12 @@ const StudentDashboard: React.FC = () => {  //Facade na kaya natin ito kasi anda
       window.open(signedUrlData.signedUrl, "_blank");
     };
 
-
+    const sortDaysOfWeek = (days: WorkDay[]): WorkDay[] => {
+      const dayOrder = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+      return [...days].sort((a, b) => {
+        return dayOrder.indexOf(a.day_of_week) - dayOrder.indexOf(b.day_of_week);
+      });
+    };
 
   return (
     <div className="relative min-h-screen w-screen bg-gradient-to-b from-blue-100 to-white p-6">
@@ -300,9 +346,18 @@ const StudentDashboard: React.FC = () => {  //Facade na kaya natin ito kasi anda
             </div>
           </div>
           <div className="bg-white shadow-md rounded-lg p-4 border border-black">
-            <h3 className="text-lg font-semibold mb-2">Work Days</h3>
-            <p className="mb-1">June 1, 2025 - August 1, 2025</p>
-            <p>Monday-Friday: 9:00AM - 5:00PM</p>
+            <h3 className="text-lg font-semibold mb-2">Work Days</h3>          
+            {workDays.length > 0 ? (
+              <div className="space-y-1">
+                {sortDaysOfWeek(workDays).map((day, index) => (
+                  <p key={index}>
+                    {day.day_of_week}: {day.start_time} - {day.end_time}
+                  </p>
+                ))}
+              </div>
+            ) : (
+              <p>Loading work schedule...</p>
+            )}
           </div>
           <div className="bg-white shadow-md rounded-lg p-4 border border-black">
             <h3 className="text-lg font-semibold mb-2">Supervisors</h3>
