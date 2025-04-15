@@ -40,31 +40,36 @@ const Auth = () => {
       <img
         src={backgroundImage}
         alt="New Era University"
-        className="absolute inset-0 w-full h-full object-cover transform translate-x-[-200px]"
+        className="absolute w-full h-full object-cover"
+        style={{ left: "-13%",
+         }}
       />
     
       <div className="relative w-full h-screen flex items-center justify-end">
-        <div className="w-full md:w-[750px] h-full absolute md:static right-0 top-0 bg-gradient-to-b from-[#7fb6dd] via-[#9fc8e6] to-white rounded-tl-[50px] rounded-bl-[50px] shadow-lg p-6 flex flex-col items-center">
+        <div className="md:w-[42vw] h-full absolute md:static right-0 top-0 bg-gradient-to-b from-[#7fb6dd] via-[#9fc8e6] to-white rounded-tl-[50px] rounded-bl-[50px] shadow-lg p-6 flex flex-col items-center">
         
         
           <img src={backgroundImage1} 
           alt="NEU LOGO" 
-          className="w-32 md:w-40 mt-10 md:mt-23" />
+          className="w-32 md:w-[8vw] mt-10 md:mt-23" />
 
           <img
             src={backgroundImage2}
             alt="OJT LINK"
-            className="object-contain relative -mt-10 md:-mt-[90px] w-48 md:w-auto"
+            className="object-contain relative md:-mt-[110px] w-48 md:w-[27vw]"
           />
 
         
-          <div className="flex flex-col text-center relative -mt-20 md:-mt-[180px]">
-            <h2 className="text-black text-[26px] h-15 md:text-[40px] font-semibold font-poppins">
+
+          <div className="flex flex-col text-center relative md:-mt-[9.5vw]">
+            <h2 className="text-black md:text-[37px] font-semibold font-poppins">
               Welcome User!
             </h2>
 
             {/* Google Sign-In Button */}
-            <div className="w-[180px] md:w-[260px] h-[100px] flex items-center justify-center">
+
+            <div className="w-[180px] md:w-[280px] h-[100px] flex items-center justify-center">
+
               {!loading && (
                 <img
                   src={googleButton}
@@ -75,6 +80,7 @@ const Auth = () => {
               )}
         </div>
       </div>
+            <p className="!text-black h-15 md:text-[15px] font-semibold mt-50" style={{ fontFamily: 'Arial'}}>NEU OJT-LINK | Juliana Renard DL Vince Alyssa © 2025 · All rights reserved</p>
     </div>
   </div>
 </div>

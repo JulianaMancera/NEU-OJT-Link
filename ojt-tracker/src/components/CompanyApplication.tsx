@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { supabase } from "../../supabase";
 import EndorsementButton from "./EndorsementButton";
+import { File, Eye } from "lucide-react";
+
 import CompanyApplicationApply from "./CompanyApplicationApply";
 import FileUploadField from "./FileUploadField";
 
@@ -240,9 +242,19 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
     setCurrentStartTime("");
     setCurrentEndTime("");
   };
-
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>, type: string) => {
     if (event.target.files && event.target.files[0]) {
+      const file = event.target.files[0];
+      if (file.type !== 'application/pdf') {
+        // Clear the input
+        event.target.value = '';
+        
+        // Show error popup
+        setErrorMessage(`Please upload only PDF files for your ${type === "com" ? "Certificate of Matriculation" : type}.`);
+        setShowErrorPopup(true);
+        return;
+      }
+
       if (type === "resume") {
         setResume(event.target.files[0]);
       } else if (type === "coverLetter") {
@@ -262,9 +274,20 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
   };
 
     const handleJobSelect = (job: Job) => {
+
     setSelectedJob(job);
     setStep("apply"); // Move to the job details modal
   };
+
+  // Function to render file icon 
+  const renderFileIcon = () => (
+    <File size={40} className="text-black-500" />
+  );
+
+  const previewFileIcon = () => (
+    <Eye size={25} className="text-black-500" />
+  );
+
 
   return (
     <div className="flex items-center justify-center">
@@ -290,6 +313,350 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
         </div>
       )}
 
+      {step === "apply" && (
+        <div className="text-black"> 
+          <button
+            onClick={() => setStep("selectJob")} // Go back to the "Possible Jobs" modal
+            className="text-blue-500 mb-4 mr-4"
+          >
+            Back to Job List
+          </button>
+          <button
+            onClick={() => handleSelectedJob(selectedJob!)} 
+            className="text-blue-500 mb-4"
+          >
+            Apply Now
+          </button>
+          <p className="font-bold mt-4 text-[1.4rem]">Position</p>
+          <p className="text-black leading-relaxed text-[1.15rem]">{selectedJob?.position}</p>
+          <p className="font-bold mt-3 text-[1.15rem]">Description</p>
+          <p className="text-black leading-relaxed border border-black rounded-lg p-4 mt-2">{selectedJob?.description}</p>
+          <p className="font-bold mt-5 text-[1.15rem]">Responsibility</p>
+          <div className="border border-black rounded-lg p-4 mt-2">
+            <ul className="list-disc text-black leading-relaxed pl-3">
+              {selectedJob?.responsibility.map((resp, index) => (
+                <li key={index}>{resp}</li>
+              ))}
+            </ul>
+          </div>
+          <p className="font-bold mt-5 text-[1.15rem]">Competencies</p>
+          <div className="border border-black rounded-lg p-4 mt-2">
+            <ul className="list-disc text-black leading-relaxed pl-3">
+              {selectedJob?.qualifications.map((compe, index) => (
+                <li key={index}>{compe}</li>
+              ))}
+            </ul>
+            </div>
+          </div>
+      )}
+
+      {step === "requirement" && (
+        <div className="text-black">
+        
+          <p className="text-[1rem]">Position: {selectedJob?.position}</p>
+          <br />
+          {resumeUploaded && coverLetterUploaded && selectedJob ? (
+            <div>
+              You already submitted for this position 
+              <EndorsementButton companyProps={{ company, onClose }} job={selectedJob} />
+            </div>
+          ) : (
+            <div className="border border-black rounded-lg p-10 w-full max-w-[1000px] mx-auto">
+              <p className="font-semibold text-center text-[1.2rem] mb-8">Please Submit Requirements</p>
+              {showErrorPopup && <ErrorPopup />}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                {/* Resume Upload */}
+                <div className="flex flex-col items-center">
+                  <div className="rounded-lg border bg-gray-50 border-gray-300 px-4 py-2 w-full text-center mb-2 font-bold">
+                    Resume
+                  </div>
+                  {resumeUploaded ? (
+                    <p className="text-green-600 text-sm">Uploaded</p>
+                  ) : (
+                    <>
+                      <div className="mb-2 mt-2">
+                        {renderFileIcon()}
+                      </div>
+                      <label className="bg-[#5fbff9] text-black rounded-md border border-gray-300 px-4 py-2 cursor-pointer text-sm">
+                        Upload PDF
+                        <input
+                          type="file"
+                          accept=".pdf"
+                          onChange={(e) => handleFileChange(e, "resume")}
+                          className="hidden"
+                        />
+                      </label>
+                      <span className="text-gray-500 text-xs mt-1">
+                        {resume ? resume.name : "No file chosen"}
+                      </span>
+                      {/* Preview Button */}
+                      {resume && (
+                        <label
+                          className="mt-2 bg-transparent border-none outline-none focus:outline-none cursor-pointer hover:scale-110 transition-transform duration-200"
+                          onClick={() => {
+                            const fileURL = URL.createObjectURL(resume);
+                            window.open(fileURL, "_blank");
+                          }}
+                        >
+                          {previewFileIcon()}
+                        </label>
+                      )}
+                    </>
+                  )}
+                </div>
+
+                {/* Cover Letter Upload */}
+                <div className="flex flex-col items-center">
+                  <div className="rounded-lg border bg-gray-50 border-gray-300 px-4 py-2 w-full text-center mb-2 font-bold">
+                    Cover Letter
+                  </div>
+                  {coverLetterUploaded ? (
+                    <p className="text-green-600 text-sm">Uploaded</p>
+                  ) : (
+                    <>
+                      <div className="mb-2 mt-2">
+                        {renderFileIcon()}
+                      </div>
+                      <label className="bg-[#5fbff9] text-black rounded-md border border-gray-300 px-4 py-2 cursor-pointer text-sm">
+                        Upload PDF
+                        <input
+                          type="file"
+                          accept=".pdf"
+                          onChange={(e) => handleFileChange(e, "coverLetter")}
+                          className="hidden"
+                        />
+                      </label>
+                      <span className="text-gray-500 text-xs mt-1">
+                        {coverLetter ? coverLetter.name : "No file chosen"}
+                      </span>
+                      {coverLetter && (
+                        <label
+                          className="mt-2 bg-transparent border-none outline-none focus:outline-none cursor-pointer hover:scale-110 transition-transform duration-200"
+                          onClick={() => {
+                            const fileURL = URL.createObjectURL(coverLetter);
+                            window.open(fileURL, "_blank");
+                          }}
+                        >
+                          {previewFileIcon()}
+                        </label>
+                      )}
+                    </>
+                  )}
+                </div>
+
+                {/* COM Upload */}
+                <div className="flex flex-col items-center">
+                  <div className="rounded-lg border bg-gray-50 border-gray-300 px-4 py-2 w-full text-center mb-2 font-bold">
+                    COM
+                  </div>
+                  {comUploaded ? (
+                    <p className="text-green-600 text-sm">Uploaded</p>
+                  ) : (
+                    <>
+                      <div className="mb-2 mt-2">
+                        {renderFileIcon()}
+                      </div>
+                      <label className="bg-[#5fbff9] text-black rounded-md border border-gray-300 px-4 py-2 cursor-pointer text-sm">
+                        Upload PDF
+                        <input
+                          type="file"
+                          accept=".pdf"
+                          onChange={(e) => handleFileChange(e, "com")}
+                          className="hidden"
+                        />
+                      </label>
+                      <span className="text-gray-500 text-xs mt-1">
+                        {com ? com.name : "No file chosen"}
+                      </span>
+                       {/* Preview Button */}
+                       {com && (
+                        <label
+                          className="mt-2 bg-transparent border-none outline-none focus:outline-none cursor-pointer hover:scale-110 transition-transform duration-200"
+                          onClick={() => {
+                            const fileURL = URL.createObjectURL(com);
+                            window.open(fileURL, "_blank");
+                          }}
+                        >
+                          {previewFileIcon()}
+                        </label>
+                      )}
+                    </>
+                  )}
+                </div>
+
+                {/* CV Upload */}
+                <div className="flex flex-col items-center">
+                  <div className="rounded-lg border bg-gray-50 border-gray-300 px-4 py-2 w-full text-center mb-2 font-bold">
+                    Curriculum Vitae
+                  </div>
+                  {cvUploaded ? (
+                    <p className="text-green-600 text-sm">Uploaded</p>
+                  ) : (
+                    <>
+                      <div className="mb-2 mt-2">
+                        {renderFileIcon()}
+                      </div>
+                      <label className="bg-[#5fbff9] text-black rounded-md border border-gray-300 px-4 py-2 cursor-pointer text-sm">
+                        Upload PDF
+                        <input
+                          type="file"
+                          accept=".pdf"
+                          onChange={(e) => handleFileChange(e, "cv")}
+                          className="hidden"
+                        />
+                      </label>
+                      <span className="text-gray-500 text-xs mt-1">
+                        {cv ? cv.name : "No file chosen"}
+                      </span>
+                       {/* Preview Button */}
+                       {cv && (
+                        <label
+                          className="mt-2 bg-transparent border-none outline-none focus:outline-none cursor-pointer hover:scale-110 transition-transform duration-200"
+                          onClick={() => {
+                            const fileURL = URL.createObjectURL(cv);
+                            window.open(fileURL, "_blank");
+                          }}
+                        >
+                          {previewFileIcon()}
+                        </label>
+                      )}
+                    </>
+                  )}
+                </div>
+
+                {/* Med Cert Upload */}
+                <div className="flex flex-col items-center">
+                  <div className="rounded-lg border bg-gray-50 border-gray-300 px-4 py-2 w-full text-center mb-2 font-bold">
+                    Medical Certificate
+                  </div>
+                  {medCertUploaded ? (
+                    <p className="text-green-600 text-sm">Uploaded</p>
+                  ) : (
+                    <>
+                      <div className="mb-2 mt-2">
+                        {renderFileIcon()}
+                      </div>
+                      <label className="bg-[#5fbff9] text-black rounded-md border border-gray-300 px-4 py-2 cursor-pointer text-sm">
+                        Upload PDF
+                        <input
+                          type="file"
+                          accept=".pdf"
+                          onChange={(e) => handleFileChange(e, "medCert")}
+                          className="hidden"
+                        />
+                      </label>
+                      <span className="text-gray-500 text-xs mt-1">
+                        {medCert ? medCert.name : "No file chosen"}
+                      </span>
+                       {/* Preview Button */}
+                       {medCert && (
+                        <label
+                          className="mt-2 bg-transparent border-none outline-none focus:outline-none cursor-pointer hover:scale-110 transition-transform duration-200"
+                          onClick={() => {
+                            const fileURL = URL.createObjectURL(medCert);
+                            window.open(fileURL, "_blank");
+                          }}
+                        >
+                          {previewFileIcon()}
+                        </label>
+                      )}
+                    </>
+                  )}
+                </div>
+
+                {/* Notarized Parent Consent Upload */}
+                <div className="flex flex-col items-center ">
+                  <div className="rounded-lg border bg-gray-50 border-gray-300 px-4 py-2 w-full text-center mb-2 font-bold">
+                    Notarized Parent Consent
+                  </div>
+                  {notarizeUploaded ? (
+                    <p className="text-green-600 text-sm">Uploaded</p>
+                  ) : (
+                    <>
+                      <div className="mb-2 mt-2">
+                        {renderFileIcon()}
+                      </div>
+                      <label className="bg-[#5fbff9] text-black rounded-md border border-gray-300 px-4 py-2 cursor-pointer text-sm">
+                        Upload PDF
+                        <input
+                          type="file"
+                          accept=".pdf"
+                          onChange={(e) => handleFileChange(e, "notarized")}
+                          className="hidden"
+                        />
+                      </label>
+                      <span className="text-gray-500 text-xs mt-1">
+                        {notarized ? notarized.name : "No file chosen"}
+                      </span>
+                       {/* Preview Button */}
+                       {notarized && (
+                        <label
+                          className="mt-2 bg-transparent border-none outline-none focus:outline-none cursor-pointer hover:scale-110 transition-transform duration-200"
+                          onClick={() => {
+                            const fileURL = URL.createObjectURL(notarized);
+                            window.open(fileURL, "_blank");
+                          }}
+                        >
+                          {previewFileIcon()}
+                        </label>
+                      )}
+                    </>
+                  )}
+                </div>
+
+                {/* Psychological Test Upload */}
+                <div className="flex flex-col items-center">
+                  <div className="rounded-lg border bg-gray-50 border-gray-300 px-4 py-2 w-full text-center mb-2 font-bold">
+                    Psychological Test
+                  </div>
+                  {psyTestUploaded ? (
+                    <p className="text-green-600 text-sm">Uploaded</p>
+                  ) : (
+                    <>
+                      <div className="mb-2 mt-2">
+                        {renderFileIcon()}
+                      </div>
+                      <label className="bg-[#5fbff9] text-black rounded-md border border-gray-300 px-4 py-2 cursor-pointer text-sm">
+                        Upload PDF
+                        <input
+                          type="file"
+                          accept=".pdf"
+                          onChange={(e) => handleFileChange(e, "psyTest")}
+                          className="hidden"
+                        />
+                      </label>
+                      <span className="text-gray-500 text-xs mt-1">
+                        {psyTest ? psyTest.name : "No file chosen"}
+                      </span>
+                       {/* Preview Button */}
+                       {psyTest && (
+                        <label
+                          className="mt-2 bg-transparent border-none outline-none focus:outline-none cursor-pointer hover:scale-110 transition-transform duration-200"
+                          onClick={() => {
+                            const fileURL = URL.createObjectURL(psyTest);
+                            window.open(fileURL, "_blank");
+                          }}
+                        >
+                          {previewFileIcon()}
+                        </label>
+                      )}
+                    </>
+                  )}
+                </div>
+              </div>
+            
+            </div>
+          )}
+            <div className="flex gap-4 mt-8 justify-center">
+                <button onClick={handleRequirementSubmit} className="text-white bg-blue-500 px-4 py-2 rounded">
+                  Submit
+                </button>
+                <button onClick={onClose} className="text-white bg-gray-500 px-4 py-2 rounded">
+                  Cancel
+                </button>
+              </div>
+        </div>
+=======
       {step === "apply"&& selectedJob && (
         <CompanyApplicationApply job={selectedJob} company={company} setStep={setStep} setUploaded={setUploaded} setSelectedJob={setSelectedJob} />
       )}
@@ -336,6 +703,7 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
          </button>
        </div>
      </div> 
+
       )}
 
       {step === "availability" && (

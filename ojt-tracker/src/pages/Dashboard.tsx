@@ -130,7 +130,7 @@ const Dashboard = () => {
         <h2 className="text-5xl font-bold text-center text-white p-8">Explore Companies</h2>
 
         {/* Company Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-9 mt-6">
+        <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-3 gap-9 mt-6">
           {filteredCompany.map((company) => (
             <div key={company.company_id} className="w-full">
               {/* Company Card */}
@@ -150,15 +150,13 @@ const Dashboard = () => {
               {/* Expanded Company Details (if selected) */}
               {selectedCompany === company && (
                 <div className="fixed inset-0 flex items-center justify-center z-50">
-                  <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-[80vh] h-[60vh] overflow-y-auto overflow-x-hidden relative z-50">
-                    {/* Close Button */}
+                  <div className="bg-[#FDFBF6] p-6 rounded-lg shadow-lg w-full max-w-[100vh] h-[60vh] overflow-y-auto overflow-x-hidden relative z-50">
                     <div className="flex justify-between items-center">
-                      <h3 className="text-xl font-bold text-black sticky top-0 bg-white">{company.name}</h3>
+                      <h3 className="text-[1.5rem] font-bold text-black sticky top-0 ">{company.name}</h3>
                       <button onClick={() => setSelectedCompany(null)}>
                         <X size={15} color="white" />
                       </button>
                     </div>
-
                     {/* Company Application Component Inside Expanding Box */}
                     <CompanyApplication company={company} onClose={() => setSelectedCompany(null)} />
                   </div>
