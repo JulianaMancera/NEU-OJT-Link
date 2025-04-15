@@ -3,9 +3,6 @@ import { supabase } from "../../supabase";
 import EndorsementButton from "./EndorsementButton";
 import { File, Eye } from "lucide-react";
 
-import CompanyApplicationApply from "./CompanyApplicationApply";
-import FileUploadField from "./FileUploadField";
-
 interface CompanyProps {
   company: {
     company_id: string;
@@ -30,10 +27,10 @@ interface Job {
 }
 
 const CompanyApplication = ({ company, onClose }: CompanyProps) => {
-  const [step, setStep] = useState<"selectJob" | "apply" | "requirement" | "availability" | "dashboard">("selectJob"); // Add "availability" step
+  const [step, setStep] = useState<"selectJob" | "apply" | "requirement" | "availability" | "dashboard">("selectJob");
   const [jobDetail, setJobDetail] = useState<Job[] | null>(null);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
-  const [applicationId, setApplicationId] = useState<string | null>(null); // Store the application ID
+  const [applicationId, setApplicationId] = useState<string | null>(null);
   // User Requirements/Data
   const [coverLetter, setCoverLetter] = useState<File | null>(null);
   const [resume, setResume] = useState<File | null>(null);
@@ -44,22 +41,14 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
   const [psyTest, setPsyTest] = useState<File | null>(null);
   // Checker for User Uploads
   const [requirementUploaded, setUploaded] = useState(false);
-   // Availability Form State
-  const [availability, setAvailability] = useState<{ day: string; startTime: string; endTime: string }[]>([]); // Store multiple availability slots
+  // Availability Form State
+  const [availability, setAvailability] = useState<{ day: string; startTime: string; endTime: string }[]>([]);
   const [currentDay, setCurrentDay] = useState<string>("");
   const [currentStartTime, setCurrentStartTime] = useState<string>("");
   const [currentEndTime, setCurrentEndTime] = useState<string>("");
-  const fileFields = [
-    { key: "resume", label: "Resume", file: resume },
-    { key: "coverLetter", label: "Cover Letter", file: coverLetter },
-    { key: "com", label: "COM", file: com },
-    { key: "cv", label: "CV", file: cv },
-    { key: "medCert", label: "Med Cert", file: medCert },
-    { key: "notarized", label: "Notarized Parent Consent", file: notarized },
-    { key: "psyTest", label: "Psychological Test", file: psyTest },
-  ];
-
-
+  // Error Popup State
+  const [showErrorPopup, setShowErrorPopup] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
     const fetchJob = async () => {
@@ -69,9 +58,8 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
         .eq("company_id", company.company_id);
 
       if (error) {
-        console.error("There is something wrong ", error.message);
+        console.error("Error fetching jobs:", error.message);
       } else {
-        console.log(data);
         setJobDetail(data);
       }
     };
@@ -80,72 +68,55 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
 
   const handleRequirementSubmit = async () => {
     if (!resume || !coverLetter || !com || !cv || !medCert || !notarized || !psyTest) {
-      alert("Please Upload All Files");
+      alert("Please upload all required files.");
       return;
     }
     const user = await supabase.auth.getUser();
-    // Upload Resume
-    const { data: resumeData, error: resumeError } = await supabase
-      .storage
-      .from("applicant-documents")
-      .upload(`resumes/${user.data.user?.id}_${company.company_id}_${resume.name}`, resume);
-    // Upload Cover Letter
-    const { data: coverLetterData, error: coverLetterError } = await supabase
-      .storage
-      .from("applicant-documents")
-      .upload(`cover-letter/${user.data.user?.id}_${company.company_id}_${coverLetter.name}`, coverLetter);
-    // Upload COM
-    const { data: comData, error: comError } = await supabase
-      .storage
-      .from("applicant-documents")
-      .upload(`com/${user.data.user?.id}_${company.company_id}_${com.name}`, com);
-    // Upload CV
-    const { data: cvData, error: cvError } = await supabase
-      .storage
-      .from("applicant-documents")
-      .upload(`cv/${user.data.user?.id}_${company.company_id}_${cv.name}`, cv);
-    // Upload MedCert
-    const { data: medCertData, error: medCertError } = await supabase
-      .storage
-      .from("applicant-documents")
-      .upload(`medCert/${user.data.user?.id}_${company.company_id}_${medCert.name}`, medCert);
-    // Upload Notarized Parent Consent
-    const { data: notarizeData, error: notarizeError } = await supabase
-      .storage
-      .from("applicant-documents")
-      .upload(`notarized/${user.data.user?.id}_${company.company_id}_${notarized.name}`, notarized);
-    // Upload Psy Test
-    const { data: psyTestData, error: psyTestError } = await supabase
-      .storage
-      .from("applicant-documents")
-      .upload(`psyTest/${user.data.user?.id}_${company.company_id}_${psyTest.name}`, psyTest);
-
-    // Handle errors
-    if (resumeError) {
-      console.error("Error Uploading Resume", resumeError);
-    }
-    if (coverLetterError) {
-      console.error("Error Uploading Cover Letter", coverLetterError);
-    }
-    if (comError) {
-      console.error("Error Uploading COM", comError);
-    }
-    if (cvError) {
-      console.error("Error Uploading CV", cvError);
-    }
-    if (medCertError) {
-      console.error("Error Uploading MedCert", medCertError);
-    }
-    if (notarizeError) {
-      console.error("Error Uploading Notarized Consent", notarizeError);
-    }
-    if (psyTestError) {
-      console.error("Error Uploading Psy Test", psyTestError);
+    if (!user.data.user?.id) {
+      alert("User not authenticated.");
+      return;
     }
 
-    const { data, error } = await supabase.from("requirements").insert([
+    // Upload files
+    const uploads = await Promise.all([
+      supabase.storage
+        .from("applicant-documents")
+        .upload(`resumes/${user.data.user.id}_${company.company_id}_${resume.name}`, resume),
+      supabase.storage
+        .from("applicant-documents")
+        .upload(`cover-letter/${user.data.user.id}_${company.company_id}_${coverLetter.name}`, coverLetter),
+      supabase.storage
+        .from("applicant-documents")
+        .upload(`com/${user.data.user.id}_${company.company_id}_${com.name}`, com),
+      supabase.storage
+        .from("applicant-documents")
+        .upload(`cv/${user.data.user.id}_${company.company_id}_${cv.name}`, cv),
+      supabase.storage
+        .from("applicant-documents")
+        .upload(`medCert/${user.data.user.id}_${company.company_id}_${medCert.name}`, medCert),
+      supabase.storage
+        .from("applicant-documents")
+        .upload(`notarized/${user.data.user.id}_${company.company_id}_${notarized.name}`, notarized),
+      supabase.storage
+        .from("applicant-documents")
+        .upload(`psyTest/${user.data.user.id}_${company.company_id}_${psyTest.name}`, psyTest),
+    ]);
+
+    const errors = uploads.map((result) => result.error).filter(Boolean);
+    if (errors.length > 0) {
+      console.error("File upload errors:", errors);
+      alert("Failed to upload one or more files.");
+      return;
+    }
+
+    const [resumeData, coverLetterData, comData, cvData, medCertData, notarizeData, psyTestData] = uploads.map(
+      (result) => result.data
+    );
+
+    // Insert requirements
+    const { error: reqError } = await supabase.from("requirements").insert([
       {
-        student_id: user.data.user?.id,
+        student_id: user.data.user.id,
         created_at: new Date().toISOString(),
         resume_url: resumeData?.path,
         cover_letter_url: coverLetterData?.path,
@@ -158,36 +129,42 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
         job_id: selectedJob?.job_id,
       },
     ]);
-    
-    if (error) {
-      console.error("Error Submitting Requirements:", error.message);
-    } else {
-      console.log("Application submitted", data);
-      setStep("dashboard");
+
+    if (reqError) {
+      console.error("Error submitting requirements:", reqError.message);
+      alert("Failed to submit requirements.");
+      return;
     }
 
-    // Insert the application record and store the application_id
-    const { data: applicationData, error: applicationError } = await supabase.from("application").insert([
-      {
-        user_id: user.data.user?.id,
-        company_id: company.company_id,
-        email: user.data.user?.email,
-        job_id: selectedJob?.job_id,
-        status: "pending",
-        start_date: null,
-        end_date: null,
-      },
-    ]).select(); // Use .select() to return the inserted record
+    // Insert application
+    const { data: applicationData, error: applicationError } = await supabase
+      .from("application")
+      .insert([
+        {
+          user_id: user.data.user.id,
+          company_id: company.company_id,
+          email: user.data.user.email,
+          job_id: selectedJob?.job_id,
+          status: "pending",
+          start_date: null,
+          end_date: null,
+        },
+      ])
+      .select();
 
     if (applicationError) {
-      console.error("Error creating application:", applicationError);
+      console.error("Error creating application:", applicationError.message);
+      alert("Failed to create application.");
       return;
     }
 
     if (applicationData && applicationData.length > 0) {
-      console.log("Application created:", applicationData);
-      setApplicationId(applicationData[0].application_id); // Store the application_id
-      setStep("availability"); // Move to the availability step
+      setApplicationId(applicationData[0].application_id);
+      setUploaded(true);
+      setStep("availability");
+    } else {
+      console.error("Failed to retrieve application ID");
+      alert("Application creation failed.");
     }
   };
 
@@ -197,26 +174,22 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
       return;
     }
 
-    // Insert all availability slots into the availability table
-    const availabilityEntries = availability.map(slot => ({
+    const availabilityEntries = availability.map((slot) => ({
       application_id: applicationId,
       day_of_week: slot.day,
       start_time: slot.startTime,
       end_time: slot.endTime,
     }));
 
-    const { data, error } = await supabase
-      .from("availability")
-      .insert(availabilityEntries);
+    const { error } = await supabase.from("availability").insert(availabilityEntries);
 
     if (error) {
       console.error("Error submitting availability:", error.message);
-      alert("Failed to submit availability. Please try again.");
+      alert("Failed to submit availability.");
       return;
     }
 
-    console.log("Availability submitted:", data);
-    setStep("dashboard"); // Move to the dashboard step
+    setStep("dashboard");
   };
 
   const handleAddAvailabilitySlot = () => {
@@ -225,82 +198,66 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
       return;
     }
 
-    // Validate that start time is before end time
     if (currentStartTime >= currentEndTime) {
       alert("Start time must be before end time.");
       return;
     }
 
-    setAvailability([...availability, {
-      day: currentDay,
-      startTime: currentStartTime,
-      endTime: currentEndTime,
-    }]);
-
-    // Reset the form fields
+    setAvailability([...availability, { day: currentDay, startTime: currentStartTime, endTime: currentEndTime }]);
     setCurrentDay("");
     setCurrentStartTime("");
     setCurrentEndTime("");
   };
+
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>, type: string) => {
     if (event.target.files && event.target.files[0]) {
       const file = event.target.files[0];
-      if (file.type !== 'application/pdf') {
-        // Clear the input
-        event.target.value = '';
-        
-        // Show error popup
+      if (!file.name.endsWith(".pdf")) {
+        event.target.value = "";
         setErrorMessage(`Please upload only PDF files for your ${type === "com" ? "Certificate of Matriculation" : type}.`);
         setShowErrorPopup(true);
         return;
       }
 
-      if (type === "resume") {
-        setResume(event.target.files[0]);
-      } else if (type === "coverLetter") {
-        setCoverLetter(event.target.files[0]);
-      } else if (type === "com") {
-        setCOM(event.target.files[0]);
-      } else if (type === "cv") {
-        setCV(event.target.files[0]);
-      } else if (type === "medCert") {
-        setMedcert(event.target.files[0]);
-      } else if (type === "notarized") {
-        setNotarized(event.target.files[0]);
-      } else if (type === "psyTest") {
-        setPsyTest(event.target.files[0]);
-      }
+      if (type === "resume") setResume(file);
+      else if (type === "coverLetter") setCoverLetter(file);
+      else if (type === "com") setCOM(file);
+      else if (type === "cv") setCV(file);
+      else if (type === "medCert") setMedcert(file);
+      else if (type === "notarized") setNotarized(file);
+      else if (type === "psyTest") setPsyTest(file);
     }
   };
 
-    const handleJobSelect = (job: Job) => {
-
+  const handleJobSelect = (job: Job) => {
     setSelectedJob(job);
-    setStep("apply"); // Move to the job details modal
+    setStep("apply");
   };
 
-  // Function to render file icon 
-  const renderFileIcon = () => (
-    <File size={40} className="text-black-500" />
-  );
+  const renderFileIcon = () => <File size={40} className="text-black-500" />;
+  const previewFileIcon = () => <Eye size={25} className="text-black-500" />;
 
-  const previewFileIcon = () => (
-    <Eye size={25} className="text-black-500" />
+  const ErrorPopup = () => (
+    <div className="fixed top-0 left-0 right-0 bg-red-500 text-white p-4 text-center">
+      {errorMessage}
+      <button onClick={() => setShowErrorPopup(false)} className="ml-4 underline">
+        Close
+      </button>
+    </div>
   );
-
 
   return (
     <div className="flex items-center justify-center">
       {step === "selectJob" && (
         <div className="text-black">
-          <br></br>
+          <br />
           <h3 className="text-lg font-semibold text-gray-800 mb-4 text-center">Possible Jobs</h3>
           {jobDetail && jobDetail.length > 0 ? (
             <div className="space-y-5">
               {jobDetail.map((job, index) => (
                 <div
                   key={index}
-                  onClick={() => handleJobSelect(job)} // Select the job and move to the job details modal
+                  onClick={() => handleJobSelect(job)}
                   className="p-4 border rounded-lg cursor-pointer hover:bg-gray-100 transition"
                 >
                   <h5 className="text-md font-medium text-gray-700">{job.position}</h5>
@@ -314,29 +271,25 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
       )}
 
       {step === "apply" && (
-        <div className="text-black"> 
-          <button
-            onClick={() => setStep("selectJob")} // Go back to the "Possible Jobs" modal
-            className="text-blue-500 mb-4 mr-4"
-          >
+        <div className="text-black">
+          <button onClick={() => setStep("selectJob")} className="text-blue-500 mb-4 mr-4">
             Back to Job List
           </button>
-          <button
-            onClick={() => handleSelectedJob(selectedJob!)} 
-            className="text-blue-500 mb-4"
-          >
+          <button onClick={() => setStep("requirement")} className="text-blue-500 mb-4">
             Apply Now
           </button>
           <p className="font-bold mt-4 text-[1.4rem]">Position</p>
-          <p className="text-black leading-relaxed text-[1.15rem]">{selectedJob?.position}</p>
+          <p className="text-black leading-relaxed text-[1.15rem]">{selectedJob?.position || "No job selected"}</p>
           <p className="font-bold mt-3 text-[1.15rem]">Description</p>
-          <p className="text-black leading-relaxed border border-black rounded-lg p-4 mt-2">{selectedJob?.description}</p>
+          <p className="text-black leading-relaxed border border-black rounded-lg p-4 mt-2">
+            {selectedJob?.description || "No description available"}
+          </p>
           <p className="font-bold mt-5 text-[1.15rem]">Responsibility</p>
           <div className="border border-black rounded-lg p-4 mt-2">
             <ul className="list-disc text-black leading-relaxed pl-3">
               {selectedJob?.responsibility.map((resp, index) => (
                 <li key={index}>{resp}</li>
-              ))}
+              )) || <li>No responsibilities listed</li>}
             </ul>
           </div>
           <p className="font-bold mt-5 text-[1.15rem]">Competencies</p>
@@ -344,64 +297,53 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
             <ul className="list-disc text-black leading-relaxed pl-3">
               {selectedJob?.qualifications.map((compe, index) => (
                 <li key={index}>{compe}</li>
-              ))}
+              )) || <li>No qualifications listed</li>}
             </ul>
-            </div>
           </div>
+        </div>
       )}
 
       {step === "requirement" && (
         <div className="text-black">
-        
-          <p className="text-[1rem]">Position: {selectedJob?.position}</p>
+          <p className="text-center text-xl font-bold mb-4">{company.name}</p>
+          <p>Position: {selectedJob?.position || "No job selected"}</p>
           <br />
-          {resumeUploaded && coverLetterUploaded && selectedJob ? (
+          {showErrorPopup && <ErrorPopup />}
+          {requirementUploaded && selectedJob ? (
             <div>
-              You already submitted for this position 
+              You already submitted for this position
               <EndorsementButton companyProps={{ company, onClose }} job={selectedJob} />
             </div>
           ) : (
             <div className="border border-black rounded-lg p-10 w-full max-w-[1000px] mx-auto">
               <p className="font-semibold text-center text-[1.2rem] mb-8">Please Submit Requirements</p>
-              {showErrorPopup && <ErrorPopup />}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 {/* Resume Upload */}
                 <div className="flex flex-col items-center">
                   <div className="rounded-lg border bg-gray-50 border-gray-300 px-4 py-2 w-full text-center mb-2 font-bold">
                     Resume
                   </div>
-                  {resumeUploaded ? (
-                    <p className="text-green-600 text-sm">Uploaded</p>
-                  ) : (
-                    <>
-                      <div className="mb-2 mt-2">
-                        {renderFileIcon()}
-                      </div>
-                      <label className="bg-[#5fbff9] text-black rounded-md border border-gray-300 px-4 py-2 cursor-pointer text-sm">
-                        Upload PDF
-                        <input
-                          type="file"
-                          accept=".pdf"
-                          onChange={(e) => handleFileChange(e, "resume")}
-                          className="hidden"
-                        />
-                      </label>
-                      <span className="text-gray-500 text-xs mt-1">
-                        {resume ? resume.name : "No file chosen"}
-                      </span>
-                      {/* Preview Button */}
-                      {resume && (
-                        <label
-                          className="mt-2 bg-transparent border-none outline-none focus:outline-none cursor-pointer hover:scale-110 transition-transform duration-200"
-                          onClick={() => {
-                            const fileURL = URL.createObjectURL(resume);
-                            window.open(fileURL, "_blank");
-                          }}
-                        >
-                          {previewFileIcon()}
-                        </label>
-                      )}
-                    </>
+                  <div className="mb-2 mt-2">{renderFileIcon()}</div>
+                  <label className="bg-[#5fbff9] text-black rounded-md border border-gray-300 px-4 py-2 cursor-pointer text-sm">
+                    Upload PDF
+                    <input
+                      type="file"
+                      accept=".pdf"
+                      onChange={(e) => handleFileChange(e, "resume")}
+                      className="hidden"
+                    />
+                  </label>
+                  <span className="text-gray-500 text-xs mt-1">{resume ? resume.name : "No file chosen"}</span>
+                  {resume && (
+                    <label
+                      className="mt-2 bg-transparent border-none outline-none focus:outline-none cursor-pointer hover:scale-110 transition-transform duration-200"
+                      onClick={() => {
+                        const fileURL = URL.createObjectURL(resume);
+                        window.open(fileURL, "_blank");
+                      }}
+                    >
+                      {previewFileIcon()}
+                    </label>
                   )}
                 </div>
 
@@ -410,37 +352,27 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
                   <div className="rounded-lg border bg-gray-50 border-gray-300 px-4 py-2 w-full text-center mb-2 font-bold">
                     Cover Letter
                   </div>
-                  {coverLetterUploaded ? (
-                    <p className="text-green-600 text-sm">Uploaded</p>
-                  ) : (
-                    <>
-                      <div className="mb-2 mt-2">
-                        {renderFileIcon()}
-                      </div>
-                      <label className="bg-[#5fbff9] text-black rounded-md border border-gray-300 px-4 py-2 cursor-pointer text-sm">
-                        Upload PDF
-                        <input
-                          type="file"
-                          accept=".pdf"
-                          onChange={(e) => handleFileChange(e, "coverLetter")}
-                          className="hidden"
-                        />
-                      </label>
-                      <span className="text-gray-500 text-xs mt-1">
-                        {coverLetter ? coverLetter.name : "No file chosen"}
-                      </span>
-                      {coverLetter && (
-                        <label
-                          className="mt-2 bg-transparent border-none outline-none focus:outline-none cursor-pointer hover:scale-110 transition-transform duration-200"
-                          onClick={() => {
-                            const fileURL = URL.createObjectURL(coverLetter);
-                            window.open(fileURL, "_blank");
-                          }}
-                        >
-                          {previewFileIcon()}
-                        </label>
-                      )}
-                    </>
+                  <div className="mb-2 mt-2">{renderFileIcon()}</div>
+                  <label className="bg-[#5fbff9] text-black rounded-md border border-gray-300 px-4 py-2 cursor-pointer text-sm">
+                    Upload PDF
+                    <input
+                      type="file"
+                      accept=".pdf"
+                      onChange={(e) => handleFileChange(e, "coverLetter")}
+                      className="hidden"
+                    />
+                  </label>
+                  <span className="text-gray-500 text-xs mt-1">{coverLetter ? coverLetter.name : "No file chosen"}</span>
+                  {coverLetter && (
+                    <label
+                      className="mt-2 bg-transparent border-none outline-none focus:outline-none cursor-pointer hover:scale-110 transition-transform duration-200"
+                      onClick={() => {
+                        const fileURL = URL.createObjectURL(coverLetter);
+                        window.open(fileURL, "_blank");
+                      }}
+                    >
+                      {previewFileIcon()}
+                    </label>
                   )}
                 </div>
 
@@ -449,38 +381,27 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
                   <div className="rounded-lg border bg-gray-50 border-gray-300 px-4 py-2 w-full text-center mb-2 font-bold">
                     COM
                   </div>
-                  {comUploaded ? (
-                    <p className="text-green-600 text-sm">Uploaded</p>
-                  ) : (
-                    <>
-                      <div className="mb-2 mt-2">
-                        {renderFileIcon()}
-                      </div>
-                      <label className="bg-[#5fbff9] text-black rounded-md border border-gray-300 px-4 py-2 cursor-pointer text-sm">
-                        Upload PDF
-                        <input
-                          type="file"
-                          accept=".pdf"
-                          onChange={(e) => handleFileChange(e, "com")}
-                          className="hidden"
-                        />
-                      </label>
-                      <span className="text-gray-500 text-xs mt-1">
-                        {com ? com.name : "No file chosen"}
-                      </span>
-                       {/* Preview Button */}
-                       {com && (
-                        <label
-                          className="mt-2 bg-transparent border-none outline-none focus:outline-none cursor-pointer hover:scale-110 transition-transform duration-200"
-                          onClick={() => {
-                            const fileURL = URL.createObjectURL(com);
-                            window.open(fileURL, "_blank");
-                          }}
-                        >
-                          {previewFileIcon()}
-                        </label>
-                      )}
-                    </>
+                  <div className="mb-2 mt-2">{renderFileIcon()}</div>
+                  <label className="bg-[#5fbff9] text-black rounded-md border border-gray-300 px-4 py-2 cursor-pointer text-sm">
+                    Upload PDF
+                    <input
+                      type="file"
+                      accept=".pdf"
+                      onChange={(e) => handleFileChange(e, "com")}
+                      className="hidden"
+                    />
+                  </label>
+                  <span className="text-gray-500 text-xs mt-1">{com ? com.name : "No file chosen"}</span>
+                  {com && (
+                    <label
+                      className="mt-2 bg-transparent border-none outline-none focus:outline-none cursor-pointer hover:scale-110 transition-transform duration-200"
+                      onClick={() => {
+                        const fileURL = URL.createObjectURL(com);
+                        window.open(fileURL, "_blank");
+                      }}
+                    >
+                      {previewFileIcon()}
+                    </label>
                   )}
                 </div>
 
@@ -489,38 +410,27 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
                   <div className="rounded-lg border bg-gray-50 border-gray-300 px-4 py-2 w-full text-center mb-2 font-bold">
                     Curriculum Vitae
                   </div>
-                  {cvUploaded ? (
-                    <p className="text-green-600 text-sm">Uploaded</p>
-                  ) : (
-                    <>
-                      <div className="mb-2 mt-2">
-                        {renderFileIcon()}
-                      </div>
-                      <label className="bg-[#5fbff9] text-black rounded-md border border-gray-300 px-4 py-2 cursor-pointer text-sm">
-                        Upload PDF
-                        <input
-                          type="file"
-                          accept=".pdf"
-                          onChange={(e) => handleFileChange(e, "cv")}
-                          className="hidden"
-                        />
-                      </label>
-                      <span className="text-gray-500 text-xs mt-1">
-                        {cv ? cv.name : "No file chosen"}
-                      </span>
-                       {/* Preview Button */}
-                       {cv && (
-                        <label
-                          className="mt-2 bg-transparent border-none outline-none focus:outline-none cursor-pointer hover:scale-110 transition-transform duration-200"
-                          onClick={() => {
-                            const fileURL = URL.createObjectURL(cv);
-                            window.open(fileURL, "_blank");
-                          }}
-                        >
-                          {previewFileIcon()}
-                        </label>
-                      )}
-                    </>
+                  <div className="mb-2 mt-2">{renderFileIcon()}</div>
+                  <label className="bg-[#5fbff9] text-black rounded-md border border-gray-300 px-4 py-2 cursor-pointer text-sm">
+                    Upload PDF
+                    <input
+                      type="file"
+                      accept=".pdf"
+                      onChange={(e) => handleFileChange(e, "cv")}
+                      className="hidden"
+                    />
+                  </label>
+                  <span className="text-gray-500 text-xs mt-1">{cv ? cv.name : "No file chosen"}</span>
+                  {cv && (
+                    <label
+                      className="mt-2 bg-transparent border-none outline-none focus:outline-none cursor-pointer hover:scale-110 transition-transform duration-200"
+                      onClick={() => {
+                        const fileURL = URL.createObjectURL(cv);
+                        window.open(fileURL, "_blank");
+                      }}
+                    >
+                      {previewFileIcon()}
+                    </label>
                   )}
                 </div>
 
@@ -529,78 +439,56 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
                   <div className="rounded-lg border bg-gray-50 border-gray-300 px-4 py-2 w-full text-center mb-2 font-bold">
                     Medical Certificate
                   </div>
-                  {medCertUploaded ? (
-                    <p className="text-green-600 text-sm">Uploaded</p>
-                  ) : (
-                    <>
-                      <div className="mb-2 mt-2">
-                        {renderFileIcon()}
-                      </div>
-                      <label className="bg-[#5fbff9] text-black rounded-md border border-gray-300 px-4 py-2 cursor-pointer text-sm">
-                        Upload PDF
-                        <input
-                          type="file"
-                          accept=".pdf"
-                          onChange={(e) => handleFileChange(e, "medCert")}
-                          className="hidden"
-                        />
-                      </label>
-                      <span className="text-gray-500 text-xs mt-1">
-                        {medCert ? medCert.name : "No file chosen"}
-                      </span>
-                       {/* Preview Button */}
-                       {medCert && (
-                        <label
-                          className="mt-2 bg-transparent border-none outline-none focus:outline-none cursor-pointer hover:scale-110 transition-transform duration-200"
-                          onClick={() => {
-                            const fileURL = URL.createObjectURL(medCert);
-                            window.open(fileURL, "_blank");
-                          }}
-                        >
-                          {previewFileIcon()}
-                        </label>
-                      )}
-                    </>
+                  <div className="mb-2 mt-2">{renderFileIcon()}</div>
+                  <label className="bg-[#5fbff9] text-black rounded-md border border-gray-300 px-4 py-2 cursor-pointer text-sm">
+                    Upload PDF
+                    <input
+                      type="file"
+                      accept=".pdf"
+                      onChange={(e) => handleFileChange(e, "medCert")}
+                      className="hidden"
+                    />
+                  </label>
+                  <span className="text-gray-500 text-xs mt-1">{medCert ? medCert.name : "No file chosen"}</span>
+                  {medCert && (
+                    <label
+                      className="mt-2 bg-transparent border-none outline-none focus:outline-none cursor-pointer hover:scale-110 transition-transform duration-200"
+                      onClick={() => {
+                        const fileURL = URL.createObjectURL(medCert);
+                        window.open(fileURL, "_blank");
+                      }}
+                    >
+                      {previewFileIcon()}
+                    </label>
                   )}
                 </div>
 
                 {/* Notarized Parent Consent Upload */}
-                <div className="flex flex-col items-center ">
+                <div className="flex flex-col items-center">
                   <div className="rounded-lg border bg-gray-50 border-gray-300 px-4 py-2 w-full text-center mb-2 font-bold">
                     Notarized Parent Consent
                   </div>
-                  {notarizeUploaded ? (
-                    <p className="text-green-600 text-sm">Uploaded</p>
-                  ) : (
-                    <>
-                      <div className="mb-2 mt-2">
-                        {renderFileIcon()}
-                      </div>
-                      <label className="bg-[#5fbff9] text-black rounded-md border border-gray-300 px-4 py-2 cursor-pointer text-sm">
-                        Upload PDF
-                        <input
-                          type="file"
-                          accept=".pdf"
-                          onChange={(e) => handleFileChange(e, "notarized")}
-                          className="hidden"
-                        />
-                      </label>
-                      <span className="text-gray-500 text-xs mt-1">
-                        {notarized ? notarized.name : "No file chosen"}
-                      </span>
-                       {/* Preview Button */}
-                       {notarized && (
-                        <label
-                          className="mt-2 bg-transparent border-none outline-none focus:outline-none cursor-pointer hover:scale-110 transition-transform duration-200"
-                          onClick={() => {
-                            const fileURL = URL.createObjectURL(notarized);
-                            window.open(fileURL, "_blank");
-                          }}
-                        >
-                          {previewFileIcon()}
-                        </label>
-                      )}
-                    </>
+                  <div className="mb-2 mt-2">{renderFileIcon()}</div>
+                  <label className="bg-[#5fbff9] text-black rounded-md border border-gray-300 px-4 py-2 cursor-pointer text-sm">
+                    Upload PDF
+                    <input
+                      type="file"
+                      accept=".pdf"
+                      onChange={(e) => handleFileChange(e, "notarized")}
+                      className="hidden"
+                    />
+                  </label>
+                  <span className="text-gray-500 text-xs mt-1">{notarized ? notarized.name : "No file chosen"}</span>
+                  {notarized && (
+                    <label
+                      className="mt-2 bg-transparent border-none outline-none focus:outline-none cursor-pointer hover:scale-110 transition-transform duration-200"
+                      onClick={() => {
+                        const fileURL = URL.createObjectURL(notarized);
+                        window.open(fileURL, "_blank");
+                      }}
+                    >
+                      {previewFileIcon()}
+                    </label>
                   )}
                 </div>
 
@@ -609,101 +497,42 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
                   <div className="rounded-lg border bg-gray-50 border-gray-300 px-4 py-2 w-full text-center mb-2 font-bold">
                     Psychological Test
                   </div>
-                  {psyTestUploaded ? (
-                    <p className="text-green-600 text-sm">Uploaded</p>
-                  ) : (
-                    <>
-                      <div className="mb-2 mt-2">
-                        {renderFileIcon()}
-                      </div>
-                      <label className="bg-[#5fbff9] text-black rounded-md border border-gray-300 px-4 py-2 cursor-pointer text-sm">
-                        Upload PDF
-                        <input
-                          type="file"
-                          accept=".pdf"
-                          onChange={(e) => handleFileChange(e, "psyTest")}
-                          className="hidden"
-                        />
-                      </label>
-                      <span className="text-gray-500 text-xs mt-1">
-                        {psyTest ? psyTest.name : "No file chosen"}
-                      </span>
-                       {/* Preview Button */}
-                       {psyTest && (
-                        <label
-                          className="mt-2 bg-transparent border-none outline-none focus:outline-none cursor-pointer hover:scale-110 transition-transform duration-200"
-                          onClick={() => {
-                            const fileURL = URL.createObjectURL(psyTest);
-                            window.open(fileURL, "_blank");
-                          }}
-                        >
-                          {previewFileIcon()}
-                        </label>
-                      )}
-                    </>
+                  <div className="mb-2 mt-2">{renderFileIcon()}</div>
+                  <label className="bg-[#5fbff9] text-black rounded-md border border-gray-300 px-4 py-2 cursor-pointer text-sm">
+                    Upload PDF
+                    <input
+                      type="file"
+                      accept=".pdf"
+                      onChange={(e) => handleFileChange(e, "psyTest")}
+                      className="hidden"
+                    />
+                  </label>
+                  <span className="text-gray-500 text-xs mt-1">{psyTest ? psyTest.name : "No file chosen"}</span>
+                  {psyTest && (
+                    <label
+                      className="mt-2 bg-transparent border-none outline-none focus:outline-none cursor-pointer hover:scale-110 transition-transform duration-200"
+                      onClick={() => {
+                        const fileURL = URL.createObjectURL(psyTest);
+                        window.open(fileURL, "_blank");
+                      }}
+                    >
+                      {previewFileIcon()}
+                    </label>
                   )}
                 </div>
               </div>
-            
             </div>
           )}
-            <div className="flex gap-4 mt-8 justify-center">
-                <button onClick={handleRequirementSubmit} className="text-white bg-blue-500 px-4 py-2 rounded">
-                  Submit
-                </button>
-                <button onClick={onClose} className="text-white bg-gray-500 px-4 py-2 rounded">
-                  Cancel
-                </button>
-              </div>
+          <br />
+          <div className="flex gap-4 mt-4 justify-center">
+            <button onClick={handleRequirementSubmit} className="text-white bg-blue-500 px-4 py-2 rounded">
+              Submit
+            </button>
+            <button onClick={onClose} className="text-white bg-gray-500 px-4 py-2 rounded">
+              Cancel
+            </button>
+          </div>
         </div>
-=======
-      {step === "apply"&& selectedJob && (
-        <CompanyApplicationApply job={selectedJob} company={company} setStep={setStep} setUploaded={setUploaded} setSelectedJob={setSelectedJob} />
-      )}
-
-      {step === "requirement" && (
-       <div className="text-black">
-       <p className="text-center text-xl font-bold mb-4">{company.name}</p>
-       <p>Position: {selectedJob?.position}</p>
-       <br />
-       {requirementUploaded && selectedJob? (
-         <div>
-           You already submitted for this position
-           {/* Assuming you have EndorsementButton component */}
-            <EndorsementButton companyProps={{ company, onClose }} job={selectedJob} />
-         </div>
-       ) : (
-         <div className="border border-black rounded-lg p-5 w-[600px]">
-           <p className="font-semibold">Please Submit Requirements</p>
-           <br />
-           {fileFields.map(({ key, label, file }) => (
-             <FileUploadField
-               key={key}
-               fieldKey={key}
-               label={label}
-               file={file}
-               onChange={handleFileChange}
-             />
-           ))}
-         </div>
-       )}
-       <br />
-       <div className="flex gap-4">
-         <button
-           onClick={handleRequirementSubmit}
-           className="text-white bg-blue-500 px-4 py-2 rounded"
-         >
-           Submit
-         </button>
-         <button
-           onClick={onClose}
-           className="text-white bg-gray-500 px-4 py-2 rounded"
-         >
-           Cancel
-         </button>
-       </div>
-     </div> 
-
       )}
 
       {step === "availability" && (
@@ -727,7 +556,6 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
                 <option value="Sunday">Sunday</option>
               </select>
             </div>
-
             <div className="mb-4">
               <label className="font-bold min-w-[150px]">Start Time</label>
               <input
@@ -737,7 +565,6 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
                 className="border border-gray-300 rounded px-2 py-1"
               />
             </div>
-
             <div className="mb-4">
               <label className="font-bold min-w-[150px]">End Time</label>
               <input
@@ -747,14 +574,12 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
                 className="border border-gray-300 rounded px-2 py-1"
               />
             </div>
-
             <button
               onClick={handleAddAvailabilitySlot}
               className="text-white bg-green-500 px-4 py-2 rounded mb-4"
             >
               Add Availability Slot
             </button>
-
             {availability.length > 0 && (
               <div className="mb-4">
                 <p className="font-semibold">Added Availability:</p>
@@ -768,7 +593,6 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
               </div>
             )}
           </div>
-
           <div className="flex gap-4 mt-4">
             <button onClick={handleAvailabilitySubmit} className="text-white bg-blue-500 px-4 py-2 rounded">
               Submit Availability
@@ -783,6 +607,9 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
       {step === "dashboard" && (
         <div>
           <p>Application Submitted</p>
+          <button onClick={onClose} className="text-white bg-gray-500 px-4 py-2 rounded mt-4">
+            Close
+          </button>
         </div>
       )}
     </div>
