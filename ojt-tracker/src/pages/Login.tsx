@@ -60,13 +60,16 @@ const Auth = () => {
           />
 
         
+
           <div className="flex flex-col text-center relative md:-mt-[9.5vw]">
             <h2 className="text-black md:text-[37px] font-semibold font-poppins">
               Welcome User!
             </h2>
 
             {/* Google Sign-In Button */}
+
             <div className="w-[180px] md:w-[280px] h-[100px] flex items-center justify-center">
+
               {!loading && (
                 <img
                   src={googleButton}

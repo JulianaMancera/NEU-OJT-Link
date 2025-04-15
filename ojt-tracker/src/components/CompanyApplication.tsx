@@ -3,6 +3,9 @@ import { supabase } from "../../supabase";
 import EndorsementButton from "./EndorsementButton";
 import { File, Eye } from "lucide-react";
 
+import CompanyApplicationApply from "./CompanyApplicationApply";
+import FileUploadField from "./FileUploadField";
+
 interface CompanyProps {
   company: {
     company_id: string;
@@ -40,18 +43,23 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
   const [notarized, setNotarized] = useState<File | null>(null);
   const [psyTest, setPsyTest] = useState<File | null>(null);
   // Checker for User Uploads
-  const [resumeUploaded, setResumeUploaded] = useState(false);
-  const [coverLetterUploaded, setCoverLetterUploaded] = useState(false);
-  const [comUploaded, setComUploaded] = useState(false);
-  const [cvUploaded, setCVUploaded] = useState(false);
-  const [medCertUploaded, setMedcertUploaded] = useState(false);
-  const [notarizeUploaded, setNotarizedUploaded] = useState(false);
-  const [psyTestUploaded, setPsyTestUploaded] = useState(false);
-  // Availability Form State
+  const [requirementUploaded, setUploaded] = useState(false);
+   // Availability Form State
   const [availability, setAvailability] = useState<{ day: string; startTime: string; endTime: string }[]>([]); // Store multiple availability slots
   const [currentDay, setCurrentDay] = useState<string>("");
   const [currentStartTime, setCurrentStartTime] = useState<string>("");
   const [currentEndTime, setCurrentEndTime] = useState<string>("");
+  const fileFields = [
+    { key: "resume", label: "Resume", file: resume },
+    { key: "coverLetter", label: "Cover Letter", file: coverLetter },
+    { key: "com", label: "COM", file: com },
+    { key: "cv", label: "CV", file: cv },
+    { key: "medCert", label: "Med Cert", file: medCert },
+    { key: "notarized", label: "Notarized Parent Consent", file: notarized },
+    { key: "psyTest", label: "Psychological Test", file: psyTest },
+  ];
+
+
 
   useEffect(() => {
     const fetchJob = async () => {
@@ -265,63 +273,8 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
     }
   };
 
-  const [showErrorPopup, setShowErrorPopup] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
-  const ErrorPopup = () => {
-    return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
-        <div className="bg-white rounded-lg p-6 max-w-md">
-          <h3 className="text-xl font-bold text-red-600 mb-4">Invalid File Format</h3>
-          <p className="mb-6">{errorMessage}</p>
-          <button 
-            onClick={() => setShowErrorPopup(false)}
-            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 w-full"
-          >
-            OK
-          </button>
-        </div>
-      </div>
-    );
-  };
+    const handleJobSelect = (job: Job) => {
 
-  const handleSelectedJob = async (job: Job) => {
-    const user = await supabase.auth.getUser();
-    if (!company?.company_id || !user?.data.user?.id || !job?.job_id) {
-      console.error("Invalid query parameters");
-      return;
-    }
-    console.log(user.data.user?.id);
-    console.log(company.company_id);
-    console.log(job.job_id);
-
-    const { data, error } = await supabase
-      .from("requirements")
-      .select("*")
-      .eq("student_id", user.data.user?.id)
-      .eq("company_id", company.company_id)
-      .eq("job_id", job.job_id)
-      .single();
-
-    if (data) {
-      if (data.resume_url && data.cover_letter_url) {
-        console.log(data);
-        setResumeUploaded(true);
-        setCoverLetterUploaded(true);
-        setComUploaded(true);
-        setCVUploaded(true);
-        setMedcertUploaded(true);
-        setNotarizedUploaded(true);
-        setPsyTestUploaded(true);
-      }
-    } else {
-      console.log(error);
-    }
-
-    setSelectedJob(job);
-    setStep("requirement");
-  };
-
-  const handleJobSelect = (job: Job) => {
     setSelectedJob(job);
     setStep("apply"); // Move to the job details modal
   };
@@ -703,6 +656,54 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
                 </button>
               </div>
         </div>
+=======
+      {step === "apply"&& selectedJob && (
+        <CompanyApplicationApply job={selectedJob} company={company} setStep={setStep} setUploaded={setUploaded} setSelectedJob={setSelectedJob} />
+      )}
+
+      {step === "requirement" && (
+       <div className="text-black">
+       <p className="text-center text-xl font-bold mb-4">{company.name}</p>
+       <p>Position: {selectedJob?.position}</p>
+       <br />
+       {requirementUploaded && selectedJob? (
+         <div>
+           You already submitted for this position
+           {/* Assuming you have EndorsementButton component */}
+            <EndorsementButton companyProps={{ company, onClose }} job={selectedJob} />
+         </div>
+       ) : (
+         <div className="border border-black rounded-lg p-5 w-[600px]">
+           <p className="font-semibold">Please Submit Requirements</p>
+           <br />
+           {fileFields.map(({ key, label, file }) => (
+             <FileUploadField
+               key={key}
+               fieldKey={key}
+               label={label}
+               file={file}
+               onChange={handleFileChange}
+             />
+           ))}
+         </div>
+       )}
+       <br />
+       <div className="flex gap-4">
+         <button
+           onClick={handleRequirementSubmit}
+           className="text-white bg-blue-500 px-4 py-2 rounded"
+         >
+           Submit
+         </button>
+         <button
+           onClick={onClose}
+           className="text-white bg-gray-500 px-4 py-2 rounded"
+         >
+           Cancel
+         </button>
+       </div>
+     </div> 
+
       )}
 
       {step === "availability" && (
