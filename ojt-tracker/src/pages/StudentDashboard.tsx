@@ -391,7 +391,7 @@ const StudentDashboard: React.FC = () => {  //Facade na kaya natin ito kasi anda
                 <button
                     key={template.file}
                     onClick={() => handleOpenSubmissionModal(template.name)}
-                    className="w-full bg-blue-100 text-blue-600 p-2 rounded hover:bg-blue-200 flex items-center justify-start"
+                    className="w-full bg-black-100 text-black-600 p-2 rounded hover:bg-blue-200 flex items-center justify-start"
                 >
                     <File className="mr-2" />
                     {template.name}
