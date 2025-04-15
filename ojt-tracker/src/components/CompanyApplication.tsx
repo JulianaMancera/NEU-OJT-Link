@@ -315,7 +315,7 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
       {step === "requirement" && (
         <div className="text-black">
           <div className="flex justify-between items-center">
-          <p className="text-[1.2rem] font-semibold text-center">Position: {selectedJob?.position}</p>
+          <p className="text-[1rem] font-lightbold text-center">Position: {selectedJob?.position}</p>
           </div>
           <br />
           {requirementUploaded && selectedJob ? (
