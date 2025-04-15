@@ -4,6 +4,8 @@ import EndorsementButton from "./EndorsementButton";
 
 import CompanyApplicationApply from "./CompanyApplicationApply";
 import FileUploadField from "./FileUploadField";
+import { handleEndorsementSubmit } from "../services/uploadHandle/handleEndorsementSubmit";
+import {  useNavigate } from "react-router-dom";
 
 interface CompanyProps {
   company: {
@@ -41,6 +43,8 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
   const [medCert, setMedcert] = useState<File | null>(null);
   const [notarized, setNotarized] = useState<File | null>(null);
   const [psyTest, setPsyTest] = useState<File | null>(null);
+  const [endorsement, setEndorsement] = useState<File | null>(null);
+  const [endorsementStatus, setEndorsementStatus] = useState<boolean>(false);
   // Checker for User Uploads
   const [requirementUploaded, setUploaded] = useState(false);
    // Availability Form State
@@ -57,6 +61,8 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
     { key: "notarized", label: "Notarized Parent Consent", file: notarized },
     { key: "psyTest", label: "Psychological Test", file: psyTest },
   ];
+  const endorsementField =  { key: "endorsement", label: "Endorsement Letter", file: endorsement }
+  const navigate = useNavigate();
 
   //Handle Error
   const [errorMessage,setErrorMessage] = useState<string>("");
@@ -271,7 +277,10 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
         setNotarized(event.target.files[0]);
       } else if (type === "psyTest") {
         setPsyTest(event.target.files[0]);
+      }else if (type === "endorsement") {
+        setEndorsement(event.target.files[0]);
       }
+
     }
   };
 
@@ -318,10 +327,35 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
           <p className="text-[1rem]">Position: {selectedJob?.position}</p>
           <br />
           {requirementUploaded && selectedJob ? (
+            <>
             <div>
               You already submitted for this position 
               <EndorsementButton companyProps={{ company, onClose }} job={selectedJob} />
+               <FileUploadField
+               key={endorsementField.key}
+               label={endorsementField.label}
+               fieldKey={endorsementField.key}
+               file={endorsementField.file}
+               onChange={handleFileChange}
+             />
+
             </div>
+            {endorsement && 
+             <div className="flex gap-4 mt-8 justify-center">
+                <button onClick={() => handleEndorsementSubmit(endorsement, company, setEndorsementStatus)} className="text-white bg-blue-500 px-4 py-2 rounded">
+                  Submit
+                </button>
+            
+              </div>
+            }
+            {endorsementStatus && 
+            <div>
+                <button className="text-white"onClick={() => navigate('/student-dashboard')}>Proceed to the Dashboard</button>
+            </div>
+              
+            }
+            
+              </>
           ) : (
             <div className="border border-black rounded-lg p-10 w-full max-w-[1000px] mx-auto">
               <p className="font-semibold text-center text-[1.2rem] mb-8">Please Submit Requirements</p>
@@ -340,10 +374,7 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
              />
            ))}
                 </div>
-            
-            </div>
-          )}
-            <div className="flex gap-4 mt-8 justify-center">
+             <div className="flex gap-4 mt-8 justify-center">
                 <button onClick={handleRequirementSubmit} className="text-white bg-blue-500 px-4 py-2 rounded">
                   Submit
                 </button>
@@ -351,6 +382,9 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
                   Cancel
                 </button>
               </div>
+            </div>
+          )}
+           
         </div>
       )}
       
