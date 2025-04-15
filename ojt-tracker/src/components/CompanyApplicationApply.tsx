@@ -59,22 +59,26 @@ const CompanyApplicationApply: React.FC<CompanyApplicationProps> = ({job, compan
           >
             Apply Now
           </button>
-          <p className="font-bold mt-4 text-[1.15rem]">Position</p>
-          <p className="text-black leading-relaxed">{job.position}</p>
+          <p className="font-bold mt-4 text-[1.4rem]">Position</p>
+          <p className="text-black leading-relaxed text-[1.15rem]">{job.position}</p>
           <p className="font-bold mt-3 text-[1.15rem]">Description</p>
-          <p className="text-black leading-relaxed">{job.description}</p>
-          <p className="font-bold mt-3 text-[1.15rem]">Responsibility</p>
-          <ul className="list-disc leading-relaxed">
-            {job?.responsibility.map((resp, index) => (
-              <li key={index}>{resp}</li>
-            ))}
-          </ul>
-          <p className="font-bold mt-3 text-[1.15rem]">Competencies</p>
-          <ul className="list-disc text-black leading-relaxed">
-            {job?.qualifications.map((compe, index) => (
-              <li key={index}>{compe}</li>
-            ))}
-          </ul>
+          <p className="text-black leading-relaxed border border-black rounded-lg p-4 mt-2">{job.description}</p>
+          <p className="font-bold mt-5 text-[1.15rem]">Responsibility</p>
+          <div className="border border-black rounded-lg p-4 mt-2">
+            <ul className="list-disc leading-relaxed pl-3">
+              {job?.responsibility.map((resp, index) => (
+                <li key={index}>{resp}</li>
+              ))}
+            </ul>
+          </div>
+          <p className="font-bold mt-5 text-[1.15rem]">Competencies</p>
+          <div className="border border-black rounded-lg p-4 mt-2">
+            <ul className="list-disc text-black leading-relaxed pl-3">
+              {job?.qualifications.map((compe, index) => (
+                <li key={index}>{compe}</li>
+              ))}
+            </ul>
+          </div>
         </div>
     )
 
