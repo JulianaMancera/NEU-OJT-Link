@@ -1,6 +1,7 @@
 import { pdf } from "@react-pdf/renderer";
 import EndorsementPDF from "../services/EndorsementPDF";
 import { supabase } from "../../supabase";
+import fetchDaen from "../services/TableFetch/FetchDean";
 
 interface CompanyProps{
     company:{
@@ -34,6 +35,7 @@ const EndorsementButton: React.FC<EndorsmentProps> = ({companyProps, job}) =>  {
 
         try{
             const user = await supabase.auth.getUser()
+            const currentDean = await fetchDaen();
             const userInfo = {
                 name: user.data.user?.user_metadata?.full_name,
                 position: job.position,
@@ -41,7 +43,8 @@ const EndorsementButton: React.FC<EndorsmentProps> = ({companyProps, job}) =>  {
                 companyAddress: companyProps.company.address,
                 companyEmail: companyProps.company.email,
                 date: new Date().toISOString().slice(0,10),
-                signatureUrl:"https://ecearoibslwhyaxuhato.supabase.co/storage/v1/object/public/signatures//img.png"
+                signatureUrl:"https://ecearoibslwhyaxuhato.supabase.co/storage/v1/object/public/signatures//img.png",
+                dean: currentDean.name,
 
             }
             const blob = await pdf(<EndorsementPDF {...userInfo}/>).toBlob();
