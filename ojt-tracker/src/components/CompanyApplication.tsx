@@ -330,9 +330,10 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
               }
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                   <br />
-           {fileFields.map(({ key,  file }) => (
+           {fileFields.map(({ key,  label, file }) => (
              <FileUploadField
                key={key}
+               label={label}
                fieldKey={key}
                file={file}
                onChange={handleFileChange}
