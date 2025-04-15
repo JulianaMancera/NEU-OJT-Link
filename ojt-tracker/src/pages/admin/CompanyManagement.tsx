@@ -29,7 +29,7 @@ const CompanyManagement = () => {
   const handleFileUpload = async () => {
     if (!logoFile) return "";
   
-    const fileName = logoFile.name; // use the original name
+    const fileName = logoFile.name;
     const { error } = await supabase.storage
       .from("logos")
       .upload(fileName, logoFile, {
@@ -38,7 +38,7 @@ const CompanyManagement = () => {
       });
   
     if (error) {
-      console.error("File upload error:", error.message); //CompanyManagement.tsx:41
+      console.error("File upload error:", error.message); 
       return "";
     }
   
@@ -48,7 +48,7 @@ const CompanyManagement = () => {
   
 
   const handleAddOrUpdateCompany = async () => {
-    const logo_url = logoFile ? await handleFileUpload() : newCompany.logo_url; //@	CompanyManagement.tsx:51
+    const logo_url = logoFile ? await handleFileUpload() : newCompany.logo_url;
 
     const companyData = {
       ...newCompany,
