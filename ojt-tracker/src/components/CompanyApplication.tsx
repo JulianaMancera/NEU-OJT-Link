@@ -314,8 +314,9 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
 
       {step === "requirement" && (
         <div className="text-black">
-        
-          <p className="text-[1rem]">Position: {selectedJob?.position}</p>
+          <div className="flex justify-between items-center">
+          <p className="text-[1.2rem] font-semibold text-center">Position: {selectedJob?.position}</p>
+          </div>
           <br />
           {requirementUploaded && selectedJob ? (
             <div>
@@ -328,18 +329,18 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
               {showErrorPopup && 
                 errorMessage
               }
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                  <br />
-           {fileFields.map(({ key,  label, file }) => (
-             <FileUploadField
-               key={key}
-               label={label}
-               fieldKey={key}
-               file={file}
-               onChange={handleFileChange}
-             />
-           ))}
-                </div>
+             <div style={{display: 'flex', flexWrap: 'wrap', justifyContent: 'flex-start', gap: '24px'}} className="grid grid-cols-3 gap-6">
+              {fileFields.map(({ key, label, file }) => (
+              <div key={key} style={{width: 'calc(33.333% - 16px)'}}>
+                <FileUploadField
+                  label={label}
+                  fieldKey={key}
+                  file={file}
+                  onChange={handleFileChange}
+                />
+              </div>
+        ))}
+      </div>
             
             </div>
           )}
