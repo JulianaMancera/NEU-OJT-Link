@@ -6,6 +6,7 @@ import CompanyApplicationApply from "./CompanyApplicationApply";
 import FileUploadField from "./FileUploadField";
 import { handleEndorsementSubmit } from "../services/uploadHandle/handleEndorsementSubmit";
 import {  useNavigate } from "react-router-dom";
+import { Loading } from "./Loading";
 
 interface CompanyProps {
   company: {
@@ -31,6 +32,7 @@ interface Job {
 }
 
 const CompanyApplication = ({ company, onClose }: CompanyProps) => {
+  const [loading, setLoading] = useState<boolean>(false);
   const [step, setStep] = useState<"selectJob" | "apply" | "requirement" | "availability" | "dashboard">("selectJob"); // Add "availability" step
   const [jobDetail, setJobDetail] = useState<Job[] | null>(null);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
@@ -293,6 +295,9 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
  
   return (
     <div className="flex items-center justify-center">
+      {loading &&
+        <Loading/>
+      }
       {step === "selectJob" && (
         <div className="text-black">
           <br></br>
@@ -342,7 +347,7 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
             </div>
             {endorsement && 
              <div className="flex gap-4 mt-8 justify-center">
-                <button onClick={() => handleEndorsementSubmit(endorsement, company, setEndorsementStatus)} className="text-white bg-blue-500 px-4 py-2 rounded">
+                <button onClick={() => handleEndorsementSubmit(endorsement, company, setEndorsementStatus,setLoading)} className="text-white bg-blue-500 px-4 py-2 rounded">
                   Submit
                 </button>
             
