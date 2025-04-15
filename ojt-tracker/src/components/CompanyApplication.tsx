@@ -59,6 +59,9 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
     { key: "psyTest", label: "Psychological Test", file: psyTest },
   ];
 
+  //Handle Error
+  const [errorMessage,setErrorMessage] = useState<string>("");
+  const [showErrorPopup,setShowErrorPopup]= useState<boolean>(false);
 
 
   useEffect(() => {
@@ -322,7 +325,7 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
             Back to Job List
           </button>
           <button
-            onClick={() => handleSelectedJob(selectedJob!)} 
+            onClick={() => handleJobSelect(selectedJob!)} 
             className="text-blue-500 mb-4"
           >
             Apply Now
