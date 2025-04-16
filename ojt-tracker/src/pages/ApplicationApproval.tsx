@@ -1,14 +1,9 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../../supabase";
 import { User } from "@supabase/supabase-js";
+import Application from "../services/Tables/Application";
 
-interface Application {
-  application_id: string;
-  user_id: string;
-  company_id: string;
-  email: string;
-  status: 'approved' | 'pending' | 'rejected';
-}
+
 
 const ApplicationApproval = () => {
   const [loading, setLoading] = useState(true);
