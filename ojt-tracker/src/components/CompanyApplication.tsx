@@ -4,6 +4,9 @@ import EndorsementButton from "./EndorsementButton";
 
 import CompanyApplicationApply from "./CompanyApplicationApply";
 import FileUploadField from "./FileUploadField";
+import { handleEndorsementSubmit } from "../services/uploadHandle/handleEndorsementSubmit";
+import {  useNavigate } from "react-router-dom";
+import { Loading } from "./Loading";
 
 interface CompanyProps {
   company: {
@@ -29,6 +32,7 @@ interface Job {
 }
 
 const CompanyApplication = ({ company, onClose }: CompanyProps) => {
+  const [loading, setLoading] = useState<boolean>(false);
   const [step, setStep] = useState<"selectJob" | "apply" | "requirement" | "availability" | "dashboard">("selectJob"); // Add "availability" step
   const [jobDetail, setJobDetail] = useState<Job[] | null>(null);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
@@ -41,6 +45,8 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
   const [medCert, setMedcert] = useState<File | null>(null);
   const [notarized, setNotarized] = useState<File | null>(null);
   const [psyTest, setPsyTest] = useState<File | null>(null);
+  const [endorsement, setEndorsement] = useState<File | null>(null);
+  const [endorsementStatus, setEndorsementStatus] = useState<boolean>(false);
   // Checker for User Uploads
   const [requirementUploaded, setUploaded] = useState(false);
    // Availability Form State
@@ -57,6 +63,8 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
     { key: "notarized", label: "Notarized Parent Consent", file: notarized },
     { key: "psyTest", label: "Psychological Test", file: psyTest },
   ];
+  const endorsementField =  { key: "endorsement", label: "Endorsement Letter", file: endorsement }
+  const navigate = useNavigate();
 
   //Handle Error
   const [errorMessage,setErrorMessage] = useState<string>("");
@@ -271,7 +279,10 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
         setNotarized(event.target.files[0]);
       } else if (type === "psyTest") {
         setPsyTest(event.target.files[0]);
+      }else if (type === "endorsement") {
+        setEndorsement(event.target.files[0]);
       }
+
     }
   };
 
@@ -284,6 +295,9 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
  
   return (
     <div className="flex items-center justify-center">
+      {loading &&
+        <Loading/>
+      }
       {step === "selectJob" && (
         <div className="text-black">
           <br></br>
@@ -319,28 +333,53 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
           </div>
           <br />
           {requirementUploaded && selectedJob ? (
+            <>
             <div>
               You already submitted for this position 
               <EndorsementButton companyProps={{ company, onClose }} job={selectedJob} />
+               <FileUploadField
+               key={endorsementField.key}
+               label={endorsementField.label}
+               fieldKey={endorsementField.key}
+               file={endorsementField.file}
+               onChange={handleFileChange}
+             />
+
             </div>
+            {endorsement && 
+             <div className="flex gap-4 mt-8 justify-center">
+                <button onClick={() => handleEndorsementSubmit(endorsement, company, setEndorsementStatus,setLoading)} className="text-white bg-blue-500 px-4 py-2 rounded">
+                  Submit
+                </button>
+            
+              </div>
+            }
+            {endorsementStatus && 
+            <div>
+                <button className="text-white"onClick={() => navigate('/student-dashboard')}>Proceed to the Dashboard</button>
+            </div>
+              
+            }
+            
+              </>
           ) : (
             <div className="border border-black rounded-lg p-10 w-full max-w-[1000px] mx-auto">
               <p className="font-semibold text-center text-[1.2rem] mb-8">Please Submit Requirements</p>
               {showErrorPopup && 
                 errorMessage
               }
-             <div style={{display: 'flex', flexWrap: 'wrap', justifyContent: 'flex-start', gap: '24px'}} className="grid grid-cols-3 gap-6">
-              {fileFields.map(({ key, label, file }) => (
-              <div key={key} style={{width: 'calc(33.333% - 16px)'}}>
-                <FileUploadField
-                  label={label}
-                  fieldKey={key}
-                  file={file}
-                  onChange={handleFileChange}
-                />
-              </div>
-        ))}
-      </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                  <br />
+           {fileFields.map(({ key,  label, file }) => (
+             <FileUploadField
+               key={key}
+               label={label}
+               fieldKey={key}
+               file={file}
+               onChange={handleFileChange}
+             />
+           ))}
+                </div>
             
             </div>
           )}
@@ -352,6 +391,9 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
                   Cancel
                 </button>
               </div>
+            </div>
+          )}
+           
         </div>
       )}
       
