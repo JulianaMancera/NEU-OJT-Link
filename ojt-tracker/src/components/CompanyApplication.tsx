@@ -328,9 +328,8 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
 
       {step === "requirement" && (
         <div className="text-black">
-          <div className="flex justify-between items-center">
-          <p className="text-[1rem] font-lightbold text-center">Position: {selectedJob?.position}</p>
-          </div>
+        
+          <p className="text-[1rem] font-lightbold">Position: {selectedJob?.position}</p>
           <br />
           {requirementUploaded && selectedJob ? (
             <>
@@ -358,9 +357,7 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
             <div>
                 <button className="text-white"onClick={() => navigate('/student-dashboard')}>Proceed to the Dashboard</button>
             </div>
-              
             }
-            
               </>
           ) : (
             <div className="border border-black rounded-lg p-10 w-full max-w-[1000px] mx-auto">
@@ -368,22 +365,19 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
               {showErrorPopup && 
                 errorMessage
               }
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                  <br />
-           {fileFields.map(({ key,  label, file }) => (
-             <FileUploadField
-               key={key}
-               label={label}
-               fieldKey={key}
-               file={file}
-               onChange={handleFileChange}
-             />
+             <div style={{display: 'flex', flexWrap: 'wrap', justifyContent: 'flex-start', gap: '24px'}} className="grid grid-cols-3 gap-6">
+              {fileFields.map(({ key, label, file }) => (
+              <div key={key} style={{width: 'calc(33.333% - 16px)'}}>
+                <FileUploadField
+                  label={label}
+                  fieldKey={key}
+                  file={file}
+                  onChange={handleFileChange}
+                />
+              </div>
            ))}
                 </div>
-            
-            </div>
-          )}
-            <div className="flex gap-4 mt-8 justify-center">
+             <div className="flex gap-4 mt-8 justify-center">
                 <button onClick={handleRequirementSubmit} className="text-white bg-blue-500 px-4 py-2 rounded">
                   Submit
                 </button>
