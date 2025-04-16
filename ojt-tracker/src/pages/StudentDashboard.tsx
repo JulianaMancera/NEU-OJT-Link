@@ -19,6 +19,7 @@ const StudentDashboard: React.FC = () => {  //Facade na kaya natin ito kasi anda
   const [loading, setLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [companyName, setCompanyName] = useState<string | null>(null);
+  const [companyLogo, setCompanyLogo] = useState<string | null>(null);
   const [jobPosition, setJobPosition] = useState<string | null>(null);
   const [workDays, setWorkDays] = useState<WorkDay[]>([]);
   const [isProfileOpen, setProfileOpen] = useState(false);
@@ -92,7 +93,7 @@ const StudentDashboard: React.FC = () => {  //Facade na kaya natin ito kasi anda
   
         const { data: company, error: companyError } = await supabase
           .from("company")
-          .select("name")
+          .select("name, logo_url")
           .eq("company_id", company_id)
           .single();
   
@@ -111,7 +112,8 @@ const StudentDashboard: React.FC = () => {  //Facade na kaya natin ito kasi anda
           console.error("Job position not found:", jobError?.message);
           return;
         }
-  
+
+        setCompanyLogo(company.logo_url);
         setCompanyName(company.name);
         setJobPosition(job.position);
         await fetchWorkDays(application_id);
@@ -333,8 +335,18 @@ const StudentDashboard: React.FC = () => {  //Facade na kaya natin ito kasi anda
       <div className="container mx-auto px-6 mt-35 text-black">
         <div className="grid grid-cols-3 gap-4 mb-6">
           <div className="bg-white shadow-md rounded-lg p-4 flex items-center space-x-4 border border-black">
-            <div className="w-20 h-20 bg-gray-200 rounded flex items-center justify-center">
-              <span className="text-gray-500">Logo</span>
+            <div className="w-20 h-20 rounded border border-black flex items-center justify-center overflow-hidden flex-shrink-0">
+              {companyLogo ? (
+                <img
+                  src={companyLogo}
+                  alt={`${companyName} logo`}
+                  className="max-w-full max-h-full object-contain"
+                />
+              ) : (
+                <div className="flex items-center justify-center w-full h-full">
+                  <span className="text-gray-500">Logo</span>
+                </div>
+              )}
             </div>
             <div>
               <h2 className="text-lg font-semibold">
