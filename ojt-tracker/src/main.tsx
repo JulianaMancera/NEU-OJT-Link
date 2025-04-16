@@ -8,6 +8,8 @@ import ApplicationApproval from "./pages/ApplicationApproval";
 import StudentDashboard from "./pages/StudentDashboard";
 import StudentProfile from "./pages/profile/StudentProfile";
 import Admin from "./pages/admin/Admin";
+import CompanyManagement from "./pages/admin/CompanyManagement";
+
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <BrowserRouter>
@@ -19,6 +21,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
       <Route path="/student-dashboard" element={<StudentDashboard />} />
       <Route path="/profile" element={<StudentProfile />} />
       <Route path="/admin" element={<Admin />} />
+      <Route path="/company" element={<CompanyManagement />} />
     </Routes>
   </BrowserRouter>
 );

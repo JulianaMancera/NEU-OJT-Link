@@ -171,7 +171,7 @@ const Dashboard = () => {
                     <div className="flex justify-between items-center">
                       <h3 className="text-[1.5rem] font-bold text-black sticky top-0 ">{company.name}</h3>
                       <button onClick={() => setSelectedCompany(null)}>
-                        <X size={15} color="white" />
+                        <X size={15} color="black" />
                       </button>
                     </div>
                     {/* Company Application Component Inside Expanding Box */}
