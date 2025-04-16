@@ -89,6 +89,7 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
   }, [company]);
 
   const handleRequirementSubmit = async () => {
+    setLoading(true)
     if (!resume || !coverLetter || !com || !cv || !medCert || !notarized || !psyTest) {
       alert("Please Upload All Files");
       return;
@@ -225,6 +226,7 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
       return;
     }
 
+    setLoading(false)
     console.log("Availability submitted:", data);
     setStep("dashboard"); // Move to the dashboard step
   };
@@ -392,7 +394,7 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
            
         </div>
       )}
-      
+
 
           {step === "availability" && (
         <div className="text-black">

@@ -2,6 +2,7 @@ import { supabase } from "../../../supabase";
 import Company from '../../types/Company';
 
 export const handleEndorsementSubmit = async (endorsement: File, company: Company, setStatus: React.Dispatch<React.SetStateAction<boolean>>, setLoading: React.Dispatch<React.SetStateAction<boolean>>) => {
+    setLoading(true) 
     if (!endorsement) {
       alert("Please Upload All Files");
       return;
@@ -12,7 +13,6 @@ export const handleEndorsementSubmit = async (endorsement: File, company: Compan
       .storage
       .from("applicant-documents")
       .upload(`resumes/${user.data.user?.id}_${company.company_id}_${endorsement.name}`, endorsement);
-    setLoading(true) 
     // Upload Cover Letter
         // Handle errors
     if (endorsementError) {
