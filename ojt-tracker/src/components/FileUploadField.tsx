@@ -45,7 +45,7 @@ const FileUploadField: React.FC<FileUploadFieldProps> = ({
 };
   return (
          <>
-      <div className="mb-2 mt-2">{renderFileIcon()}</div>
+      <div className="mb-2 mt-2 flex justify-center">{renderFileIcon()}</div>
       <div className="rounded-lg text-black border bg-gray-50 border-gray-300 px-4 py-2 w-full text-center  mb-2 font-bold">{label}</div>
       <label
         className={`bg-[#5fbff9] text-black rounded-md border border-dashed px-4 py-6 text-sm cursor-pointer transition-all duration-300
@@ -66,7 +66,7 @@ const FileUploadField: React.FC<FileUploadFieldProps> = ({
         />
       </label>
 
-      <span className="text-gray-500 text-xs mt-1 block">
+      <span className="text-gray-500 text-xs mt-1 flex justify-center">
         {file ? file.name : "No file chosen"}
       </span>
 
