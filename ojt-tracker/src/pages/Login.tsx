@@ -36,10 +36,11 @@ const Auth = () => {
 
   return (
     <div className="relative min-h-screen w-screen">
+   
       <img
         src={backgroundImage}
         alt="New Era University"
-        className="absolute inset-0 w-full h-full object-cover"
+        className="absolute inset-0 w-full h-full object-cover transform translate-x-[-200px]"
       />
     
       <div className="relative w-full h-screen flex items-center justify-end">
