@@ -333,11 +333,11 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
       {step === "requirement" && (
         <div className="text-black">
         
-          <p className="text-[1rem] font-lightbold">Position: {selectedJob?.position}</p>
+          <p className="text-[1rem]">Position: {selectedJob?.position}</p>
           <br />
           {requirementUploaded && selectedJob ? (
             <>
-            <div style={{display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '20px', flexDirection: 'column',}}>
+            <div style={{display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '18px', flexDirection: 'column',}}>
               You already submitted for this position 
               <EndorsementButton companyProps={{ company, onClose }} job={selectedJob} />
                <FileUploadField
@@ -360,7 +360,9 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
             <div>
                 <button className="text-white"onClick={() => navigate('/student-dashboard')}>Proceed to the Dashboard</button>
             </div>
+              
             }
+            
               </>
           ) : (
             <div className="border border-black rounded-lg p-10 w-full max-w-[1000px] mx-auto">
@@ -368,7 +370,7 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
               {showErrorPopup && 
                 errorMessage
               }
-             <div style={{display: 'flex', flexWrap: 'wrap', justifyContent: 'flex-start', gap: '24px'}} className="grid grid-cols-3 gap-6">
+               <div style={{display: 'flex', flexWrap: 'wrap', justifyContent: 'flex-start', gap: '24px'}}>
               {fileFields.map(({ key, label, file }) => (
               <div key={key} style={{width: 'calc(33.333% - 16px)'}}>
                 <FileUploadField

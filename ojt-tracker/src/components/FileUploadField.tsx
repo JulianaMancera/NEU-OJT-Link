@@ -45,10 +45,10 @@ const FileUploadField: React.FC<FileUploadFieldProps> = ({
 };
   return (
          <>
-      <div className="mb-2 mt-2">{renderFileIcon()}</div>
-      <div className="rounded-lg text-black border bg-gray-50 border-gray-300 px-4 py-2 w-full text-center  mb-2 font-bold">{label}</div>
+      <div className="rounded-lg text-black border bg-gray-50 border-gray-300 px-4 py-2 w-full text-center mb-2 font-bold">{label}</div>
+      <div className="mb-2 mt-2 flex justify-center">{renderFileIcon()}</div>
       <label
-        className={`bg-[#5fbff9] text-black rounded-md border border-dashed px-4 py-6 text-sm cursor-pointer transition-all duration-300
+        className={`bg-[#5fbff9] text-black rounded-md border border-dashed px-4 py-5 text-sm cursor-pointer transition-all duration-300 block w-full
           ${isDragOver ? "border-blue-500 bg-blue-100" : "border-gray-300"}`}
         onDragOver={(e) => {
           e.preventDefault();
@@ -57,7 +57,7 @@ const FileUploadField: React.FC<FileUploadFieldProps> = ({
         onDragLeave={() => setDragOver(false)}
         onDrop={handleDrop}
       >
-        <span className="block text-center font-semibold">Upload PDF (Drag & Drop or Click)</span>
+        <span className="block text-center">Upload PDF (Drag & Drop or Click)</span>
         <input
           type="file"
           accept=".pdf"
@@ -66,22 +66,23 @@ const FileUploadField: React.FC<FileUploadFieldProps> = ({
         />
       </label>
 
-      <span className="text-gray-500 text-xs mt-1 flex justify-center">
+      <span className="text-gray-500 text-xs mt-1 flex justify-center mb-4">
         {file ? file.name : "No file chosen"}
       </span>
 
       {file && (
-        <label
-          className="mt-2 inline-block cursor-pointer hover:scale-110 transition-transform duration-200"
-          onClick={() => {
-            const fileURL = URL.createObjectURL(file);
-            window.open(fileURL, "_blank");
-          }}
-        >
-          {previewFileIcon()}
-        </label>
+        <div className="flex justify-center w-full mt-2">
+          <label
+            className="cursor-pointer hover:scale-110 transition-transform duration-200"
+            onClick={() => {
+              const fileURL = URL.createObjectURL(file);
+              window.open(fileURL, "_blank");
+            }}
+          >
+            {previewFileIcon()}
+          </label>
+        </div>
       )}
-      </div>
     </>        
   );
 };
