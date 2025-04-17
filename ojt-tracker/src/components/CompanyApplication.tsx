@@ -89,6 +89,7 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
   }, [company]);
 
   const handleRequirementSubmit = async () => {
+    setLoading(true)
     if (!resume || !coverLetter || !com || !cv || !medCert || !notarized || !psyTest) {
       alert("Please Upload All Files");
       return;
@@ -172,6 +173,7 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
     if (error) {
       console.error("Error Submitting Requirements:", error.message);
     } else {
+      
       console.log("Application submitted", data);
       setStep("dashboard");
     }
@@ -193,12 +195,13 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
       console.error("Error creating application:", applicationError);
       return;
     }
-
+    setLoading(false)
     if (applicationData && applicationData.length > 0) {
       console.log("Application created:", applicationData);
       setApplicationId(applicationData[0].application_id); // Store the application_id
       setStep("availability"); // Move to the availability step
     }
+    
   };
 
   const handleAvailabilitySubmit = async () => {
@@ -225,6 +228,7 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
       return;
     }
 
+    
     console.log("Availability submitted:", data);
     setStep("dashboard"); // Move to the dashboard step
   };
@@ -333,7 +337,7 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
           <br />
           {requirementUploaded && selectedJob ? (
             <>
-            <div>
+            <div style={{display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '20px', flexDirection: 'column',}}>
               You already submitted for this position 
               <EndorsementButton companyProps={{ company, onClose }} job={selectedJob} />
                <FileUploadField
@@ -343,7 +347,6 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
                file={endorsementField.file}
                onChange={handleFileChange}
              />
-
             </div>
             {endorsement && 
              <div className="flex gap-4 mt-8 justify-center">
@@ -390,7 +393,7 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
            
         </div>
       )}
-      
+
 
           {step === "availability" && (
         <div className="text-black">

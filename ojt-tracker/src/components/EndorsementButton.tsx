@@ -63,7 +63,7 @@ const EndorsementButton: React.FC<EndorsmentProps> = ({companyProps, job}) =>  {
 
     return(
         <div> 
-            <button className="text-white"onClick={handleDowload}>Click to dowload the endorsement letter</button>
+            <button className="text-white"onClick={handleDowload}>Click to download the Endorsement Letter</button>
         </div>
     )
 }
