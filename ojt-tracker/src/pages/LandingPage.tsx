@@ -62,7 +62,7 @@ const LandingPage = () => {
             </p>
             <button
               onClick={() => navigate("/dashboard")}
-              className="btn-neu w-full flex items-center justify-center group"
+              className="bg-black btn-neu w-full flex items-center justify-center group"
             >
               <span>Proceed to Dashboard</span>
               <svg 

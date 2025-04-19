@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { supabase } from "../../supabase";
 import EndorsementButton from "./EndorsementButton";
 
-
 import CompanyApplicationApply from "./CompanyApplicationApply";
 import FileUploadField from "./FileUploadField";
 import { handleEndorsementSubmit } from "../services/uploadHandle/handleEndorsementSubmit";
@@ -33,13 +32,11 @@ interface Job {
 }
 
 const CompanyApplication = ({ company, onClose }: CompanyProps) => {
-
   const [loading, setLoading] = useState<boolean>(false);
   const [step, setStep] = useState<"selectJob" | "apply" | "requirement" | "availability" | "dashboard">("selectJob"); // Add "availability" step
-
   const [jobDetail, setJobDetail] = useState<Job[] | null>(null);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
-  const [applicationId, setApplicationId] = useState<string | null>(null);
+  const [applicationId, setApplicationId] = useState<string | null>(null); // Store the application ID
   // User Requirements/Data
   const [coverLetter, setCoverLetter] = useState<File | null>(null);
   const [resume, setResume] = useState<File | null>(null);
@@ -52,10 +49,9 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
   const [endorsementStatus, setEndorsementStatus] = useState<boolean>(false);
   // Checker for User Uploads
   const [requirementUploaded, setUploaded] = useState(false);
-  // Availability Form State
-  const [availability, setAvailability] = useState<{ day: string; startTime: string; endTime: string }[]>([]);
+   // Availability Form State
+  const [availability, setAvailability] = useState<{ day: string; startTime: string; endTime: string }[]>([]); // Store multiple availability slots
   const [currentDay, setCurrentDay] = useState<string>("");
-
   const [currentStartTime, setCurrentStartTime] = useState<string>("");
   const [currentEndTime, setCurrentEndTime] = useState<string>("");
   const fileFields = [
@@ -75,7 +71,6 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
   const [showErrorPopup,setShowErrorPopup]= useState<boolean>(false);
 
 
-
   useEffect(() => {
     const fetchJob = async () => {
       const { data, error } = await supabase
@@ -84,8 +79,9 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
         .eq("company_id", company.company_id);
 
       if (error) {
-        console.error("Error fetching jobs:", error.message);
+        console.error("There is something wrong ", error.message);
       } else {
+        console.log(data);
         setJobDetail(data);
       }
     };
@@ -95,55 +91,72 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
   const handleRequirementSubmit = async () => {
     setLoading(true)
     if (!resume || !coverLetter || !com || !cv || !medCert || !notarized || !psyTest) {
-      alert("Please upload all required files.");
+      alert("Please Upload All Files");
       return;
     }
     const user = await supabase.auth.getUser();
-    if (!user.data.user?.id) {
-      alert("User not authenticated.");
-      return;
+    // Upload Resume
+    const { data: resumeData, error: resumeError } = await supabase
+      .storage
+      .from("applicant-documents")
+      .upload(`resumes/${user.data.user?.id}_${company.company_id}_${resume.name}`, resume);
+    // Upload Cover Letter
+    const { data: coverLetterData, error: coverLetterError } = await supabase
+      .storage
+      .from("applicant-documents")
+      .upload(`cover-letter/${user.data.user?.id}_${company.company_id}_${coverLetter.name}`, coverLetter);
+    // Upload COM
+    const { data: comData, error: comError } = await supabase
+      .storage
+      .from("applicant-documents")
+      .upload(`com/${user.data.user?.id}_${company.company_id}_${com.name}`, com);
+    // Upload CV
+    const { data: cvData, error: cvError } = await supabase
+      .storage
+      .from("applicant-documents")
+      .upload(`cv/${user.data.user?.id}_${company.company_id}_${cv.name}`, cv);
+    // Upload MedCert
+    const { data: medCertData, error: medCertError } = await supabase
+      .storage
+      .from("applicant-documents")
+      .upload(`medCert/${user.data.user?.id}_${company.company_id}_${medCert.name}`, medCert);
+    // Upload Notarized Parent Consent
+    const { data: notarizeData, error: notarizeError } = await supabase
+      .storage
+      .from("applicant-documents")
+      .upload(`notarized/${user.data.user?.id}_${company.company_id}_${notarized.name}`, notarized);
+    // Upload Psy Test
+    const { data: psyTestData, error: psyTestError } = await supabase
+      .storage
+      .from("applicant-documents")
+      .upload(`psyTest/${user.data.user?.id}_${company.company_id}_${psyTest.name}`, psyTest);
+
+    // Handle errors
+    if (resumeError) {
+      console.error("Error Uploading Resume", resumeError);
+    }
+    if (coverLetterError) {
+      console.error("Error Uploading Cover Letter", coverLetterError);
+    }
+    if (comError) {
+      console.error("Error Uploading COM", comError);
+    }
+    if (cvError) {
+      console.error("Error Uploading CV", cvError);
+    }
+    if (medCertError) {
+      console.error("Error Uploading MedCert", medCertError);
+    }
+    if (notarizeError) {
+      console.error("Error Uploading Notarized Consent", notarizeError);
+    }
+    if (psyTestError) {
+      console.error("Error Uploading Psy Test", psyTestError);
     }
 
-    // Upload files
-    const uploads = await Promise.all([
-      supabase.storage
-        .from("applicant-documents")
-        .upload(`resumes/${user.data.user.id}_${company.company_id}_${resume.name}`, resume),
-      supabase.storage
-        .from("applicant-documents")
-        .upload(`cover-letter/${user.data.user.id}_${company.company_id}_${coverLetter.name}`, coverLetter),
-      supabase.storage
-        .from("applicant-documents")
-        .upload(`com/${user.data.user.id}_${company.company_id}_${com.name}`, com),
-      supabase.storage
-        .from("applicant-documents")
-        .upload(`cv/${user.data.user.id}_${company.company_id}_${cv.name}`, cv),
-      supabase.storage
-        .from("applicant-documents")
-        .upload(`medCert/${user.data.user.id}_${company.company_id}_${medCert.name}`, medCert),
-      supabase.storage
-        .from("applicant-documents")
-        .upload(`notarized/${user.data.user.id}_${company.company_id}_${notarized.name}`, notarized),
-      supabase.storage
-        .from("applicant-documents")
-        .upload(`psyTest/${user.data.user.id}_${company.company_id}_${psyTest.name}`, psyTest),
-    ]);
-
-    const errors = uploads.map((result) => result.error).filter(Boolean);
-    if (errors.length > 0) {
-      console.error("File upload errors:", errors);
-      alert("Failed to upload one or more files.");
-      return;
-    }
-
-    const [resumeData, coverLetterData, comData, cvData, medCertData, notarizeData, psyTestData] = uploads.map(
-      (result) => result.data
-    );
-
-    // Insert requirements
-    const { error: reqError } = await supabase.from("requirements").insert([
+    const { data, error } = await supabase.from("requirements").insert([
       {
-        student_id: user.data.user.id,
+        student_id: user.data.user?.id,
         created_at: new Date().toISOString(),
         resume_url: resumeData?.path,
         cover_letter_url: coverLetterData?.path,
@@ -156,7 +169,6 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
         job_id: selectedJob?.job_id,
       },
     ]);
-
     
     if (error) {
       console.error("Error Submitting Requirements:", error.message);
@@ -164,38 +176,30 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
       
       console.log("Application submitted", data);
       setStep("dashboard");
-
     }
 
-    // Insert application
-    const { data: applicationData, error: applicationError } = await supabase
-      .from("application")
-      .insert([
-        {
-          user_id: user.data.user.id,
-          company_id: company.company_id,
-          email: user.data.user.email,
-          job_id: selectedJob?.job_id,
-          status: "pending",
-          start_date: null,
-          end_date: null,
-        },
-      ])
-      .select();
+    // Insert the application record and store the application_id
+    const { data: applicationData, error: applicationError } = await supabase.from("application").insert([
+      {
+        user_id: user.data.user?.id,
+        company_id: company.company_id,
+        email: user.data.user?.email,
+        job_id: selectedJob?.job_id,
+        status: "pending",
+        start_date: null,
+        end_date: null,
+      },
+    ]).select(); // Use .select() to return the inserted record
 
     if (applicationError) {
-      console.error("Error creating application:", applicationError.message);
-      alert("Failed to create application.");
+      console.error("Error creating application:", applicationError);
       return;
     }
     setLoading(false)
     if (applicationData && applicationData.length > 0) {
-      setApplicationId(applicationData[0].application_id);
-      setUploaded(true);
-      setStep("availability");
-    } else {
-      console.error("Failed to retrieve application ID");
-      alert("Application creation failed.");
+      console.log("Application created:", applicationData);
+      setApplicationId(applicationData[0].application_id); // Store the application_id
+      setStep("availability"); // Move to the availability step
     }
     
   };
@@ -206,87 +210,64 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
       return;
     }
 
-    const availabilityEntries = availability.map((slot) => ({
+    // Insert all availability slots into the availability table
+    const availabilityEntries = availability.map(slot => ({
       application_id: applicationId,
       day_of_week: slot.day,
       start_time: slot.startTime,
       end_time: slot.endTime,
     }));
 
-    const { error } = await supabase.from("availability").insert(availabilityEntries);
+    const { data, error } = await supabase
+      .from("availability")
+      .insert(availabilityEntries);
 
     if (error) {
       console.error("Error submitting availability:", error.message);
-      alert("Failed to submit availability.");
+      alert("Failed to submit availability. Please try again.");
       return;
     }
-
 
     
     console.log("Availability submitted:", data);
     setStep("dashboard"); // Move to the dashboard step
-
   };
 
-  const formatTime = (time24: string | undefined): string => {
-    if (!time24) return "";
-    const [hours, minutes] = time24.split(':');
-    const hour = parseInt(hours, 10);
-    const ampm = hour >= 12 ? 'PM' : 'AM';
-    const displayHour = hour % 12 || 12;
-    return `${displayHour}:${minutes} ${ampm}`;
-  };
-
-  //temporary lang pi
-  const workingHours = {
-    start: "06:00",
-    end: "17:00",
-    toString() {
-      return `${formatTime(this.start)} to ${formatTime(this.end)}`;
-    }
-  };
-  
   const handleAddAvailabilitySlot = () => {
-    if (!currentDay) {
-      alert("Please select a day");
+    if (!currentDay || !currentStartTime || !currentEndTime) {
+      alert("Please fill in all availability fields.");
       return;
     }
-  
-    const startTime = currentStartTime || workingHours.start;
-    const endTime = currentEndTime || workingHours.end;
-  
-    if (startTime < workingHours.start || startTime > workingHours.end || 
-        endTime < workingHours.start || endTime > workingHours.end) {
-      alert(`Available hours are ${workingHours.toString()}`);
-      return;
-    }
-  
-    if (startTime >= endTime) {
-      alert("Start time must be before end time");
-      return;
-    }
-  
-    setAvailability([...availability, { 
-      day: currentDay, 
-      startTime, 
-      endTime 
-    }]);
-    
-    setCurrentDay("");
-    setCurrentStartTime(workingHours.start);
-    setCurrentEndTime(workingHours.end);
-  };
 
+    // Validate that start time is before end time
+    if (currentStartTime >= currentEndTime) {
+      alert("Start time must be before end time.");
+      return;
+    }
+
+    setAvailability([...availability, {
+      day: currentDay,
+      startTime: currentStartTime,
+      endTime: currentEndTime,
+    }]);
+
+    // Reset the form fields
+    setCurrentDay("");
+    setCurrentStartTime("");
+    setCurrentEndTime("");
+  };
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>, type: string) => {
     if (event.target.files && event.target.files[0]) {
       const file = event.target.files[0];
-      if (!file.name.endsWith(".pdf")) {
-        event.target.value = "";
+      if (file.type !== 'application/pdf') {
+        // Clear the input
+        event.target.value = '';
+        
+        // Show error popup
         setErrorMessage(`Please upload only PDF files for your ${type === "com" ? "Certificate of Matriculation" : type}.`);
         setShowErrorPopup(true);
         return;
       }
-
 
       if (type === "resume") {
         setResume(event.target.files[0]);
@@ -309,12 +290,13 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
     }
   };
 
-  const handleJobSelect = (job: Job) => {
+    const handleJobSelect = (job: Job) => {
+
     setSelectedJob(job);
-    setStep("apply");
+    setStep("apply"); // Move to the job details modal
   };
 
-
+ 
   return (
     <div className="flex items-center justify-center">
       {loading &&
@@ -322,14 +304,14 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
       }
       {step === "selectJob" && (
         <div className="text-black">
-          <br />
+          <br></br>
           <h3 className="text-lg font-semibold text-gray-800 mb-4 text-center">Possible Jobs</h3>
           {jobDetail && jobDetail.length > 0 ? (
             <div className="space-y-5">
               {jobDetail.map((job, index) => (
                 <div
                   key={index}
-                  onClick={() => handleJobSelect(job)}
+                  onClick={() => handleJobSelect(job)} // Select the job and move to the job details modal
                   className="p-4 border rounded-lg cursor-pointer hover:bg-gray-100 transition"
                 >
                   <h5 className="text-md font-medium text-gray-700">{job.position}</h5>
@@ -342,25 +324,21 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
         </div>
       )}
 
-
       {step === "apply" && selectedJob && (
 
         <CompanyApplicationApply job={selectedJob} company={company} setStep={setStep} setUploaded={setUploaded} setSelectedJob={setSelectedJob} />
-
-
+        
       )}
 
       {step === "requirement" && (
         <div className="text-black">
-          <p className="text-center text-xl font-bold mb-4">{company.name}</p>
-          <p>Position: {selectedJob?.position || "No job selected"}</p>
+        
+          <p className="text-[1rem] font-semibold">Position: {selectedJob?.position}</p>
           <br />
-
           {requirementUploaded && selectedJob ? (
             <>
             <div style={{display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '18px', flexDirection: 'column',}}>
               You already submitted for this position 
-
               <EndorsementButton companyProps={{ company, onClose }} job={selectedJob} />
                <FileUploadField
                key={endorsementField.key}
@@ -372,7 +350,7 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
             </div>
             {endorsement && 
              <div className="flex gap-4 mt-8 justify-center">
-                <button onClick={() => handleEndorsementSubmit(endorsement, company, setEndorsementStatus,setLoading)} className="text-white bg-blue-500 px-4 py-2 rounded">
+                <button onClick={() => handleEndorsementSubmit(endorsement, company, setEndorsementStatus,setLoading)} className="text-white bg-black px-4 py-2 rounded">
                   Submit
                 </button>
             
@@ -389,7 +367,6 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
           ) : (
             <div className="border border-black rounded-lg p-10 w-full max-w-[1000px] mx-auto">
               <p className="font-semibold text-center text-[1.2rem] mb-8">Please Submit Requirements</p>
-
               {showErrorPopup && 
                 errorMessage
               }
@@ -406,10 +383,10 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
            ))}
                 </div>
              <div className="flex gap-4 mt-8 justify-center">
-                <button onClick={handleRequirementSubmit} className="text-white bg-blue-500 px-4 py-2 rounded">
+                <button onClick={handleRequirementSubmit} className="text-white bg-black px-4 py-2 rounded">
                   Submit
                 </button>
-                <button onClick={onClose} className="text-white bg-gray-500 px-4 py-2 rounded">
+                <button onClick={onClose} className="text-white bg-black px-4 py-2 rounded">
                   Cancel
                 </button>
               </div>
@@ -418,7 +395,6 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
            
         </div>
       )}
-
 
 
           {step === "availability" && (
@@ -439,49 +415,51 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
                 <option value="Thursday">Thursday</option>
                 <option value="Friday">Friday</option>
                 <option value="Saturday">Saturday</option>
+                <option value="Sunday">Sunday</option>
               </select>
             </div>
+
             <div className="mb-4">
               <label className="font-bold min-w-[150px]">Start Time</label>
               <input
                 type="time"
                 value={currentStartTime}
                 onChange={(e) => setCurrentStartTime(e.target.value)}
-                min={workingHours.start}
-                max={workingHours.end}
                 className="border border-gray-300 rounded px-2 py-1"
               />
             </div>
+
             <div className="mb-4">
               <label className="font-bold min-w-[150px]">End Time</label>
               <input
                 type="time"
                 value={currentEndTime}
                 onChange={(e) => setCurrentEndTime(e.target.value)}
-                min={workingHours.start}
-                max={workingHours.end}
                 className="border border-gray-300 rounded px-2 py-1"
               />
             </div>
+
             <button
               onClick={handleAddAvailabilitySlot}
               className="text-white bg-green-500 px-4 py-2 rounded mb-4"
             >
               Add Availability Slot
             </button>
+
             {availability.length > 0 && (
               <div className="mb-4">
                 <p className="font-semibold">Added Availability:</p>
                 <ul className="list-disc pl-5">
                   {availability.map((slot, index) => (
                     <li key={index}>
-                      {slot.day}: {formatTime(slot.startTime)} - {formatTime(slot.endTime)}
+                      {slot.day}: {slot.startTime} - {slot.endTime}
                     </li>
                   ))}
                 </ul>
               </div>
             )}
           </div>
+
           <div className="flex gap-4 mt-4">
             <button onClick={handleAvailabilitySubmit} className="text-white bg-blue-500 px-4 py-2 rounded">
               Submit Availability
@@ -496,9 +474,6 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
       {step === "dashboard" && (
         <div>
           <p>Application Submitted</p>
-          <button onClick={onClose} className="text-white bg-gray-500 px-4 py-2 rounded mt-4">
-            Close
-          </button>
         </div>
       )}
     </div>
