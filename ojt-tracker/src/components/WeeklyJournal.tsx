@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { supabase } from "../../supabase";
 import { FaCloudUploadAlt, FaTrash } from "react-icons/fa";
+import { handleFileChange } from "../services/uploadHandle/handleFileChange";
+import { handleDrop } from "../services/uploadHandle/handleDrop";
 
 interface WeeklyJournalReportProps {
   isOpen: boolean;
@@ -16,20 +18,7 @@ const WeeklyJournalReport = ({ isOpen, onClose }: WeeklyJournalReportProps) => {
   if (!isOpen) return null;
 
   // Handle file selection and drag-drop
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      const selectedFiles = Array.from(e.target.files);
-      setFiles((prevFiles) => [...prevFiles, ...selectedFiles]);
-    }
-  };
-
-  const handleDrop = (e: React.DragEvent<HTMLLabelElement>) => {
-    e.preventDefault();
-    const droppedFiles = Array.from(e.dataTransfer.files);
-    setFiles((prevFiles) => [...prevFiles, ...droppedFiles]);
-  };
-
-  const removeFile = (index: number) => {
+   const removeFile = (index: number) => {
     setFiles(files.filter((_, i) => i !== index));
   };
 
@@ -106,14 +95,14 @@ const WeeklyJournalReport = ({ isOpen, onClose }: WeeklyJournalReportProps) => {
         {/* Drag & Drop Area */}
         <label
           className="flex flex-col items-center justify-center border-2 border-dashed border-gray-400 bg-white p-6 rounded-lg cursor-pointer hover:bg-gray-300"
-          onDrop={handleDrop}
+          onDrop={(e) => handleDrop(setFiles,e)}
           onDragOver={(e) => e.preventDefault()}
         >
           <FaCloudUploadAlt className="text-4xl text-gray-600 mb-2" />
           <p className="text-gray-600">
             Drag & drop files or <span className="text-blue-600 font-semibold">Browse</span>
           </p>
-          <input type="file" accept="application/pdf" multiple onChange={handleFileChange} className="hidden" />
+          <input type="file" accept="application/pdf" multiple onChange={(e) => handleFileChange(setFiles,e)} className="hidden" />
         </label>
 
         {/* Upload Progress */}

@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import CompanyApplication from "../components/CompanyApplication";
 import OJTLogo from "/src/assets/ojt-logo-dashboard.svg";
 import { Search, X } from "lucide-react";
+import { Loading } from "../components/Loading";
 
 interface Company {
   company_id: string;
@@ -95,7 +96,7 @@ const Dashboard = () => {
     navigate("/"); // Redirect to login after logout
   };
 
-  if (loading) return <p className="text-center mt-10">Loading...</p>;
+  if (loading) return <Loading/>;
 
   return (
     <div className="min-h-screen flex flex-col">
