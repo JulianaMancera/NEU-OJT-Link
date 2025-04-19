@@ -16,7 +16,7 @@ const Admin = () => {
   const menuItems = [
     { label: "Application", route: "/application-approval" },
     { label: "Monitoring", route: "#" },
-    { label: "Company Management", route: "#" },
+    { label: "Company Management", route: "/company" },
     { label: "Reports", route: "#" },
   ];
 

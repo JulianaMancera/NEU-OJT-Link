@@ -79,6 +79,7 @@ const WeeklyReport = ({ isOpen, onClose }: WeeklyReportProps) => {
           uploaded_at: new Date().toISOString(),
           submitted_by: userName,
           start_date: new Date().toISOString(),
+          user_id: user.id,
         },
       ]);
 
