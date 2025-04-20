@@ -18,6 +18,7 @@ const Admin = () => {
     { label: "Monitoring", route: "#" },
     { label: "Company Management", route: "/company" },
     { label: "Reports", route: "#" },
+    { label: "Jobs", route: "/jobs" },
   ];
 
   const handleNavigation = (route: string, label: string) => {

@@ -1,110 +1,173 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "../../supabase";
 import { FaCloudUploadAlt, FaTrash } from "react-icons/fa";
 
 interface WeeklyReportProps {
   isOpen: boolean;
   onClose: () => void;
+  editingReport?: {
+    weekly_report_id: number;
+    week_number: number;
+  } | null;
 }
 
-const WeeklyReport = ({ isOpen, onClose }: WeeklyReportProps) => {
+const WeeklyReport = ({ isOpen, onClose, editingReport }: WeeklyReportProps) => {
   const [files, setFiles] = useState<File[]>([]);
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState<number | null>(null);
   const [message, setMessage] = useState("");
 
-  if (!isOpen) return null;
+  useEffect(() => {
+    if (!isOpen) {
+      setFiles([]);
+      setMessage("");
+      setProgress(null);
+    }
+  }, [isOpen]);
 
-  // Handle file selection and drag-drop
+  const resetMessage = () => setMessage("");
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
-      const selectedFiles = Array.from(e.target.files);
-      setFiles((prevFiles) => [...prevFiles, ...selectedFiles]);
+      setFiles(Array.from(e.target.files));
     }
   };
 
   const handleDrop = (e: React.DragEvent<HTMLLabelElement>) => {
     e.preventDefault();
     const droppedFiles = Array.from(e.dataTransfer.files);
-    setFiles((prevFiles) => [...prevFiles, ...droppedFiles]);
+    setFiles(droppedFiles);
   };
 
   const removeFile = (index: number) => {
     setFiles(files.filter((_, i) => i !== index));
+    resetMessage();
   };
 
-  // Handle file upload
+  const isValidFileName = (fileName: string): boolean => {
+    const regex = /^WeeklyReport_[a-zA-Z]+_Week(\d+)\.pdf$/;
+    return regex.test(fileName);
+  };
+
+  const extractWeekNumber = (fileName: string): number | null => {
+    const regex = /Week(\d+)/;
+    const match = fileName.match(regex);
+    return match ? parseInt(match[1], 10) : null;
+  };
+
   const handleUpload = async () => {
     if (files.length === 0) {
-      setMessage("❌ Please select a file.");
+      setMessage("❌ Please select at least one file.");
       return;
     }
-
+  
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      setMessage("❌ You must be logged in.");
+      return;
+    }
+  
+    const userName = user.user_metadata.full_name || "Unknown User";
     setUploading(true);
     setProgress(0);
-    setMessage("");
-
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-      const fileName = `${Date.now()}_${file.name}`;
-      const filePath = `weekly_reports/${fileName}`;
-
-      // Upload to Supabase Storage
-      const { error } = await supabase.storage.from("weekly_reports").upload(filePath, file);
-      if (error) {
-        setMessage(`❌ Error uploading: ${error.message}`);
-        setUploading(false);
-        return;
+    let completed = 0;
+  
+    for (const file of files) {
+      const fileName = file.name;
+  
+      if (file.type !== "application/pdf") {
+        setMessage(`❌ ${fileName} is not a PDF.`);
+        continue;
       }
-
-      // Get public URL
+  
+      if (!isValidFileName(fileName)) {
+        setMessage(`❌ Invalid format: ${fileName}`);
+        continue;
+      }
+  
+      const extractedWeek = extractWeekNumber(fileName);
+      if (extractedWeek === null) {
+        setMessage(`❌ Week number missing: ${fileName}`);
+        continue;
+      }
+  
+      // Skip if editing and week doesn't match
+      if (editingReport && extractedWeek !== editingReport.week_number) {
+        setMessage(`❌ Week mismatch for ${fileName}`);
+        continue;
+      }
+  
+      // Prevent duplicate for that user
+      const { data: existing, error: checkError } = await supabase
+        .from("weekly_report")
+        .select("week_number")
+        .eq("submitted_by", userName)
+        .eq("week_number", extractedWeek)
+        .maybeSingle();
+  
+      if (checkError) {
+        console.error("Check error:", checkError);
+        continue;
+      }
+  
+      if (!editingReport && existing) {
+        setMessage(`⚠️ Week ${extractedWeek} already submitted. Skipping ${fileName}.`);
+        continue;
+      }
+  
+      const timestamped = `${Date.now()}_${fileName}`;
+      const filePath = `weekly_reports/${timestamped}`;
+  
+      const { error: uploadError } = await supabase.storage.from("weekly_reports").upload(filePath, file);
+      if (uploadError) {
+        console.error("Upload failed:", fileName, uploadError);
+        continue;
+      }
+  
       const { data: fileData } = supabase.storage.from("weekly_reports").getPublicUrl(filePath);
-
-      // Get logged-in user
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        setMessage("❌ You must be logged in to upload.");
-        setUploading(false);
-        return;
-      }
-
-      // Get user metadata
-      const userName = user.user_metadata.full_name || "Unknown User";
-
-      // Save file info to database
-      const { error: insertError } = await supabase.from("weekly_report").insert([
-        {
+  
+      if (editingReport) {
+        await supabase
+          .from("weekly_report")
+          .update({
+            file_name: file.name,
+            file_url: fileData.publicUrl,
+            uploaded_at: new Date().toISOString(),
+            status: "pending"
+          })
+          .eq("weekly_report_id", editingReport.weekly_report_id);
+      } else {
+        await supabase.from("weekly_report").insert([{
           file_name: file.name,
           file_url: fileData.publicUrl,
           uploaded_at: new Date().toISOString(),
           submitted_by: userName,
           start_date: new Date().toISOString(),
           user_id: user.id,
-        },
-      ]);
-
-      if (insertError) {
-        setMessage(`❌ Database error: ${insertError.message}`);
+          week_number: extractedWeek,
+        }]);
       }
-
-      setProgress(((i + 1) / files.length) * 100);
+  
+      completed++;
+      setProgress(Math.round((completed / files.length) * 100));
     }
-
+  
     setUploading(false);
-    setFiles([]); // Clear file list
-    setMessage("✅ File uploaded successfully!");
-  };
+    setFiles([]);
+    setMessage(`✅ Uploaded ${completed} report(s) successfully.`);
+  };  
+
+  if (!isOpen) return null;
 
   return (
-    <div className={`fixed inset-0 bg-opacity-50 backdrop-blur-sm flex items-center justify-center ${isOpen ? "visible" : "invisible"}`}>
-      {/* Blurred Background */}
-      <div className="fixed inset-0" onClick={onClose}></div>
+    <div className={`fixed inset-0 bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50`}>
+      <div className="fixed inset-0" onClick={() => { onClose(); resetMessage(); }}></div>
 
-      {/* Modal */}
-      <div className="relative bg-gray-200 shadow-xl rounded-lg p-6 border-2 border-black-400 w-full max-w-2xl z-50">
-        <h2 className="text-2xl font-semibold text-gray-800 text-center mb-4">UPLOAD WEEKLY REPORT</h2>
+      <div className="relative bg-gray-200 shadow-xl rounded-lg p-6 border-2 w-full max-w-2xl z-50">
+        <h2 className="text-2xl font-semibold text-center mb-4">
+          {editingReport ? `EDIT WEEK ${editingReport.week_number} REPORT` : "UPLOAD WEEKLY REPORT"}
+        </h2>
 
-        {/* Drag & Drop Area */}
         <label
           className="flex flex-col items-center justify-center border-2 border-dashed border-gray-400 bg-white p-6 rounded-lg cursor-pointer hover:bg-gray-300"
           onDrop={handleDrop}
@@ -114,11 +177,11 @@ const WeeklyReport = ({ isOpen, onClose }: WeeklyReportProps) => {
           <p className="text-gray-600">
             Drag & drop files or <span className="text-blue-600 font-semibold">Browse</span>
           </p>
-          <input type="file" accept="application/pdf" multiple onChange={handleFileChange} className="hidden" />
+          <input type="file" accept="application/pdf" onChange={handleFileChange} className="hidden" />
         </label>
 
-        {/* Upload Progress */}
-        {uploading && progress !== null && (
+         {/* Upload Progress */}
+         {uploading && progress !== null && (
           <div className="mt-4">
             <p className="text-sm text-gray-700">Uploading... {Math.round(progress)}%</p>
             <div className="w-full bg-gray-300 h-2 rounded">
@@ -127,7 +190,6 @@ const WeeklyReport = ({ isOpen, onClose }: WeeklyReportProps) => {
           </div>
         )}
 
-        {/* Uploaded Files List */}
         {files.length > 0 && (
           <div className="mt-4">
             <h3 className="text-gray-700 font-medium mb-2">Uploaded</h3>
@@ -142,24 +204,18 @@ const WeeklyReport = ({ isOpen, onClose }: WeeklyReportProps) => {
           </div>
         )}
 
-        {/* Message Display */}
         {message && (
-          <p
-            className={`mt-4 text-center font-medium p-2 rounded ${
-              message.includes("❌") ? "bg-red-100 text-red-600" : "bg-green-100 text-green-600"
-            }`}
-          >
+          <p className={`mt-4 text-center font-medium p-2 rounded ${message.includes("❌") ? "bg-red-100 text-red-600" : "bg-green-100 text-green-600"}`}>
             {message}
           </p>
         )}
 
-        {/* Upload Button */}
         <button
           onClick={handleUpload}
-          className="w-full bg-blue-600 text-white py-2 mt-4 rounded-lg text-lg font-semibold hover:bg-blue-700 transition-all disabled:bg-gray-400"
+          className="w-full bg-blue-600 text-white py-2 mt-4 rounded-lg text-lg font-semibold hover:bg-blue-700 disabled:bg-gray-400"
           disabled={uploading || files.length === 0}
         >
-          {uploading ? "Uploading..." : "UPLOAD FILES"}
+          {uploading ? "Uploading..." : editingReport ? "UPDATE REPORT" : "UPLOAD REPORT"}
         </button>
       </div>
     </div>
