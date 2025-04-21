@@ -29,6 +29,7 @@ interface Job {
   qualifications: string[];
   work_hrs: string;
   schedule: string;
+  isAvailable: boolean;
 }
 
 const CompanyApplication = ({ company, onClose }: CompanyProps) => {
@@ -52,8 +53,8 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
    // Availability Form State
   const [availability, setAvailability] = useState<{ day: string; startTime: string; endTime: string }[]>([]); // Store multiple availability slots
   const [currentDay, setCurrentDay] = useState<string>("");
-  const [currentStartTime, setCurrentStartTime] = useState<string>("");
-  const [currentEndTime, setCurrentEndTime] = useState<string>("");
+  const [currentStartTime, setCurrentStartTime] = useState("06:00");
+   const [currentEndTime, setCurrentEndTime] = useState("17:00");
   const fileFields = [
     { key: "resume", label: "Resume", file: resume },
     { key: "coverLetter", label: "Cover Letter", file: coverLetter },
@@ -76,7 +77,8 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
       const { data, error } = await supabase
         .from("job")
         .select("*")
-        .eq("company_id", company.company_id);
+        .eq("company_id", company.company_id)
+        .eq("isAvailable", true);
 
       if (error) {
         console.error("There is something wrong ", error.message);
@@ -233,28 +235,55 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
     setStep("dashboard"); // Move to the dashboard step
   };
 
+  const formatTime = (time24: string | undefined): string => {
+    if (!time24) return "";
+    const [hours, minutes] = time24.split(':');
+    const hour = parseInt(hours, 10);
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    const displayHour = hour % 12 || 12;
+    return `${displayHour}:${minutes} ${ampm}`;
+  };
+
+  //temporary lang pi
+  const workingHours = {
+    start: "06:00",
+    end: "17:00",
+    toString() {
+      return `${formatTime(this.start)} to ${formatTime(this.end)}`;
+    }
+  };
+
   const handleAddAvailabilitySlot = () => {
-    if (!currentDay || !currentStartTime || !currentEndTime) {
-      alert("Please fill in all availability fields.");
+    if (!currentDay) {
+      alert("Please select a day");
       return;
     }
 
     // Validate that start time is before end time
-    if (currentStartTime >= currentEndTime) {
-      alert("Start time must be before end time.");
+    const startTime = currentStartTime || workingHours.start;
+     const endTime = currentEndTime || workingHours.end;
+   
+     if (startTime < workingHours.start || startTime > workingHours.end || 
+         endTime < workingHours.start || endTime > workingHours.end) {
+       alert(`Available hours are ${workingHours.toString()}`);
+       return;
+     }
+
+     if (startTime >= endTime) {
+      alert("Start time must be before end time");
       return;
     }
-
-    setAvailability([...availability, {
-      day: currentDay,
-      startTime: currentStartTime,
-      endTime: currentEndTime,
+  
+    setAvailability([...availability, { 
+      day: currentDay, 
+      startTime, 
+      endTime 
     }]);
 
     // Reset the form fields
     setCurrentDay("");
-    setCurrentStartTime("");
-    setCurrentEndTime("");
+    setCurrentStartTime(workingHours.start);
+     setCurrentEndTime(workingHours.end);
   };
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>, type: string) => {
     if (event.target.files && event.target.files[0]) {
@@ -395,9 +424,7 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
            
         </div>
       )}
-
-
-          {step === "availability" && (
+      {step === "availability" && (
         <div className="text-black">
           <p className="text-center text-xl font-bold mb-4">Add Your OJT Availability</p>
           <div className="border border-black rounded-lg p-5 w-[600px]">
@@ -415,7 +442,6 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
                 <option value="Thursday">Thursday</option>
                 <option value="Friday">Friday</option>
                 <option value="Saturday">Saturday</option>
-                <option value="Sunday">Sunday</option>
               </select>
             </div>
 
@@ -425,6 +451,8 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
                 type="time"
                 value={currentStartTime}
                 onChange={(e) => setCurrentStartTime(e.target.value)}
+                min={workingHours.start}
+                max={workingHours.end}
                 className="border border-gray-300 rounded px-2 py-1"
               />
             </div>
@@ -435,6 +463,8 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
                 type="time"
                 value={currentEndTime}
                 onChange={(e) => setCurrentEndTime(e.target.value)}
+                min={workingHours.start}
+                max={workingHours.end}
                 className="border border-gray-300 rounded px-2 py-1"
               />
             </div>
@@ -452,7 +482,7 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
                 <ul className="list-disc pl-5">
                   {availability.map((slot, index) => (
                     <li key={index}>
-                      {slot.day}: {slot.startTime} - {slot.endTime}
+                      {slot.day}: {formatTime(slot.startTime)} - {formatTime(slot.endTime)}
                     </li>
                   ))}
                 </ul>
