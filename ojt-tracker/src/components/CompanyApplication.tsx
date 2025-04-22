@@ -4,9 +4,10 @@ import EndorsementButton from "./EndorsementButton";
 
 import CompanyApplicationApply from "./CompanyApplicationApply";
 import FileUploadField from "./FileUploadField";
-import { handleEndorsementSubmit } from "../services/uploadHandle/handleEndorsementSubmit";
+import { handleEndorsementSubmit as submitEndorsement } from "../services/uploadHandle/handleEndorsementSubmit";
 import {  useNavigate } from "react-router-dom";
 import { Loading } from "./Loading";
+import ApplicationStatusModal from "./ApplicationStatusModal";
 
 interface CompanyProps {
   company: {
@@ -17,6 +18,8 @@ interface CompanyProps {
     contact_no: string;
   };
   onClose: () => void;
+  hasApprovedApplication?: boolean;
+  applicationId?: string | null;
 }
 
 interface Job {
@@ -32,12 +35,12 @@ interface Job {
   isAvailable: boolean;
 }
 
-const CompanyApplication = ({ company, onClose }: CompanyProps) => {
+const CompanyApplication = ({ company, onClose, hasApprovedApplication = false, applicationId: existingApplicationId = null }: CompanyProps) => {
   const [loading, setLoading] = useState<boolean>(false);
   const [step, setStep] = useState<"selectJob" | "apply" | "requirement" | "availability" | "dashboard">("selectJob"); // Add "availability" step
   const [jobDetail, setJobDetail] = useState<Job[] | null>(null);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
-  const [applicationId, setApplicationId] = useState<string | null>(null); // Store the application ID
+  const [applicationId, setApplicationId] = useState<string | null>(existingApplicationId);
   // User Requirements/Data
   const [coverLetter, setCoverLetter] = useState<File | null>(null);
   const [resume, setResume] = useState<File | null>(null);
@@ -55,6 +58,8 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
   const [currentDay, setCurrentDay] = useState<string>("");
   const [currentStartTime, setCurrentStartTime] = useState("06:00");
    const [currentEndTime, setCurrentEndTime] = useState("17:00");
+  const [showStatusModal, setShowStatusModal] = useState<boolean>(false);
+  const [applicationStatus, setApplicationStatus] = useState<'submitted' | 'approved' | 'rejected'>('submitted');
   const fileFields = [
     { key: "resume", label: "Resume", file: resume },
     { key: "coverLetter", label: "Cover Letter", file: coverLetter },
@@ -89,6 +94,62 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
     };
     fetchJob();
   }, [company]);
+
+  // Show approval notice when component mounts if application is approved
+  useEffect(() => {
+    if (hasApprovedApplication && step === "selectJob") {
+      setApplicationStatus('approved');
+      setShowStatusModal(true);
+    }
+  }, [hasApprovedApplication, step]);
+
+  // Check for application status changes
+  useEffect(() => {
+    const checkApplicationStatus = async () => {
+      if (!applicationId) return;
+
+      const { data, error } = await supabase
+        .from("application")
+        .select("status")
+        .eq("application_id", applicationId)
+        .single();
+
+      if (error) {
+        console.error("Error checking application status:", error);
+        return;
+      }
+
+      if (data?.status === "approved" && step !== "availability") {
+        setApplicationStatus('approved');
+        setShowStatusModal(true);
+      }
+    };
+
+    const subscription = supabase
+      .channel('application_changes')
+      .on('postgres_changes', 
+        { 
+          event: 'UPDATE', 
+          schema: 'public', 
+          table: 'application',
+          filter: `application_id=eq.${applicationId}`
+        }, 
+        (payload) => {
+          if (payload.new.status === "approved" && step !== "availability") {
+            setApplicationStatus('approved');
+            setShowStatusModal(true);
+          }
+        }
+      )
+      .subscribe();
+
+    // Check immediately and then on changes
+    checkApplicationStatus();
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [applicationId, step]);
 
   const handleRequirementSubmit = async () => {
     // Check if all required files are uploaded before setting loading to true
@@ -205,8 +266,9 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
   
     if (applicationData && applicationData.length > 0) {
       console.log("Application created:", applicationData);
-      setApplicationId(applicationData[0].application_id); // Store the application_id
-      setStep("availability"); // Move to the availability step
+      setApplicationId(applicationData[0].application_id);
+      setApplicationStatus('submitted');
+      setShowStatusModal(true);
     }
   
     setLoading(false); // Reset loading after successful submission
@@ -238,7 +300,8 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
 
     
     console.log("Availability submitted:", data);
-    setStep("dashboard"); // Move to the dashboard step
+    setApplicationStatus('approved');
+    setShowStatusModal(true);
   };
 
   const formatTime = (time24: string | undefined): string => {
@@ -331,12 +394,51 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
     setStep("apply"); // Move to the job details modal
   };
 
- 
+  const handleEndorsementSubmission = async () => {
+    if (endorsement) {
+      await submitEndorsement(endorsement, company, setEndorsementStatus, setLoading);
+      if (endorsementStatus) {
+        setApplicationStatus('approved');
+        setShowStatusModal(true);
+      }
+    }
+  };
+
   return (
     <div className="flex items-center justify-center">
       {loading &&
         <Loading/>
       }
+      <ApplicationStatusModal
+        isOpen={showStatusModal}
+        onClose={() => {
+          setShowStatusModal(false);
+          if (applicationStatus === 'submitted') {
+            onClose();
+          } else if (applicationStatus === 'approved') {
+            if (step === 'requirement' && endorsementStatus) {
+              navigate('/student-dashboard');
+            } else if (step === 'availability') {
+              setStep('requirement');
+            } else {
+              setStep('availability');
+            }
+          }
+        }}
+        status={applicationStatus}
+        companyName={company.name}
+        onProceed={() => {
+          if (applicationStatus === 'approved') {
+            if (step === 'requirement' && endorsementStatus) {
+              navigate('/student-dashboard');
+            } else if (step === 'availability') {
+              setStep('requirement');
+            } else {
+              setStep('availability');
+            }
+          }
+        }}
+      />
       {step === "selectJob" && (
         <div className="text-black">
           <br></br>
@@ -387,17 +489,11 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
             </div>
             {endorsement && 
              <div className="flex gap-4 mt-8 justify-center">
-                <button onClick={() => handleEndorsementSubmit(endorsement, company, setEndorsementStatus,setLoading)} className="text-white bg-black px-4 py-2 rounded">
+                <button onClick={handleEndorsementSubmission} className="text-white bg-black px-4 py-2 rounded">
                   Submit
                 </button>
             
               </div>
-            }
-            {endorsementStatus && 
-            <div>
-                <button className="text-white"onClick={() => navigate('/student-dashboard')}>Proceed to the Dashboard</button>
-            </div>
-              
             }
             
               </>

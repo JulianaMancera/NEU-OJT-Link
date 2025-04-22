@@ -21,6 +21,8 @@ const Dashboard = () => {
   const [companies, setCompanies] = useState<Company[]>([]);
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [hasApprovedApplication, setHasApprovedApplication] = useState(false);
+  const [applicationId, setApplicationId] = useState<string | null>(null);
 
   const filteredCompany = companies.filter(
     (company) =>
@@ -51,52 +53,63 @@ const Dashboard = () => {
         if (error) console.error("Error inserting user:", error);
         console.log("User creation success");
 
+        // Check for existing application
+        const { data: applicationData } = await supabase
+          .from("application")
+          .select("application_id, status")
+          .eq("user_id", user.id)
+          .single();
+
+        if (applicationData) {
+          setApplicationId(applicationData.application_id);
+          setHasApprovedApplication(applicationData.status === "approved");
+        }
+
         setLoading(false);
       }
     };
 
-    const checkApplicationStatus = async () => {
-      const user = await supabase.auth.getUser();
-      if (!user.data.user) return;
-
-      const { data, error } = await supabase
-        .from("application")
-        .select("status")
-        .eq("user_id", user.data.user.id)
-        .single();
-
-      if (error) {
-        console.error("Error fetching application status:", error.message);
-        return;
-      }
-
-      if (data?.status === "approved") {
-        navigate("/student-dashboard");
-      }
-    };
-    checkApplicationStatus();
-
-    const fetchCompanies = async () => {
-      const { data, error } = await supabase.from("company").select("*");
-
-      if (error) {
-        console.error("Error fetching companies:", error.message);
-      } else {
-        console.log("Fetched companies:", data);
-        setCompanies(data);
-      }
-    };
-
     fetchUser();
-    fetchCompanies();
   }, [navigate]);
+
+  useEffect(() => {
+    const fetchCompanies = async () => {
+      const { data } = await supabase.from("company").select("*");
+      if (data) setCompanies(data);
+    };
+    fetchCompanies();
+  }, []);
+
+  // Listen for changes to application status
+  useEffect(() => {
+    if (!applicationId) return;
+
+    const subscription = supabase
+      .channel('application_changes')
+      .on('postgres_changes', 
+        { 
+          event: 'UPDATE', 
+          schema: 'public', 
+          table: 'application',
+          filter: `application_id=eq.${applicationId}`
+        }, 
+        (payload) => {
+          setHasApprovedApplication(payload.new.status === "approved");
+        }
+      )
+      .subscribe();
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [applicationId]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
     navigate("/"); // Redirect to login after logout
   };
 
-  if (loading) return <Loading/>;
+  if (loading) return <Loading />;
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -176,7 +189,12 @@ const Dashboard = () => {
                       </button>
                     </div>
                     {/* Company Application Component Inside Expanding Box */}
-                    <CompanyApplication company={company} onClose={() => setSelectedCompany(null)} />
+                    <CompanyApplication 
+                      company={company} 
+                      onClose={() => setSelectedCompany(null)}
+                      hasApprovedApplication={hasApprovedApplication}
+                      applicationId={applicationId}
+                    />
                   </div>
                 </div>
               )}
