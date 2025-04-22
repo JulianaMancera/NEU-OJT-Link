@@ -333,7 +333,9 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
       {step === "requirement" && (
         <div className="text-black">
         
+
           <p className="text-[1rem] font-semibold">Position: {selectedJob?.position}</p>
+
           <br />
           {requirementUploaded && selectedJob ? (
             <>
