@@ -106,7 +106,7 @@ const Dashboard = () => {
         <img src={OJTLogo} alt="Ojt Logo" className="w-[220px] h-[220px] ml-4" />
 
         <div className="flex space-x-4">
-          <button className="bg-red-500 text-white px-4 py-2 rounded" onClick={handleLogout}>
+          <button className="bg-black text-white px-4 py-2 rounded" onClick={handleLogout}>
             Logout
           </button>
         </div>
@@ -138,7 +138,7 @@ const Dashboard = () => {
               {/* Company Card */}
               <div
                 onClick={() => setSelectedCompany(selectedCompany === company ? null : company)}
-                className="h-full min-h-[220px] border rounded-2xl shadow-[0_0_15px_4px_rgba(169,162,255,0.5)] p-8 bg-white cursor-pointer flex flex-col justify-between transform transition-transform duration-300 ease-in-out hover:scale-105 hover:shadow-[0_0_20px_6px_rgba(169,162,255,0.7)] z-10"
+                className="h-full min-h-[220px] border rounded-2xl shadow-[0_0_15px_4px_rgba(169,162,255,0.5)] p-8 bg-white cursor-pointer flex flex-col xustify-between transform transition-transform duration-300 ease-in-out hover:scale-105 hover:shadow-[0_0_20px_6px_rgba(169,162,255,0.7)] z-10"
               >
                 <div className="w-30 h-30 rounded border flex items-center justify-center overflow-hidden flex-shrink-0 mr-4">
                   {company.logo_url ? (
@@ -171,8 +171,8 @@ const Dashboard = () => {
                   <div className="bg-[#FDFBF6] p-6 rounded-lg shadow-lg w-full max-w-[100vh] h-[60vh] overflow-y-auto overflow-x-hidden relative z-50">
                     <div className="flex justify-between items-center">
                       <h3 className="text-[1.5rem] font-bold text-black sticky top-0 ">{company.name}</h3>
-                      <button onClick={() => setSelectedCompany(null)}>
-                        <X size={15} color="black" />
+                      <button onClick={() => setSelectedCompany(null)} className="bg-black">
+                        <X size={15} color="white" />
                       </button>
                     </div>
                     {/* Company Application Component Inside Expanding Box */}

@@ -333,7 +333,9 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
       {step === "requirement" && (
         <div className="text-black">
         
-          <p className="text-[1rem]">Position: {selectedJob?.position}</p>
+
+          <p className="text-[1rem] font-semibold">Position: {selectedJob?.position}</p>
+
           <br />
           {requirementUploaded && selectedJob ? (
             <>
@@ -350,7 +352,7 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
             </div>
             {endorsement && 
              <div className="flex gap-4 mt-8 justify-center">
-                <button onClick={() => handleEndorsementSubmit(endorsement, company, setEndorsementStatus,setLoading)} className="text-white bg-blue-500 px-4 py-2 rounded">
+                <button onClick={() => handleEndorsementSubmit(endorsement, company, setEndorsementStatus,setLoading)} className="text-white bg-black px-4 py-2 rounded">
                   Submit
                 </button>
             
@@ -383,10 +385,10 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
            ))}
                 </div>
              <div className="flex gap-4 mt-8 justify-center">
-                <button onClick={handleRequirementSubmit} className="text-white bg-blue-500 px-4 py-2 rounded">
+                <button onClick={handleRequirementSubmit} className="text-white bg-black px-4 py-2 rounded">
                   Submit
                 </button>
-                <button onClick={onClose} className="text-white bg-gray-500 px-4 py-2 rounded">
+                <button onClick={onClose} className="text-white bg-black px-4 py-2 rounded">
                   Cancel
                 </button>
               </div>

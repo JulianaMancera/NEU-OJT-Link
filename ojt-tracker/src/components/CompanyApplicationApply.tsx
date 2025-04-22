@@ -49,13 +49,13 @@ const CompanyApplicationApply: React.FC<CompanyApplicationProps> = ({job, compan
         <div className="text-black"> 
           <button
             onClick={() => setStep("selectJob")} // Go back to the "Possible Jobs" modal
-            className="text-blue-500 mb-4 mr-4"
+            className="text-blue-500 mb-4 mr-4 bg-black"
           >
             Back to Job List
           </button>
           <button
             onClick={() => handleSelectedJob(job, company)} 
-            className="text-blue-500 mb-4"
+            className="text-blue-500 mb-4 bg-black"
           >
             Apply Now
           </button>
