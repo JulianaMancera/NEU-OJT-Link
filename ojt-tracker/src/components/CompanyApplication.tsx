@@ -91,11 +91,15 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
   }, [company]);
 
   const handleRequirementSubmit = async () => {
-    setLoading(true)
+    // Check if all required files are uploaded before setting loading to true
     if (!resume || !coverLetter || !com || !cv || !medCert || !notarized || !psyTest) {
       alert("Please Upload All Files");
-      return;
+      return; // Exit the function without setting loading to true
     }
+  
+    // If validation passes, set loading to true and proceed with submission
+    setLoading(true);
+  
     const user = await supabase.auth.getUser();
     // Upload Resume
     const { data: resumeData, error: resumeError } = await supabase
@@ -132,7 +136,7 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
       .storage
       .from("applicant-documents")
       .upload(`psyTest/${user.data.user?.id}_${company.company_id}_${psyTest.name}`, psyTest);
-
+  
     // Handle errors
     if (resumeError) {
       console.error("Error Uploading Resume", resumeError);
@@ -155,7 +159,7 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
     if (psyTestError) {
       console.error("Error Uploading Psy Test", psyTestError);
     }
-
+  
     const { data, error } = await supabase.from("requirements").insert([
       {
         student_id: user.data.user?.id,
@@ -171,15 +175,15 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
         job_id: selectedJob?.job_id,
       },
     ]);
-    
+  
     if (error) {
       console.error("Error Submitting Requirements:", error.message);
-    } else {
-      
-      console.log("Application submitted", data);
-      setStep("dashboard");
+      setLoading(false); // Reset loading on error
+      return;
     }
-
+  
+    console.log("Application submitted", data);
+  
     // Insert the application record and store the application_id
     const { data: applicationData, error: applicationError } = await supabase.from("application").insert([
       {
@@ -191,19 +195,21 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
         start_date: null,
         end_date: null,
       },
-    ]).select(); // Use .select() to return the inserted record
-
+    ]).select();
+  
     if (applicationError) {
       console.error("Error creating application:", applicationError);
+      setLoading(false); // Reset loading on error
       return;
     }
-    setLoading(false)
+  
     if (applicationData && applicationData.length > 0) {
       console.log("Application created:", applicationData);
       setApplicationId(applicationData[0].application_id); // Store the application_id
       setStep("availability"); // Move to the availability step
     }
-    
+  
+    setLoading(false); // Reset loading after successful submission
   };
 
   const handleAvailabilitySubmit = async () => {
