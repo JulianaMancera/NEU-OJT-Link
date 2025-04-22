@@ -8,6 +8,7 @@ interface Job{
     qualifications: string[],
     work_hrs: string,
     schedule: string,
+    isAvailable: boolean,
 
 }
 
