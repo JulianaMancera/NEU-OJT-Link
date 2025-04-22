@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";                                              
+import React, { useState, useEffect } from "react";
 import { File } from "lucide-react";
 import { supabase } from "../../supabase";
 import logo from "../assets/ojt-link-logo FINAL.png";
@@ -7,6 +7,7 @@ import WeeklyJournal from "../components/WeeklyJournal";
 import MonthlyReport from "../components/MonthlyReport";
 import { User, Settings, LogOut, CircleHelp, MoonStar } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import ReportsSubmitted from "../components/ReportsSubmitted";
 
 interface WorkDay {
   day_of_week: string;
@@ -14,8 +15,13 @@ interface WorkDay {
   end_time: string;
 }
 
-const StudentDashboard: React.FC = () => {  //Facade na kaya natin ito kasi andami na.
-  const navigate = useNavigate(); 
+interface Report {
+  weekly_report_id: number;
+  week_number: number;
+}
+
+const StudentDashboard: React.FC = () => {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [companyName, setCompanyName] = useState<string | null>(null);
@@ -29,17 +35,12 @@ const StudentDashboard: React.FC = () => {  //Facade na kaya natin ito kasi anda
   const [isWeeklyReportModalOpen, setIsWeeklyReportModalOpen] = useState(false);
   const [isWeeklyJournalModalOpen, setIsWeeklyJournalModalOpen] = useState(false);
   const [isMonthlyReportModalOpen, setIsMonthlyReportModalOpen] = useState(false);
+  const [editingReport, setEditingReport] = useState<Report | null>(null);
 
   const templates = [
     { name: "Weekly Report", file: "WeeklyReport_Surname.pdf" },
     { name: "Weekly Journal", file: "WeeklyJournal_Surname.pdf" },
     { name: "Monthly Report", file: "MonthlyReport_Surname.pdf" },
-  ];
-
-  const reports = [
-    { week: 1, dueDate: "March 16, 2025", status: "Submitted" },
-    { week: 2, dueDate: "March 23, 2025", status: "Pending" },
-    { week: 3, dueDate: "March 30, 2025", status: "Pending" },
   ];
 
   useEffect(() => {
@@ -63,187 +64,171 @@ const StudentDashboard: React.FC = () => {  //Facade na kaya natin ito kasi anda
     fetchUserData();
   }, []);
 
-    const handleLogout = async () => {
-      await supabase.auth.signOut();
-      navigate("/"); // Redirect to login after logout
-    };
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate("/"); // Redirect to login after logout
+  };
 
-
-    useEffect(() => {
-      const fetchApplicationDetails = async () => {
-        const { data: userData, error: userError } = await supabase.auth.getUser();
-        if (userError || !userData?.user) {
-          console.error("User not found:", userError?.message);
-          return;
-        }
-  
-        const { data: application, error: applicationError } = await supabase
-          .from("application")
-          .select("company_id, job_id, application_id")
-          .eq("user_id", userData.user.id)
-          .eq("status", "approved")
-          .single();
-  
-        if (applicationError || !application) {
-          console.error("No approved application found:", applicationError?.message);
-          return;
-        }
-  
-        const { company_id, job_id, application_id } = application;
-  
-        const { data: company, error: companyError } = await supabase
-          .from("company")
-          .select("name, logo_url")
-          .eq("company_id", company_id)
-          .single();
-  
-        if (companyError || !company) {
-          console.error("Company not found:", companyError?.message);
-          return;
-        }
-  
-        const { data: job, error: jobError } = await supabase
-          .from("job")
-          .select("position")
-          .eq("job_id", job_id)
-          .single();
-  
-        if (jobError || !job) {
-          console.error("Job position not found:", jobError?.message);
-          return;
-        }
-
-        setCompanyLogo(company.logo_url);
-        setCompanyName(company.name);
-        setJobPosition(job.position);
-        await fetchWorkDays(application_id);
-      };
-  
-      fetchApplicationDetails();
-    }, []);
-    
-    const fetchWorkDays = async (applicationId: string) => {
-      const { data, error } = await supabase
-        .from("availability")
-        .select("day_of_week, start_time, end_time")
-        .eq("application_id", applicationId)
-        .order("day_of_week");
-  
-      if (error) {
-        console.error("Error fetching work days:", error.message);
+  useEffect(() => {
+    const fetchApplicationDetails = async () => {
+      const { data: userData, error: userError } = await supabase.auth.getUser();
+      if (userError || !userData?.user) {
+        console.error("User not found:", userError?.message);
         return;
       }
-  
-      if (data && data.length > 0) {
-        const formattedWorkDays = data.map(day => {
-          return {
-            day_of_week: day.day_of_week,
-            start_time: formatTime(day.start_time),
-            end_time: formatTime(day.end_time)
-          };
-        });
-        
-        setWorkDays(formattedWorkDays);
-      }
-    };
-  
-    const formatTime = (time24: string): string => {
-      const timeParts = time24.split(':');
-      const hours = parseInt(timeParts[0], 10);
-      const minutes = timeParts[1];
-      
-      const period = hours >= 12 ? 'PM' : 'AM';
-      const formattedHours = hours % 12 || 12;
-      
-      return `${formattedHours}:${minutes} ${period}`;
-    };
-   
-  
-    const handleDownload = async (fileName: string) => {
-      setLoading(fileName);
-      setError(null);
-  
-      const { data, error } = await supabase.storage.from("templates").download(fileName);
-  
-      if (error) {
-        console.error("Download error:", error);
-        setError(`Failed to download ${fileName}: ${error.message}`);
-      } else {
-        const url = URL.createObjectURL(data);
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = fileName;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-      }
-  
-      setLoading(null);
-    };
-  
-    const handleOpenSubmissionModal = (reportType: string) => {
-      switch (reportType) {
-        case "Weekly Report":
-          setIsWeeklyReportModalOpen(true);
-          break;
-        case "Weekly Journal":
-          setIsWeeklyJournalModalOpen(true);
-          break;
-        case "Monthly Report":
-          setIsMonthlyReportModalOpen(true);
-          break;
-        default:
-          break;
-      }
-    };
-  
-    const fetchReport = async (week: number) => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-  
-      if (!user) {
-        alert("User not logged in");
-        return;
-      }
-  
-      const { data, error } = await supabase
-        .from("weekly_report")
-        .select("file_url")
-        .eq("submitted_by", user.user_metadata?.name)
-        .eq("week_number", week)
-        .order("uploaded_at", { ascending: false })
-        .limit(1)
+
+      const { data: application, error: applicationError } = await supabase
+        .from("application")
+        .select("company_id, job_id, application_id")
+        .eq("user_id", userData.user.id)
+        .eq("status", "approved")
         .single();
-  
-      if (error || !data) {
-        alert(`No report found for Week ${week}.`);
+
+      if (applicationError || !application) {
+        console.error("No approved application found:", applicationError?.message);
         return;
       }
-  
-      const filePath = data.file_url.startsWith("https://")
-        ? data.file_url.split("/weekly_reports/").pop()
-        : data.file_url;
-  
-      const { data: signedUrlData, error: signedUrlError } = await supabase.storage
-        .from("weekly_reports")
-        .createSignedUrl(filePath, 60);
-  
-      if (signedUrlError || !signedUrlData) {
-        alert("Failed to fetch report securely.");
+
+      const { company_id, job_id, application_id } = application;
+
+      const { data: company, error: companyError } = await supabase
+        .from("company")
+        .select("name, logo_url")
+        .eq("company_id", company_id)
+        .single();
+
+      if (companyError || !company) {
+        console.error("Company not found:", companyError?.message);
         return;
       }
-  
-      window.open(signedUrlData.signedUrl, "_blank");
+
+      const { data: job, error: jobError } = await supabase
+        .from("job")
+        .select("position")
+        .eq("job_id", job_id)
+        .single();
+
+      if (jobError || !job) {
+        console.error("Job position not found:", jobError?.message);
+        return;
+      }
+
+      setCompanyLogo(company.logo_url);
+      setCompanyName(company.name);
+      setJobPosition(job.position);
+      await fetchWorkDays(application_id);
     };
 
-    const sortDaysOfWeek = (days: WorkDay[]): WorkDay[] => {
-      const dayOrder = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
-      return [...days].sort((a, b) => {
-        return dayOrder.indexOf(a.day_of_week) - dayOrder.indexOf(b.day_of_week);
-      });
-    };
+    fetchApplicationDetails();
+  }, []);
+
+  const fetchWorkDays = async (applicationId: string) => {
+    const { data, error } = await supabase
+      .from("availability")
+      .select("day_of_week, start_time, end_time")
+      .eq("application_id", applicationId)
+      .order("day_of_week");
+
+    if (error) {
+      console.error("Error fetching work days:", error.message);
+      return;
+    }
+
+    if (data && data.length > 0) {
+      const formattedWorkDays = data.map(day => ({
+        day_of_week: day.day_of_week,
+        start_time: formatTime(day.start_time),
+        end_time: formatTime(day.end_time)
+      }));
+
+      setWorkDays(formattedWorkDays);
+    }
+  };
+
+  const formatTime = (time24: string): string => {
+    const timeParts = time24.split(':');
+    const hours = parseInt(timeParts[0], 10);
+    const minutes = timeParts[1];
+
+    const period = hours >= 12 ? 'PM' : 'AM';
+    const formattedHours = hours % 12 || 12;
+
+    return `${formattedHours}:${minutes} ${period}`;
+  };
+
+  const handleDownload = async (fileName: string) => {
+    setLoading(fileName);
+    setError(null);
+
+    const { data, error } = await supabase.storage.from("templates").download(fileName);
+
+    if (error) {
+      console.error("Download error:", error);
+      setError(`Failed to download ${fileName}: ${error.message}`);
+    } else {
+      const url = URL.createObjectURL(data);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }
+
+    setLoading(null);
+  };
+
+  const handleOpenSubmissionModal = (reportType: string) => {
+    setEditingReport(null); // Reset editing state when opening new submission
+    switch (reportType) {
+      case "Weekly Report":
+        setIsWeeklyReportModalOpen(true);
+        break;
+      case "Weekly Journal":
+        setIsWeeklyJournalModalOpen(true);
+        break;
+      case "Monthly Report":
+        setIsMonthlyReportModalOpen(true);
+        break;
+      default:
+        break;
+    }
+  };
+
+  const sortDaysOfWeek = (days: WorkDay[]): WorkDay[] => {
+    const dayOrder = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+    return [...days].sort((a, b) => dayOrder.indexOf(a.day_of_week) - dayOrder.indexOf(b.day_of_week));
+  };
+
+  const handleEditReport = async (week: number) => {
+    // Fetch the report ID for the given week
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    
+    if (!user) return;
+
+    const { data, error } = await supabase
+      .from("weekly_report")
+      .select("weekly_report_id, week_number")
+      .eq("submitted_by", user.user_metadata?.full_name)
+      .eq("week_number", week)
+      .single();
+
+    if (error || !data) {
+      console.error("Error fetching report for editing:", error);
+      return;
+    }
+
+    setEditingReport({ weekly_report_id: data.weekly_report_id, week_number: data.week_number });
+    setIsWeeklyReportModalOpen(true);
+  };
+
+  const handleRemoveReport = (week: number) => {
+    console.log(`Report for week ${week} has been removed`);
+    // You can add additional logic here if needed
+  };
 
   return (
     <div className="relative min-h-screen w-screen bg-gradient-to-b from-blue-100 to-white p-6">
@@ -411,33 +396,20 @@ const StudentDashboard: React.FC = () => {  //Facade na kaya natin ito kasi anda
                 ))}
             </div>
         </div>
-        <WeeklyReport isOpen={isWeeklyReportModalOpen} onClose={() => setIsWeeklyReportModalOpen(false)} />
+        <WeeklyReport 
+          isOpen={isWeeklyReportModalOpen} 
+          onClose={() => {
+            setIsWeeklyReportModalOpen(false);
+            setEditingReport(null); 
+          }}
+          editingReport={editingReport}
+        />
         <WeeklyJournal isOpen={isWeeklyJournalModalOpen} onClose={() => setIsWeeklyJournalModalOpen(false)} />
         <MonthlyReport isOpen={isMonthlyReportModalOpen} onClose={() => setIsMonthlyReportModalOpen(false)} />
-          <div className="bg-white shadow-md rounded-lg p-4 border border-black">
-            <h3 className="text-lg font-semibold mb-2">Reports Submitted</h3>
-            <div className="space-y-2">
-                {reports.map((report) => (
-                    <div
-                    key={report.week}
-                    onClick={() => fetchReport(report.week)}
-                    className={`cursor-pointer flex justify-between items-center p-2 rounded ${
-                        report.status === "Submitted"
-                        ? "bg-blue-50 hover:bg-blue-100"
-                        : "bg-gray-50"
-                    } border border-black`}
-                    >
-                    <div>
-                        <div className="font-semibold">Week {report.week} Report</div>
-                        <div className="text-sm text-gray-600">Due: {report.dueDate}</div>
-                    </div>
-                    {report.status === "Submitted" && (
-                        <div className="text-green-600 font-semibold">Submitted</div>
-                    )}
-                    </div>
-                ))}
-                </div>
-          </div>
+        <ReportsSubmitted 
+            onEdit={handleEditReport}
+            onRemove={handleRemoveReport}
+          />
         </div>
       </div>
     </div>
