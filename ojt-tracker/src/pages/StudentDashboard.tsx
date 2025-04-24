@@ -5,7 +5,7 @@ import logo from "../assets/ojt-link-logo FINAL.png";
 import WeeklyReport from "../components/WeeklyReport";
 import WeeklyJournal from "../components/WeeklyJournal";
 import MonthlyReport from "../components/MonthlyReport";
-import { User, Settings, LogOut, CircleHelp, MoonStar, UserRound } from "lucide-react";
+import { User, Settings, LogOut, CircleHelp, UserSquare2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import ReportsSubmitted from "../components/ReportsSubmitted";
 
@@ -250,13 +250,13 @@ const StudentDashboard: React.FC = () => {
                 className="w-8 h-8 rounded-full object-cover"
             />
         ) : (
-            <User className="w-6 h-6 text-violet-800" />
+            <User className="w-6 h-6 text-black-800" />
         )}
     </button>
 
     {isProfileOpen && (
         <div className="absolute right-0 top-[4.5rem] bg-white text-gray-800 shadow-lg rounded-md overflow-hidden z-50 w-64 min-w-[16rem] ">
-            <div className="bg-[#FCFBF4] text-black p-4 text-center">
+            <div className="bg-[#3B82F6] text-black p-4 text-center">
                 <div className="w-16 h-16 rounded-full mx-auto overflow-hidden mb-2">
                     {profilePicture ? (
                         <img src={profilePicture} alt="Profile" className="w-full h-full object-cover" />
@@ -265,7 +265,7 @@ const StudentDashboard: React.FC = () => {
                     )}
                 </div>
                 <p className="font-semibold">{userName}</p>
-                <p className="text-xs text-violet-200">{userRole}</p>
+                <p className="text-xs text-black-200 capitalize">{userRole}</p>
             </div>
             <ul className="text-sm">
                 <li>
@@ -282,11 +282,6 @@ const StudentDashboard: React.FC = () => {
                 <li>
                     <button className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center">
                         <Settings className="w-4 h-4 mr-2" /> Settings
-                    </button>
-                </li>
-                <li>
-                    <button className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center">
-                        <MoonStar className="w-4 h-4 mr-2" /> Appearance
                     </button>
                 </li>
                 <li>
@@ -357,10 +352,11 @@ const StudentDashboard: React.FC = () => {
             )}
           </div>
           <div className="bg-white shadow-md rounded-lg p-4 border border-black">
-            <h3 className="text-lg font-semibold mb-2">Supervisors</h3>
+            <h3 className="text-lg font-semibold mb-2 text-center">Supervisors</h3>
             <div className="space-y-4">
-            <div className="flex items-center gap-2"><UserRound size={25} color="black"/><span className="font-semibold">Supervisor:</span>Vincent Smith</div>
-            <div className="flex items-center gap-2"><UserRound size={25} color="black"/><span className="font-semibold">OJT Coordinator:</span> John Doe</div>           </div>
+              <div className="flex items-center gap-2"><UserSquare2 size={25} color="black"/><span className="font-semibold">Supervisor:</span>Vincent Smith</div>
+              <div className="flex items-center gap-2"><UserSquare2 size={25} color="black"/><span className="font-semibold">OJT Coordinator:</span> John Doe</div>           
+            </div>
           </div>
         </div>
         <div className="grid grid-cols-3 gap-4">
@@ -387,7 +383,7 @@ const StudentDashboard: React.FC = () => {
                 <button
                     key={template.file}
                     onClick={() => handleOpenSubmissionModal(template.name)}
-                    className="w-full bg-black-100 text-black-600 p-2 rounded hover:bg-[#A1E3F9] flex items-center justify-start"
+                    className="w-full bg-black-100 text-black-600 p-2 rounded hover:bg-[#A1E3F9] flex items-center justify-start bg-[#A1E3F9]"
                 >
                     <File className="mr-2" />
                     {template.name}
