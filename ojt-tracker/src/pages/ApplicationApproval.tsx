@@ -91,15 +91,15 @@ const ApplicationApproval = () => {
   }
 
   return (
-    <div className="p-6">
-      <div className="bg-gradient-to-b from-[#D0E8FF] to-[#FFFFFF] min-h-screen p-20">
-        <h2 className="text-3xl font-bold text-center mt-8 mb-6 text-black">
+    <div className="p-2">
+      <div className="bg-[linear-gradient(to_bottom,#5B75E0_10%,#96A0C9_75%)] w-screen h-screen p-20">
+        <h2 className="text-3xl font-bold text-center mb-10 text-black">
           Application Approvals
         </h2>
 
         <table className="w-full border-collapse">
           <thead>
-            <tr className="bg-gray-200">
+            <tr className="bg-gray-200 text-black">
               <th className="border p-2">Application ID</th>
               <th className="border p-2">Username</th>
               <th className="border p-2">Company Name</th>
@@ -109,7 +109,7 @@ const ApplicationApproval = () => {
           </thead>
           <tbody>
             {applications.map((application) => (
-              <tr key={application.application_id} className="hover:bg-gray-100">
+              <tr key={application.application_id} className="hover:bg-gray-100 text-black">
                 <td className="border p-2">{application.application_id}</td>
                 <td className="border p-2">{application.user_name}</td>
                 <td className="border p-2">{application.company_name}</td>
@@ -121,7 +121,7 @@ const ApplicationApproval = () => {
                       application.application_id, 
                       e.target.value as Application['status']
                     )}
-                    className="w-full p-1"
+                    className="w-full p-1 font-semibold"
                   >
                     <option value="pending">Pending</option>
                     <option value="approved">Approved</option>
