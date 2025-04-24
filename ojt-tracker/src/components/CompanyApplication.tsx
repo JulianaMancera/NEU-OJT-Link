@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { supabase } from "../../supabase";
 import EndorsementButton from "./EndorsementButton";
-
 import CompanyApplicationApply from "./CompanyApplicationApply";
 import FileUploadField from "./FileUploadField";
 import { handleEndorsementSubmit as submitEndorsement } from "../services/uploadHandle/handleEndorsementSubmit";
-import {  useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Loading } from "./Loading";
 import ApplicationStatusModal from "./ApplicationStatusModal";
 
@@ -37,11 +36,10 @@ interface Job {
 
 const CompanyApplication = ({ company, onClose, hasApprovedApplication = false, applicationId: existingApplicationId = null }: CompanyProps) => {
   const [loading, setLoading] = useState<boolean>(false);
-  const [step, setStep] = useState<"selectJob" | "apply" | "requirement" | "availability" | "dashboard">("selectJob"); // Add "availability" step
+  const [step, setStep] = useState<"selectJob" | "apply" | "requirement" | "availability" | "dashboard">("selectJob");
   const [jobDetail, setJobDetail] = useState<Job[] | null>(null);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [applicationId, setApplicationId] = useState<string | null>(existingApplicationId);
-  // User Requirements/Data
   const [coverLetter, setCoverLetter] = useState<File | null>(null);
   const [resume, setResume] = useState<File | null>(null);
   const [com, setCOM] = useState<File | null>(null);
@@ -51,15 +49,16 @@ const CompanyApplication = ({ company, onClose, hasApprovedApplication = false, 
   const [psyTest, setPsyTest] = useState<File | null>(null);
   const [endorsement, setEndorsement] = useState<File | null>(null);
   const [endorsementStatus, setEndorsementStatus] = useState<boolean>(false);
-  // Checker for User Uploads
   const [requirementUploaded, setUploaded] = useState(false);
-   // Availability Form State
-  const [availability, setAvailability] = useState<{ day: string; startTime: string; endTime: string }[]>([]); // Store multiple availability slots
+  const [availability, setAvailability] = useState<{ day: string; startTime: string; endTime: string }[]>([]);
   const [currentDay, setCurrentDay] = useState<string>("");
   const [currentStartTime, setCurrentStartTime] = useState("06:00");
-   const [currentEndTime, setCurrentEndTime] = useState("17:00");
+  const [currentEndTime, setCurrentEndTime] = useState("17:00");
   const [showStatusModal, setShowStatusModal] = useState<boolean>(false);
   const [applicationStatus, setApplicationStatus] = useState<'submitted' | 'approved' | 'rejected'>('submitted');
+  const [errorMessage, setErrorMessage] = useState<string>("");
+  const [showErrorPopup, setShowErrorPopup] = useState<boolean>(false);
+
   const fileFields = [
     { key: "resume", label: "Resume", file: resume },
     { key: "coverLetter", label: "Cover Letter", file: coverLetter },
@@ -69,13 +68,13 @@ const CompanyApplication = ({ company, onClose, hasApprovedApplication = false, 
     { key: "notarized", label: "Notarized Parent Consent", file: notarized },
     { key: "psyTest", label: "Psychological Test", file: psyTest },
   ];
-  const endorsementField =  { key: "endorsement", label: "Endorsement Letter", file: endorsement }
+  const endorsementField = { key: "endorsement", label: "Endorsement Letter", file: endorsement };
   const navigate = useNavigate();
 
-  //Handle Error
-  const [errorMessage,setErrorMessage] = useState<string>("");
-  const [showErrorPopup,setShowErrorPopup]= useState<boolean>(false);
-
+  // Log step changes for debugging
+  useEffect(() => {
+    console.log("Step changed to:", step);
+  }, [step]);
 
   useEffect(() => {
     const fetchJob = async () => {
@@ -86,24 +85,23 @@ const CompanyApplication = ({ company, onClose, hasApprovedApplication = false, 
         .eq("isAvailable", true);
 
       if (error) {
-        console.error("There is something wrong ", error.message);
+        console.error("Error fetching jobs:", error.message);
       } else {
-        console.log(data);
+        console.log("Jobs fetched:", data);
         setJobDetail(data);
       }
     };
     fetchJob();
   }, [company]);
 
-  // Show approval notice when component mounts if application is approved
   useEffect(() => {
     if (hasApprovedApplication && step === "selectJob") {
+      console.log("Application is approved on mount, showing modal");
       setApplicationStatus('approved');
       setShowStatusModal(true);
     }
   }, [hasApprovedApplication, step]);
 
-  // Check for application status changes
   useEffect(() => {
     const checkApplicationStatus = async () => {
       if (!applicationId) return;
@@ -120,6 +118,7 @@ const CompanyApplication = ({ company, onClose, hasApprovedApplication = false, 
       }
 
       if (data?.status === "approved" && step !== "availability") {
+        console.log("Application status updated to approved via Supabase, showing modal");
         setApplicationStatus('approved');
         setShowStatusModal(true);
       }
@@ -136,6 +135,7 @@ const CompanyApplication = ({ company, onClose, hasApprovedApplication = false, 
         }, 
         (payload) => {
           if (payload.new.status === "approved" && step !== "availability") {
+            console.log("Real-time update: Application approved, showing modal");
             setApplicationStatus('approved');
             setShowStatusModal(true);
           }
@@ -143,7 +143,6 @@ const CompanyApplication = ({ company, onClose, hasApprovedApplication = false, 
       )
       .subscribe();
 
-    // Check immediately and then on changes
     checkApplicationStatus();
 
     return () => {
@@ -152,126 +151,114 @@ const CompanyApplication = ({ company, onClose, hasApprovedApplication = false, 
   }, [applicationId, step]);
 
   const handleRequirementSubmit = async () => {
-    // Check if all required files are uploaded before setting loading to true
     if (!resume || !coverLetter || !com || !cv || !medCert || !notarized || !psyTest) {
       alert("Please Upload All Files");
-      return; // Exit the function without setting loading to true
+      return;
     }
-  
-    // If validation passes, set loading to true and proceed with submission
+
     setLoading(true);
-  
-    const user = await supabase.auth.getUser();
-    // Upload Resume
-    const { data: resumeData, error: resumeError } = await supabase
-      .storage
-      .from("applicant-documents")
-      .upload(`resumes/${user.data.user?.id}_${company.company_id}_${resume.name}`, resume);
-    // Upload Cover Letter
-    const { data: coverLetterData, error: coverLetterError } = await supabase
-      .storage
-      .from("applicant-documents")
-      .upload(`cover-letter/${user.data.user?.id}_${company.company_id}_${coverLetter.name}`, coverLetter);
-    // Upload COM
-    const { data: comData, error: comError } = await supabase
-      .storage
-      .from("applicant-documents")
-      .upload(`com/${user.data.user?.id}_${company.company_id}_${com.name}`, com);
-    // Upload CV
-    const { data: cvData, error: cvError } = await supabase
-      .storage
-      .from("applicant-documents")
-      .upload(`cv/${user.data.user?.id}_${company.company_id}_${cv.name}`, cv);
-    // Upload MedCert
-    const { data: medCertData, error: medCertError } = await supabase
-      .storage
-      .from("applicant-documents")
-      .upload(`medCert/${user.data.user?.id}_${company.company_id}_${medCert.name}`, medCert);
-    // Upload Notarized Parent Consent
-    const { data: notarizeData, error: notarizeError } = await supabase
-      .storage
-      .from("applicant-documents")
-      .upload(`notarized/${user.data.user?.id}_${company.company_id}_${notarized.name}`, notarized);
-    // Upload Psy Test
-    const { data: psyTestData, error: psyTestError } = await supabase
-      .storage
-      .from("applicant-documents")
-      .upload(`psyTest/${user.data.user?.id}_${company.company_id}_${psyTest.name}`, psyTest);
-  
-    // Handle errors
-    if (resumeError) {
-      console.error("Error Uploading Resume", resumeError);
+
+    try {
+      const user = await supabase.auth.getUser();
+      if (!user.data.user?.id) {
+        throw new Error("User not authenticated");
+      }
+
+      const uploadPromises = [
+        supabase.storage
+          .from("applicant-documents")
+          .upload(`resumes/${user.data.user.id}_${company.company_id}_${resume.name}`, resume),
+        supabase.storage
+          .from("applicant-documents")
+          .upload(`cover-letter/${user.data.user.id}_${company.company_id}_${coverLetter.name}`, coverLetter),
+        supabase.storage
+          .from("applicant-documents")
+          .upload(`com/${user.data.user.id}_${company.company_id}_${com.name}`, com),
+        supabase.storage
+          .from("applicant-documents")
+          .upload(`cv/${user.data.user.id}_${company.company_id}_${cv.name}`, cv),
+        supabase.storage
+          .from("applicant-documents")
+          .upload(`medCert/${user.data.user.id}_${company.company_id}_${medCert.name}`, medCert),
+        supabase.storage
+          .from("applicant-documents")
+          .upload(`notarized/${user.data.user.id}_${company.company_id}_${notarized.name}`, notarized),
+        supabase.storage
+          .from("applicant-documents")
+          .upload(`psyTest/${user.data.user.id}_${company.company_id}_${psyTest.name}`, psyTest),
+      ];
+
+      const uploadResults = await Promise.all(uploadPromises);
+
+      const uploadErrors = uploadResults.map((result, index) => {
+        if (result.error) {
+          const fileNames = ["Resume", "Cover Letter", "COM", "CV", "Med Cert", "Notarized Parent Consent", "Psychological Test"];
+          return `Error uploading ${fileNames[index]}: ${result.error.message}`;
+        }
+        return null;
+      }).filter(error => error !== null);
+
+      if (uploadErrors.length > 0) {
+        throw new Error(uploadErrors.join("\n"));
+      }
+
+      const [resumeData, coverLetterData, comData, cvData, medCertData, notarizeData, psyTestData] = uploadResults.map(result => result.data);
+
+      if (!resumeData?.path || !coverLetterData?.path || !comData?.path || !cvData?.path || 
+          !medCertData?.path || !notarizeData?.path || !psyTestData?.path) {
+        throw new Error("One or more file uploads failed to return a valid path");
+      }
+
+      const { data, error } = await supabase.from("requirements").insert([
+        {
+          student_id: user.data.user.id,
+          created_at: new Date().toISOString(),
+          resume_url: resumeData.path,
+          cover_letter_url: coverLetterData.path,
+          com_url: comData.path,
+          cv_url: cvData.path,
+          medCert_url: medCertData.path,
+          notarize_url: notarizeData.path,
+          psyTest_url: psyTestData.path,
+          company_id: company.company_id,
+          job_id: selectedJob?.job_id,
+        },
+      ]);
+
+      if (error) {
+        throw new Error(`Error submitting requirements: ${error.message}`);
+      }
+
+      console.log("Requirements submitted", data);
+
+      const { data: applicationData, error: applicationError } = await supabase.from("application").insert([
+        {
+          user_id: user.data.user.id,
+          company_id: company.company_id,
+          email: user.data.user.email,
+          job_id: selectedJob?.job_id,
+          status: "pending",
+          start_date: null,
+          end_date: null,
+        },
+      ]).select();
+
+      if (applicationError) {
+        throw new Error(`Error creating application: ${applicationError.message}`);
+      }
+
+      if (applicationData && applicationData.length > 0) {
+        console.log("Application created:", applicationData);
+        setApplicationId(applicationData[0].application_id);
+        setApplicationStatus('submitted');
+        setShowStatusModal(true);
+      }
+    } catch (error: Error) {
+      console.error("Submission failed:", error.message);
+      alert(`Failed to submit requirements:\n${error.message}`);
+    } finally {
+      setLoading(false);
     }
-    if (coverLetterError) {
-      console.error("Error Uploading Cover Letter", coverLetterError);
-    }
-    if (comError) {
-      console.error("Error Uploading COM", comError);
-    }
-    if (cvError) {
-      console.error("Error Uploading CV", cvError);
-    }
-    if (medCertError) {
-      console.error("Error Uploading MedCert", medCertError);
-    }
-    if (notarizeError) {
-      console.error("Error Uploading Notarized Consent", notarizeError);
-    }
-    if (psyTestError) {
-      console.error("Error Uploading Psy Test", psyTestError);
-    }
-  
-    const { data, error } = await supabase.from("requirements").insert([
-      {
-        student_id: user.data.user?.id,
-        created_at: new Date().toISOString(),
-        resume_url: resumeData?.path,
-        cover_letter_url: coverLetterData?.path,
-        com_url: comData?.path,
-        cv_url: cvData?.path,
-        medCert_url: medCertData?.path,
-        notarize_url: notarizeData?.path,
-        psyTest_url: psyTestData?.path,
-        company_id: company.company_id,
-        job_id: selectedJob?.job_id,
-      },
-    ]);
-  
-    if (error) {
-      console.error("Error Submitting Requirements:", error.message);
-      setLoading(false); // Reset loading on error
-      return;
-    }
-  
-    console.log("Application submitted", data);
-  
-    // Insert the application record and store the application_id
-    const { data: applicationData, error: applicationError } = await supabase.from("application").insert([
-      {
-        user_id: user.data.user?.id,
-        company_id: company.company_id,
-        email: user.data.user?.email,
-        job_id: selectedJob?.job_id,
-        status: "pending",
-        start_date: null,
-        end_date: null,
-      },
-    ]).select();
-  
-    if (applicationError) {
-      console.error("Error creating application:", applicationError);
-      setLoading(false); // Reset loading on error
-      return;
-    }
-  
-    if (applicationData && applicationData.length > 0) {
-      console.log("Application created:", applicationData);
-      setApplicationId(applicationData[0].application_id);
-      setApplicationStatus('submitted');
-      setShowStatusModal(true);
-    }
-  
-    setLoading(false); // Reset loading after successful submission
   };
 
   const handleAvailabilitySubmit = async () => {
@@ -280,7 +267,6 @@ const CompanyApplication = ({ company, onClose, hasApprovedApplication = false, 
       return;
     }
 
-    // Insert all availability slots into the availability table
     const availabilityEntries = availability.map(slot => ({
       application_id: applicationId,
       day_of_week: slot.day,
@@ -298,7 +284,6 @@ const CompanyApplication = ({ company, onClose, hasApprovedApplication = false, 
       return;
     }
 
-    
     console.log("Availability submitted:", data);
     setApplicationStatus('approved');
     setShowStatusModal(true);
@@ -313,7 +298,6 @@ const CompanyApplication = ({ company, onClose, hasApprovedApplication = false, 
     return `${displayHour}:${minutes} ${ampm}`;
   };
 
-  //temporary lang pi
   const workingHours = {
     start: "06:00",
     end: "17:00",
@@ -328,70 +312,55 @@ const CompanyApplication = ({ company, onClose, hasApprovedApplication = false, 
       return;
     }
 
-    // Validate that start time is before end time
     const startTime = currentStartTime || workingHours.start;
-     const endTime = currentEndTime || workingHours.end;
-   
-     if (startTime < workingHours.start || startTime > workingHours.end || 
-         endTime < workingHours.start || endTime > workingHours.end) {
-       alert(`Available hours are ${workingHours.toString()}`);
-       return;
-     }
+    const endTime = currentEndTime || workingHours.end;
 
-     if (startTime >= endTime) {
+    if (startTime < workingHours.start || startTime > workingHours.end || 
+        endTime < workingHours.start || endTime > workingHours.end) {
+      alert(`Available hours are ${workingHours.toString()}`);
+      return;
+    }
+
+    if (startTime >= endTime) {
       alert("Start time must be before end time");
       return;
     }
-  
+
     setAvailability([...availability, { 
       day: currentDay, 
       startTime, 
       endTime 
     }]);
 
-    // Reset the form fields
     setCurrentDay("");
     setCurrentStartTime(workingHours.start);
-     setCurrentEndTime(workingHours.end);
+    setCurrentEndTime(workingHours.end);
   };
+
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>, type: string) => {
     if (event.target.files && event.target.files[0]) {
       const file = event.target.files[0];
       if (file.type !== 'application/pdf') {
-        // Clear the input
         event.target.value = '';
-        
-        // Show error popup
         setErrorMessage(`Please upload only PDF files for your ${type === "com" ? "Certificate of Matriculation" : type}.`);
         setShowErrorPopup(true);
         return;
       }
 
-      if (type === "resume") {
-        setResume(event.target.files[0]);
-      } else if (type === "coverLetter") {
-        setCoverLetter(event.target.files[0]);
-      } else if (type === "com") {
-        setCOM(event.target.files[0]);
-      } else if (type === "cv") {
-        setCV(event.target.files[0]);
-      } else if (type === "medCert") {
-        setMedcert(event.target.files[0]);
-      } else if (type === "notarized") {
-        setNotarized(event.target.files[0]);
-      } else if (type === "psyTest") {
-        setPsyTest(event.target.files[0]);
-      }else if (type === "endorsement") {
-        setEndorsement(event.target.files[0]);
-      }
-
+      if (type === "resume") setResume(file);
+      else if (type === "coverLetter") setCoverLetter(file);
+      else if (type === "com") setCOM(file);
+      else if (type === "cv") setCV(file);
+      else if (type === "medCert") setMedcert(file);
+      else if (type === "notarized") setNotarized(file);
+      else if (type === "psyTest") setPsyTest(file);
+      else if (type === "endorsement") setEndorsement(file);
     }
   };
 
-    const handleJobSelect = (job: Job) => {
-
+  const handleJobSelect = (job: Job) => {
     setSelectedJob(job);
-    setStep("apply"); // Move to the job details modal
+    setStep("apply");
   };
 
   const handleEndorsementSubmission = async () => {
@@ -406,49 +375,37 @@ const CompanyApplication = ({ company, onClose, hasApprovedApplication = false, 
 
   return (
     <div className="flex items-center justify-center">
-      {loading &&
-        <Loading/>
-      }
+      {loading && <Loading />}
       <ApplicationStatusModal
         isOpen={showStatusModal}
         onClose={() => {
+          console.log("Modal closed, applicationStatus:", applicationStatus);
           setShowStatusModal(false);
           if (applicationStatus === 'submitted') {
             onClose();
-          } else if (applicationStatus === 'approved') {
-            if (step === 'requirement' && endorsementStatus) {
-              navigate('/student-dashboard');
-            } else if (step === 'availability') {
-              setStep('requirement');
-            } else {
-              setStep('availability');
-            }
           }
         }}
         status={applicationStatus}
         companyName={company.name}
         onProceed={() => {
+          console.log("onProceed called, current step:", step, "applicationStatus:", applicationStatus);
+          setShowStatusModal(false);
           if (applicationStatus === 'approved') {
-            if (step === 'requirement' && endorsementStatus) {
-              navigate('/student-dashboard');
-            } else if (step === 'availability') {
-              setStep('requirement');
-            } else {
-              setStep('availability');
-            }
+            console.log("Navigating to availability step");
+            setStep('availability');
           }
         }}
       />
       {step === "selectJob" && (
         <div className="text-black">
-          <br></br>
+          <br />
           <h3 className="text-lg font-semibold text-gray-800 mb-4 text-center">Possible Jobs</h3>
           {jobDetail && jobDetail.length > 0 ? (
             <div className="space-y-5">
               {jobDetail.map((job, index) => (
                 <div
                   key={index}
-                  onClick={() => handleJobSelect(job)} // Select the job and move to the job details modal
+                  onClick={() => handleJobSelect(job)}
                   className="p-4 border rounded-lg cursor-pointer hover:bg-gray-100 transition"
                 >
                   <h5 className="text-md font-medium text-gray-700">{job.position}</h5>
@@ -460,62 +417,57 @@ const CompanyApplication = ({ company, onClose, hasApprovedApplication = false, 
           )}
         </div>
       )}
-
       {step === "apply" && selectedJob && (
-
-        <CompanyApplicationApply job={selectedJob} company={company} setStep={setStep} setUploaded={setUploaded} setSelectedJob={setSelectedJob} />
-        
+        <CompanyApplicationApply 
+          job={selectedJob} 
+          company={company} 
+          setStep={setStep} 
+          setUploaded={setUploaded} 
+          setSelectedJob={setSelectedJob} 
+        />
       )}
-
       {step === "requirement" && (
         <div className="text-black">
-        
-
           <p className="text-[1rem] font-semibold">Position: {selectedJob?.position}</p>
-
           <br />
           {requirementUploaded && selectedJob ? (
             <>
-            <div style={{display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '18px', flexDirection: 'column',}}>
-              You already submitted for this position 
-              <EndorsementButton companyProps={{ company, onClose }} job={selectedJob} />
-               <FileUploadField
-               key={endorsementField.key}
-               label={endorsementField.label}
-               fieldKey={endorsementField.key}
-               file={endorsementField.file}
-               onChange={handleFileChange}
-             />
-            </div>
-            {endorsement && 
-             <div className="flex gap-4 mt-8 justify-center">
-                <button onClick={handleEndorsementSubmission} className="text-white bg-black px-4 py-2 rounded">
-                  Submit
-                </button>
-            
-              </div>
-            }
-            
-              </>
-          ) : (
-            <div className="border border-black rounded-lg p-10 w-full max-w-[1000px] mx-auto">
-              <p className="font-semibold text-center text-[1.2rem] mb-8">Please Submit Requirements</p>
-              {showErrorPopup && 
-                errorMessage
-              }
-               <div style={{display: 'flex', flexWrap: 'wrap', justifyContent: 'flex-start', gap: '24px'}}>
-              {fileFields.map(({ key, label, file }) => (
-              <div key={key} style={{width: 'calc(33.333% - 16px)'}}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '18px', flexDirection: 'column' }}>
+                You already submitted for this position 
+                <EndorsementButton companyProps={{ company, onClose }} job={selectedJob} />
                 <FileUploadField
-                  label={label}
-                  fieldKey={key}
-                  file={file}
+                  key={endorsementField.key}
+                  label={endorsementField.label}
+                  fieldKey={endorsementField.key}
+                  file={endorsementField.file}
                   onChange={handleFileChange}
                 />
               </div>
-           ))}
+              {endorsement && (
+                <div className="flex gap-4 mt-8 justify-center">
+                  <button onClick={handleEndorsementSubmission} className="text-white bg-black px-4 py-2 rounded">
+                    Submit
+                  </button>
                 </div>
-             <div className="flex gap-4 mt-8 justify-center">
+              )}
+            </>
+          ) : (
+            <div className="border border-black rounded-lg p-10 w-full max-w-[1000px] mx-auto">
+              <p className="font-semibold text-center text-[1.2rem] mb-8">Please Submit Requirements</p>
+              {showErrorPopup && errorMessage}
+              <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'flex-start', gap: '24px' }}>
+                {fileFields.map(({ key, label, file }) => (
+                  <div key={key} style={{ width: 'calc(33.333% - 16px)' }}>
+                    <FileUploadField
+                      label={label}
+                      fieldKey={key}
+                      file={file}
+                      onChange={handleFileChange}
+                    />
+                  </div>
+                ))}
+              </div>
+              <div className="flex gap-4 mt-8 justify-center">
                 <button onClick={handleRequirementSubmit} className="text-white bg-black px-4 py-2 rounded">
                   Submit
                 </button>
@@ -525,7 +477,6 @@ const CompanyApplication = ({ company, onClose, hasApprovedApplication = false, 
               </div>
             </div>
           )}
-           
         </div>
       )}
       {step === "availability" && (
@@ -548,7 +499,6 @@ const CompanyApplication = ({ company, onClose, hasApprovedApplication = false, 
                 <option value="Saturday">Saturday</option>
               </select>
             </div>
-
             <div className="mb-4">
               <label className="font-bold min-w-[150px]">Start Time</label>
               <input
@@ -560,7 +510,6 @@ const CompanyApplication = ({ company, onClose, hasApprovedApplication = false, 
                 className="border border-gray-300 rounded px-2 py-1"
               />
             </div>
-
             <div className="mb-4">
               <label className="font-bold min-w-[150px]">End Time</label>
               <input
@@ -572,14 +521,12 @@ const CompanyApplication = ({ company, onClose, hasApprovedApplication = false, 
                 className="border border-gray-300 rounded px-2 py-1"
               />
             </div>
-
             <button
               onClick={handleAddAvailabilitySlot}
               className="text-white bg-green-500 px-4 py-2 rounded mb-4"
             >
               Add Availability Slot
             </button>
-
             {availability.length > 0 && (
               <div className="mb-4">
                 <p className="font-semibold">Added Availability:</p>
@@ -593,7 +540,6 @@ const CompanyApplication = ({ company, onClose, hasApprovedApplication = false, 
               </div>
             )}
           </div>
-
           <div className="flex gap-4 mt-4">
             <button onClick={handleAvailabilitySubmit} className="text-white bg-blue-500 px-4 py-2 rounded">
               Submit Availability
@@ -604,7 +550,6 @@ const CompanyApplication = ({ company, onClose, hasApprovedApplication = false, 
           </div>
         </div>
       )}
-
       {step === "dashboard" && (
         <div>
           <p>Application Submitted</p>

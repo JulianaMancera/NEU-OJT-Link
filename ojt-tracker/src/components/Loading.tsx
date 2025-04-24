@@ -1,6 +1,6 @@
 export const Loading = () => {
   return (
-    <div className="fixed inset-0 z-50 flex justify-center items-center bg-gradient-to-br from-[#1B38AC] to-[#5673E9]">
+    <div className="fixed inset-0 z-50 flex justify-center items-center bg-gradient-to-br from-[#1B38AC] to-[#7792FD]">
       <div className="flex items-center space-x-2">
         {/* Spinning Icon */}
         <div className="w-5 h-5 border-4 border-t-transparent border-white rounded-full animate-spin"></div>
