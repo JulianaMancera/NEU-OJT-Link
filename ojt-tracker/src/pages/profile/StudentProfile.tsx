@@ -1,9 +1,16 @@
 import { useState, useEffect } from "react";
 import { supabase } from '../../../supabase';
 
+// Define the type for the user object
+type UserProfile = {
+  id: string;
+  email?: string;
+  name: string;
+  profilePicture?: string;
+};
 
 const StudentProfile = () => {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<UserProfile | null>(null);
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -11,11 +18,11 @@ const StudentProfile = () => {
     const fetchUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
-      
+
       const { data, error } = await supabase
-        .from("user")
+        .from("Users")
         .select("name, profilePicture")
-        .eq("user_id", user.id)
+        .eq("userID", user.id)
         .single();
 
       if (error) {
@@ -32,13 +39,13 @@ const StudentProfile = () => {
 
   const updateName = async () => {
     if (!user) return;
-    
+
     setLoading(true);
 
     const { error } = await supabase
-      .from("user")
+      .from("Users")
       .update({ name })
-      .eq("user_id", user.id);
+      .eq("userID", user.id);
 
     setLoading(false);
 
@@ -52,7 +59,7 @@ const StudentProfile = () => {
 
   return (
     <div className="max-w-lg mx-auto mt-10 p-6 bg-white rounded-lg shadow-md">
-      <h2 className="text-2xl font-bold mb-4">Profile</h2>
+      <h2 className="text-2xl font-bold mb-4 text-blue-600">Profile</h2>
 
       {user?.profilePicture && (
         <img
@@ -69,12 +76,12 @@ const StudentProfile = () => {
         type="text"
         value={name}
         onChange={(e) => setName(e.target.value)}
-        className="w-full text-gray-950 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
       />
 
       <button
         onClick={updateName}
-        className="mt-4 w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-700 transition"
+        className="mt-4 w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-700 transition disabled:bg-blue-300"
         disabled={loading}
       >
         {loading ? "Updating..." : "Update Name"}
