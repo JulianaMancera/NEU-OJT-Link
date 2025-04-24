@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { File } from "lucide-react";
 import { supabase } from "../../supabase";
-import logo from "../assets/ojt-link-logo FINAL.png";
+import logo from "../assets/ojt-logo-dashboard.svg";
 import WeeklyReport from "../components/WeeklyReport";
 import WeeklyJournal from "../components/WeeklyJournal";
 import MonthlyReport from "../components/MonthlyReport";
@@ -233,9 +233,9 @@ const StudentDashboard: React.FC = () => {
   return (
     <div className="relative min-h-screen w-screen bg-[#D0E8FF] p-6">
       {/* Header */}
-      <header className="fixed top-0 left-0 w-full bg-gradient-to-b from-[#578FCA] to-[#2B4764] text-white px-6 py-4 flex items-center justify-between shadow-md z-50 border-b border-black">
+      <header className="fixed top-0 left-0 w-full h-[80px] bg-gradient-to-b from-[#578FCA] to-[#2B4764] text-white px-6 py-4 flex items-center justify-between shadow-md z-50 border-b border-black">
         <div className="flex items-center space-x-4">
-          <img src={logo} alt="OJT Link Logo" />
+          <img src={logo} alt="OJT Link Logo" className="w-[220px] h-[220px]"/>
           <button className="bg-blue-100 text-black px-4 py-2 rounded">HOME</button>
           <span className="text-lg font-semibold">Explore Jobs</span>
         </div>
