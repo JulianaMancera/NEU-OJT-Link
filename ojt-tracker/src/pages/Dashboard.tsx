@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import CompanyApplication from "../components/CompanyApplication";
 import ApplicationStatusModal from "../components/ApplicationStatusModal";
 import OJTLogo from "/src/assets/ojt-logo-dashboard.svg";
+import { ProfileMenu } from "../components/ProfileMenu";
 import { Search, X } from "lucide-react";
 import { Loading } from "../components/Loading";
 import { useUserData } from "../hooks/useUserData";
@@ -11,7 +12,7 @@ import { useCompanies } from "../hooks/useCompanies";
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const { loading } = useUserData();
+  const { loading, userName, userRole, profilePicture } = useUserData();
   const {
     applicationId,
     applicationStatus,
@@ -49,9 +50,12 @@ const Dashboard = () => {
       <div className="w-full h-[80px] absolute left-0 top-0 bg-gradient-to-b from-[#578FCA] to-[#2B4764] border-1 border-black flex items-center justify-between px-6">
         <img src={OJTLogo} alt="Ojt Logo" className="w-[220px] h-[220px] ml-4" />
         <div className="flex space-x-4">
-          <button className="bg-black text-white px-4 py-2 rounded" onClick={handleLogout}>
-            Logout
-          </button>
+          <ProfileMenu
+            userName={userName}
+            userRole={userRole}
+            profilePicture={profilePicture}
+            onLogout={handleLogout}
+          />
         </div>
       </div>
 
@@ -108,7 +112,7 @@ const Dashboard = () => {
                     </div>
                   )}
                 </div>
-                
+
                 <div className="flex flex-col justify-between">
                   <h2 className="text-2xl text-gray-600 font-semibold mb-3">{company.name}</h2>
                   <p className="text-gray-600 text-base break-words mb-3">
