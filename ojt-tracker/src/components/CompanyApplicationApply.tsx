@@ -8,14 +8,12 @@ interface CompanyApplicationApplyProps {
   job: Job;
   company: Company;
   setStep: React.Dispatch<React.SetStateAction<StepType>>;
-  setUploaded: React.Dispatch<React.SetStateAction<boolean>>;
   setSelectedJob: React.Dispatch<React.SetStateAction<Job | null>>;
 }
 
 const CompanyApplicationApply = ({
   job,
   setStep,
-  setUploaded,
   setSelectedJob,
 }: CompanyApplicationApplyProps) => {
   const handleBack = () => {
@@ -24,7 +22,6 @@ const CompanyApplicationApply = ({
   };
 
   const handleApply = () => {
-    setUploaded(false);
     setStep("requirement");
   };
 

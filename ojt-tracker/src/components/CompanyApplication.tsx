@@ -26,13 +26,13 @@ const CompanyApplication: React.FC<CompanyApplicationProps> = ({
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [applicationStatus, setApplicationStatus] = useState<'submitted' | 'approved' | 'availability_submitted' | 'endorsement_submitted'>('submitted');
-  const [uploaded, setUploaded] = useState(false);
   const [loading, setLoading] = useState(false);
   const [userApplications, setUserApplications] = useState<{job_id: string, status: string}[]>([]);
 
   useEffect(() => {
     const fetchUserApplications = async () => {
       try {
+        setLoading(true); // Start loading
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) {
           console.error('No authenticated user found');
@@ -44,7 +44,7 @@ const CompanyApplication: React.FC<CompanyApplicationProps> = ({
           .select('job_id, status')
           .eq('user_id', user.id);
 
-      if (error) {
+        if (error) {
           console.error('Error fetching user applications:', error);
           return;
         }
@@ -52,6 +52,8 @@ const CompanyApplication: React.FC<CompanyApplicationProps> = ({
         setUserApplications(applications || []);
       } catch (error) {
         console.error('Error in fetchUserApplications:', error);
+      } finally {
+        setLoading(false); // End loading
       }
     };
 
@@ -76,8 +78,43 @@ const CompanyApplication: React.FC<CompanyApplicationProps> = ({
 
   const handleRequirementSubmit = async (files: File[]) => {
     try {
+      setLoading(true); // Start loading
       console.log('Submitting requirements...');
-      setUploaded(true);
+
+      // Upload files to Supabase Storage
+      const uploadPromises = files.map(async (file, index) => {
+        const { data, error } = await supabase.storage
+          .from('application-files') // Replace with your bucket name
+          .upload(`user-files/${Date.now()}-${index}-${file.name}`, file);
+        if (error) {
+          throw new Error(`File upload failed: ${error.message}`);
+        }
+        return data?.path;
+      });
+
+      const filePaths = await Promise.all(uploadPromises);
+      console.log('Uploaded files:', filePaths);
+
+      // Save application data to Supabase
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user || !selectedJob) {
+        throw new Error('User or selected job not found');
+      }
+
+      const { error: insertError } = await supabase
+        .from('application')
+        .insert({
+          user_id: user.id,
+          job_id: selectedJob.job_id,
+          company_id: company.company_id,
+          status: 'submitted',
+          files: filePaths, // Store file paths in the database
+        });
+
+      if (insertError) {
+        throw new Error(`Failed to save application: ${insertError.message}`);
+      }
+
       setApplicationStatus('submitted');
       setShowStatusModal(true);
       setStep('dashboard');
@@ -97,8 +134,12 @@ const CompanyApplication: React.FC<CompanyApplicationProps> = ({
         applications: updatedApplications
       }));
       console.log('Successfully updated localStorage');
-    } catch (error) {
-      console.error('Error in handleRequirementSubmit:', error);
+    } catch (error: unknown) {
+      // Type error as Error for safe handling, as discussed previously
+      const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+      console.error('Error in handleRequirementSubmit:', errorMessage);
+    } finally {
+      setLoading(false); // End loading
     }
   };
 
@@ -142,7 +183,6 @@ const CompanyApplication: React.FC<CompanyApplicationProps> = ({
           job={selectedJob} 
           company={company} 
           setStep={setStep} 
-          setUploaded={setUploaded} 
           setSelectedJob={setSelectedJob} 
         />
       )}
@@ -152,8 +192,8 @@ const CompanyApplication: React.FC<CompanyApplicationProps> = ({
           <p className="text-[1rem] font-semibold">Position: {selectedJob.position}</p>
           <br />
           <RequirementForm
-              company={company}
-              job={selectedJob}
+            company={company}
+            job={selectedJob}
             onSubmit={handleRequirementSubmit}
             onClose={() => setStep('apply')}
           />
