@@ -35,7 +35,7 @@ const Auth = () => {
   };
 
   return (
-    <div className="relative min-h-screen w-screen">
+    <div className="relative min-h-screen w-screen overflow-hidden">
    
       <img
         src={backgroundImage}
@@ -51,24 +51,24 @@ const Auth = () => {
         
           <img src={backgroundImage1} 
           alt="NEU LOGO" 
-          className="w-32 md:w-[8vw] mt-10 md:mt-23" />
+          className="w-32 md:w-[8vw] mt-10 md:mt-23 animate-slide-in-up" />
 
           <img
             src={backgroundImage2}
             alt="OJT LINK"
-            className="object-contain relative md:-mt-[110px] w-48 md:w-[27vw]"
+            className="object-contain relative md:-mt-[110px] w-48 md:w-[27vw] animate-slide-in-up"
           />
 
         
 
           <div className="flex flex-col text-center relative md:-mt-[9.5vw]">
-            <h2 className="text-black md:text-[37px] font-semibold font-poppins">
+            <h2 className="text-black md:text-[37px] font-semibold font-poppins animate-slide-in-up2">
               Welcome User!
             </h2>
 
             {/* Google Sign-In Button */}
 
-            <div className="w-[180px] md:w-[280px] h-[100px] flex items-center justify-center">
+            <div className="w-[180px] md:w-[280px] h-[100px] flex items-center justify-center animate-slide-in-up2">
 
               {!loading && (
                 <img
@@ -80,7 +80,7 @@ const Auth = () => {
               )}
         </div>
       </div>
-            <p className="!text-black h-15 md:text-[15px] font-semibold mt-50" style={{ fontFamily: 'Arial'}}>NEU OJT-LINK | Juliana Renard DL Vince Alyssa © 2025 · All rights reserved</p>
+            <p className="!text-black h-15 md:text-[15px] font-semibold mt-50 animate-slide-in-up3" style={{ fontFamily: 'Arial'}}>NEU OJT-LINK | Juliana Renard DL Vince Alyssa © 2025 · All rights reserved</p>
     </div>
   </div>
 </div>

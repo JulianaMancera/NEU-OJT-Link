@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../supabase";
 import landingPic from "../assets/landingPic.png";
+import "/src/Transition.css"; 
 
 const LandingPage = () => {
   const navigate = useNavigate();
@@ -35,7 +36,7 @@ const LandingPage = () => {
       <div className="max-w-7xl mx-auto h-full flex flex-col lg:flex-row items-center justify-center relative z-15 -top-75">
        
         {/* Left Column */}
-        <div className="lg:w-1/2 space-y-4 animate-fade-in text-center lg:text-left">
+        <div className="lg:w-1/2 space-y-4 animate-fade-in text-center lg:text-left animate-slide-in-left">
           <div className="space-y-1">
             <h1 className="text-3xl sm:text-2xl font-bold text-black leading-tight">
               Welcome,
@@ -54,7 +55,7 @@ const LandingPage = () => {
         </div>
 
         {/* Right Column */}
-        <div className="lg:w-1/2 mt-9 lg:mt-0 flex justify-center lg:justify-end animate-fade-in" style={{ animationDelay: "0.3s" }}>
+        <div className="lg:w-1/2 mt-9 lg:mt-0 flex justify-center lg:justify-end animate-fade-in animate-slide-in-right">
           <div className="glass-card p-8 w-full max-w-md bg-white/70">
             <h3 className="text-2xl font-medium text-gray-800 mb-6">Ready to explore opportunities?</h3>
             <p className="text-gray-600 mb-8">
