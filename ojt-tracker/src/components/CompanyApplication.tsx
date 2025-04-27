@@ -59,8 +59,8 @@ const CompanyApplication = ({ company, onClose }: CompanyProps) => {
     { key: "resume", label: "Resume", file: resume },
     { key: "coverLetter", label: "Cover Letter", file: coverLetter },
     { key: "com", label: "COM", file: com },
-    { key: "cv", label: "CV", file: cv },
-    { key: "medCert", label: "Med Cert", file: medCert },
+    { key: "cv", label: "Curriculum Vitae", file: cv },
+    { key: "medCert", label: "Medical Certificate", file: medCert },
     { key: "notarized", label: "Notarized Parent Consent", file: notarized },
     { key: "psyTest", label: "Psychological Test", file: psyTest },
   ];
