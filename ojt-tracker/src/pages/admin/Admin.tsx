@@ -3,7 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { FaFileAlt } from "react-icons/fa";
 import { User, Settings, LogOut, CircleHelp, MoonStar } from "lucide-react";
 import { supabase } from "../../../supabase";
-import OJTLogo from "/src/assets/ojt-link-logo FINAL.png";
+import OJTLogo from "/src/assets/ojt-logo-dashboard.svg";
+import OJTLogo2 from "/src/assets/ojt-link-logo FINAL.png";
 
 const Admin = () => {
   const navigate = useNavigate();
@@ -57,10 +58,10 @@ const Admin = () => {
   return (
     <div className="relative min-h-screen w-screen bg-gradient-to-b from-blue-100 to-white p-6">
       {/* Topbar/Header */}
-      <header className="fixed top-0 left-0 w-full bg-gradient-to-b from-[#578FCA] to-[#2B4764] text-white px-6 py-4 flex items-center justify-between shadow-md z-50 border-b border-black">
+      <header className="fixed top-0 h-[80px] left-0 w-full bg-gradient-to-b from-[#578FCA] to-[#2B4764] text-white px-6 py-4 flex items-center justify-between shadow-md z-50 border-b border-black">
         <div className="flex items-center space-x-4">
-          <img src={OJTLogo} alt="OJT Link Logo" className="h-8 w-25" />
-          <span className="text-lg font-semibold">Admin Dashboard</span>
+          <img src={OJTLogo} alt="OJT Link Logo" className="w-[220px] h-[220px]" />
+          <span className="text-lg font-semibold ml-5">Admin Dashboard</span>
         </div>
         <button
           onClick={() => setProfileOpen(!isProfileOpen)}
@@ -135,20 +136,19 @@ const Admin = () => {
         {/* Sidebar */}
         <div className="bg-white rounded-lg shadow-md w-64 p-6 h-fit border border-black">
           <div className="text-center mb-6">
-            <img src={OJTLogo} alt="logo" className="h-8 mx-auto" />
-            <p className="font-semibold mt-2 text-sm text-[#6A96C7]">NEU OJT LINK</p>
+            <img src={OJTLogo2} alt="logo" className="h-10 mx-auto" />
           </div>
           <div className="flex flex-col gap-4">
             {menuItems.map((item) => (
               <button
                 key={item.label}
                 onClick={() => handleNavigation(item.route, item.label)}
-                className={`flex items-center gap-2 bg-[#B3E5FC] px-4 py-2 rounded-lg hover:bg-[#81D4FA] transition-all ${
+                className={`flex items-center gap-2 bg-[#B3E5FC] px-4 py-2 rounded-lg hover:bg-[#81D4FA] transition-all text-black ${
                   active === item.label ? "ring-2 ring-[#0288D1]" : ""
                 }`}
               >
                 <FaFileAlt />
-                <span className="text-sm font-medium">{item.label}</span>
+                <span className="text-sm font-medium text-left">{item.label}</span>
               </button>
             ))}
           </div>

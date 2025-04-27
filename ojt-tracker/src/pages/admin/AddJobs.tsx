@@ -87,13 +87,12 @@ const AddJobs = () => {
       <MessageNotification message={message} />
         <div className="mb-4">
           <div className="flex justify-center mb-2">
-            <h2 className="text-xl font-bold text-black">Add Jobs</h2>
+            <h2 className="text-[1.5rem] font-bold text-black">Add Jobs</h2>
           </div>
           <div className="flex justify-start">
             <button 
               onClick={() => setShowForm(true)}
-              className="flex items-center w-48 px-4 py-2 rounded border border-black text-black bg-[#90D5FF] hover:bg-blue-200 transition-colors"
-            >
+              className="flex items-center w-48 px-4 py-2 rounded border border-black text-black bg-[#90D5FF] hover:bg-blue-200 transition-colors">
               + Add Job
             </button>
 
@@ -114,9 +113,9 @@ const AddJobs = () => {
         {/* Header row */}
         <div className="grid grid-cols-12 font-semibold p-2 rounded text-black" style={{ backgroundColor: '#E8E8E8' }}>
           <div className="col-span-3 ml-10">Job</div>
-          <div className="col-span-2 ml-19">Slots</div>
+          <div className="col-span-2 ml-16">Slots</div>
           <div className="col-span-3">Company</div>
-          <div className="col-span-4 ml-20">Configure</div>
+          <div className="col-span-4 ml-18">Configure</div>
         </div>
 
         {jobs.map((job) => (

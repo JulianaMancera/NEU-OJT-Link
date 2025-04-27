@@ -78,8 +78,8 @@ const CompanyManagement = () => {
   };
 
   return (
-    <div className="p-6">
-      <h2 className="text-center font-bold text-2xl mb-4">Company Management</h2>
+    <div className="p-5 w-screen h-full bg-[linear-gradient(to_bottom,#0A279C_20%,#5F74C9_86%)]">
+      <h2 className="text-center font-bold text-2xl mb-4 mt-5">Company Management</h2>
 
       <div className="mb-8">
         <h3 className="font-semibold mb-2">{editingCompanyId ? "Edit Company" : "Add Company"}</h3>
