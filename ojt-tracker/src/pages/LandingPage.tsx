@@ -11,14 +11,22 @@ const LandingPage = () => {
   useEffect(() => {
     const fetchUser = async () => {
       const { data: { user }, error } = await supabase.auth.getUser();
-
+  
       if (error || !user || !user.email?.endsWith("@neu.edu.ph")) {
         navigate("/"); // Redirect to login if not logged in
       } else {
-        setUserName(user.user_metadata?.full_name || "User");
+        // Use the full name if available, otherwise use the email username
+        const fullName = user.user_metadata?.full_name || "";
+        const emailUsername = user.email ? user.email.split('@')[0] : "";
+        
+        // Choose the most appropriate display name, prioritizing full name
+        const displayName = fullName || emailUsername || "User";
+        
+        setUserName(displayName);
+        localStorage.setItem("lastLoggedInUser", displayName);
       }
     };
-
+  
     fetchUser();
   }, [navigate]);
 
