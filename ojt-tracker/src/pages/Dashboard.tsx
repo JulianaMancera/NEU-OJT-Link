@@ -2,7 +2,7 @@ import { supabase } from "../../supabase";
 import { useNavigate } from "react-router-dom";
 import CompanyApplication from "../components/CompanyApplication";
 import ApplicationStatusModal from "../components/ApplicationStatusModal";
-import OJTLogo from "/src/assets/ojt-logo-dashboard.svg";
+import OJTLogo from "/src/assets/ojt-white.png";
 import { ProfileMenu } from "../components/ProfileMenu";
 import { Search, X } from "lucide-react";
 import { Loading } from "../components/Loading";

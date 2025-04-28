@@ -31,6 +31,17 @@
     }
   }
 
+  @keyframes slide-in-down {
+    0% {
+      transform: translateY(-50px);
+      opacity: 0;
+    }
+    100% {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
 .animate-slide-in-left {
   animation: slide-in-left 0.6s ease-out forwards;
 }
@@ -50,6 +61,11 @@
 .animate-slide-in-up3 {
     animation: slide-in-up 1.0s ease-out forwards;
   }
+
+.animate-slide-in-down {
+    animation: slide-in-down 0.3s ease-out forwards;
+  }
+
 
 
 

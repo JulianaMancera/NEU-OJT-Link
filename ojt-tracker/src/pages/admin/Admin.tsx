@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { FaFileAlt } from "react-icons/fa";
 import { User, Settings, LogOut, CircleHelp, MoonStar, Menu } from "lucide-react";
 import { supabase } from "../../../supabase";
-import OJTLogo from "/src/assets/ojt-logo-dashboard.svg";
+import OJTLogo from "/src/assets/ojt-white.png";
 import OJTLogo2 from "/src/assets/ojt-link-logo FINAL.png";
 
 const Admin = () => {
@@ -91,7 +91,7 @@ const Admin = () => {
         </button>
 
         {isProfileOpen && (
-          <div className="absolute right-6 top-[4.5rem] bg-white text-gray-800 shadow-lg rounded-md overflow-hidden z-50 w-64 min-w-[16rem]">
+          <div className="absolute right-6 top-[4.5rem] bg-white text-gray-800 shadow-lg rounded-md overflow-hidden z-50 w-64 min-w-[16rem] animate-slide-in-down">
             <div className="bg-violet-800 text-black p-4 text-center">
               <div className="w-16 h-16 rounded-full mx-auto overflow-hidden mb-2">
                 {profilePicture ? (
