@@ -50,7 +50,7 @@ export const JobRow = ({
       </div>
 
       {/* Slots column */}
-      <div className="col-span-2 flex justify-center items-center gap-2">
+      <div className="col-span-2 flex justify-center items-center gap-2 mr-3">
         {editMode === job.job_id ? (
           <>
             <button

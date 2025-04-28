@@ -16,11 +16,13 @@ interface CompanyApplicationProps {
   initialStep?: 'selectJob' | 'apply' | 'requirement' | 'dashboard';
 }
 
+
 const CompanyApplication: React.FC<CompanyApplicationProps> = ({ 
   company, 
   onClose,
   initialStep = 'selectJob'
 }) => {
+
   const navigate = useNavigate();
   const [step, setStep] = useState<'selectJob' | 'apply' | 'requirement' | 'dashboard'>(initialStep);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);

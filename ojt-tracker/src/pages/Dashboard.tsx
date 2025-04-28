@@ -94,32 +94,47 @@ const Dashboard = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-3 gap-9 mt-6">
           {companies.map((company) => (
+
             <div key={company.company_id} className="w-full">
               <div
                 onClick={() => setSelectedCompany(selectedCompany === company ? null : company)}
-                className="h-full min-h-[220px] border rounded-2xl shadow-[0_0_15px_4px_rgba(169,162,255,0.5)] p-8 bg-white cursor-pointer flex flex-col justify-between transform transition-transform duration-300 ease-in-out hover:scale-105 hover:shadow-[0_0_20px_6px_rgba(169,162,255,0.7)] z-10"
+
+                className="h-full bg-white rounded-lg shadow-[0_0_15px_4px_rgba(169,162,255,0.5)] p-8 cursor-pointer transform transition-transform duration-300 ease-in-out hover:scale-105 hover:shadow-[0_0_20px_6px_rgba(169,162,255,0.7)] z-10"
+
               >
-                <div className="w-30 h-30 rounded border flex items-center justify-center overflow-hidden flex-shrink-0 mr-4">
-                  {company.logo_url ? (
-                    <img
-                      src={company.logo_url}
-                      alt={`${company.name} logo`}
-                      className="max-w-full max-h-full object-contain"
-                    />
-                  ) : (
-                    <div className="flex items-center justify-center w-full h-full">
-                      <span className="text-gray-500">Logo</span>
-                    </div>
-                  )}
+                {/* Logo at top left with proper spacing */}
+                <div className="mb-6">
+                  <div className="w-30 h-18 flex items-center justify-left overflow-hidden">
+                    {company.logo_url ? (
+                      <img
+                        src={company.logo_url}
+                        alt={`${company.name} logo`}
+                        className="max-w-full max-h-full object-contain"
+                      />
+                    ) : (
+                      <div className="flex items-center justify-center w-full h-full">
+                        <span className="text-gray-500">Logo</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
-                <div className="flex flex-col justify-between">
-                  <h2 className="text-2xl text-gray-600 font-semibold mb-3">{company.name}</h2>
-                  <p className="text-gray-600 text-base break-words mb-3">
-                    {company.address} - <span className="block">{company.email}</span>
-                  </p>
-                  <p className="text-gray-700 text-lg mt-auto">{company.contact_no}</p>
-                </div>
+                {/* Company name with proper spacing */}
+                <h2 className="text-xl font-medium text-gray-700 mb-4">{company.name}</h2>
+                
+                {/* Location with proper spacing */}
+                <p className="text-sm text-gray-600 mb-1">
+                  {company.address}
+                </p>
+                
+                {/* Email with proper spacing */}
+                <p className="text-sm text-gray-600 mb-6">
+                  {company.email}
+                </p>
+                
+                {/* Phone number at bottom */}
+                <p className="text-sm text-gray-700">{company.contact_no}</p>
+
               </div>
 
               {selectedCompany === company && (

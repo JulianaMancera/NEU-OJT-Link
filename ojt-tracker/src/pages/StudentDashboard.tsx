@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { File } from "lucide-react";
 import { supabase } from "../../supabase";
-import logo from "../assets/ojt-link-logo FINAL.png";
+import logo from "../assets/ojt-logo-dashboard.svg";
 import WeeklyReport from "../components/WeeklyReport";
 import WeeklyJournal from "../components/WeeklyJournal";
 import MonthlyReport from "../components/MonthlyReport";
+
 import { User, Settings, LogOut, CircleHelp } from "lucide-react";
+
 import { useNavigate } from "react-router-dom";
 import ReportsSubmitted from "../components/ReportsSubmitted";
 
@@ -231,11 +233,11 @@ const StudentDashboard: React.FC = () => {
   };
 
   return (
-    <div className="relative min-h-screen w-screen bg-gradient-to-b from-blue-100 to-white p-6">
+    <div className="relative min-h-screen w-screen bg-[#D0E8FF] p-6">
       {/* Header */}
-      <header className="fixed top-0 left-0 w-full bg-gradient-to-b from-[#578FCA] to-[#2B4764] text-white px-6 py-4 flex items-center justify-between shadow-md z-50 border-b border-black">
+      <header className="fixed top-0 left-0 w-full h-[80px] bg-gradient-to-b from-[#578FCA] to-[#2B4764] text-white px-6 py-4 flex items-center justify-between shadow-md z-50 border-b border-black">
         <div className="flex items-center space-x-4">
-          <img src={logo} alt="OJT Link Logo" />
+          <img src={logo} alt="OJT Link Logo" className="w-[220px] h-[220px]"/>
           <button className="bg-blue-100 text-black px-4 py-2 rounded">HOME</button>
           <span className="text-lg font-semibold">Explore Jobs</span>
         </div>
@@ -250,22 +252,26 @@ const StudentDashboard: React.FC = () => {
                 className="w-8 h-8 rounded-full object-cover"
             />
         ) : (
+
             <User className="w-6 h-6 text-blue-800" />
+
         )}
     </button>
 
     {isProfileOpen && (
+
         <div className="absolute right-0 top-21 bg-white text-gray-800 shadow-lg rounded-md overflow-hidden z-50 w-64 min-w-[16rem] ">
             <div className="bg-blue-800 text-black p-4 text-center">
+
                 <div className="w-16 h-16 rounded-full mx-auto overflow-hidden mb-2">
                     {profilePicture ? (
                         <img src={profilePicture} alt="Profile" className="w-full h-full object-cover" />
                     ) : (
-                        <User className="w-8 h-8 mx-auto text-white" />
+                        <User className="w-8 h-8 mx-auto text-black" />
                     )}
                 </div>
                 <p className="font-semibold">{userName}</p>
-                <p className="text-xs text-violet-200">{userRole}</p>
+                <p className="text-xs text-black-200 capitalize">{userRole}</p>
             </div>
             <ul className="text-sm">
                 <li>
@@ -329,16 +335,16 @@ const StudentDashboard: React.FC = () => {
               )}
             </div>
             <div>
-              <h2 className="text-lg font-semibold">
+              <h2 className="text-[1.2rem] font-semibold">
                 {companyName || "Loading company..."}
               </h2>
-              <p className="text-sm text-gray-600">
+              <p className="text-[.8rem] text-gray-600">
                 {jobPosition || "Loading position..."}
               </p>
             </div>
           </div>
           <div className="bg-white shadow-md rounded-lg p-4 border border-black">
-            <h3 className="text-lg font-semibold mb-2">Work Days</h3>          
+            <h3 className="text-lg font-semibold mb-2 text-center">Work Days</h3>          
             {workDays.length > 0 ? (
               <div className="space-y-1">
                 {sortDaysOfWeek(workDays).map((day, index) => (
@@ -352,24 +358,24 @@ const StudentDashboard: React.FC = () => {
             )}
           </div>
           <div className="bg-white shadow-md rounded-lg p-4 border border-black">
-            <h3 className="text-lg font-semibold mb-2">Supervisors</h3>
-            <div className="space-y-2">
-              <div><span className="font-semibold">Supervisor:</span> Vincent Smith</div>
-              <div><span className="font-semibold">OJT Coordinator:</span> John Doe</div>
+            <h3 className="text-lg font-semibold mb-2 text-center">Supervisors</h3>
+            <div className="space-y-4">
+              <div className="flex items-center gap-2"><UserSquare2 size={25} color="black"/><span className="font-semibold">Supervisor:</span>Vincent Smith</div>
+              <div className="flex items-center gap-2"><UserSquare2 size={25} color="black"/><span className="font-semibold">OJT Coordinator:</span> John Doe</div>           
             </div>
           </div>
         </div>
         <div className="grid grid-cols-3 gap-4">
           <div className="bg-white shadow-md rounded-lg p-4 border border-black">
-            <h3 className="text-lg font-semibold mb-2">Templates</h3>
-            <div className="space-y-2">
+            <h3 className="text-[1.1rem] font-semibold mb-5 text-center bg-[#D0E8FF] p-6 w-full h-2 flex justify-center items-center">Templates</h3>
+            <div className="space-y-7">
               {templates.map((template) => (
                 <div
                   key={template.file}
-                  className={`flex items-center space-x-2 cursor-pointer ${loading === template.file ? "text-gray-400" : "hover:text-blue-500"}`}
+                  className={`flex items-center bg-gray-300 py-2 px-4 rounded hover:bg-gray-300 max-w-46 gap-2 mx-auto transition-colors font-semibold ${loading === template.file ? "text-gray-400" : "hover:text-blue-500"}`}
                   onClick={() => handleDownload(template.file)}
                 >
-                  <File className="text-gray-500" />
+                  <File className="text-black-500" />
                   <span>{loading === template.file ? "Downloading..." : template.name}</span>
                 </div>
               ))}
@@ -377,13 +383,13 @@ const StudentDashboard: React.FC = () => {
             </div>
           </div>
           <div className="bg-white shadow-md rounded-lg p-4 border border-black">
-            <h3 className="text-lg font-semibold mb-2">Submissions</h3>
-            <div className="space-y-2">
+            <h3 className="text-[1.1rem] font-semibold mb-4 text-center bg-[#D0E8FF] p-6 w-full h-2 flex justify-center items-center">Submissions</h3>
+            <div className="space-y-5">
                 {templates.map((template) => (
                 <button
                     key={template.file}
                     onClick={() => handleOpenSubmissionModal(template.name)}
-                    className="w-full bg-black-100 text-black-600 p-2 rounded hover:bg-blue-200 flex items-center justify-start"
+                    className="w-full bg-black-100 text-black-600 p-2 rounded hover:bg-[#A1E3F9] flex items-center justify-start bg-[#A1E3F9]"
                 >
                     <File className="mr-2" />
                     {template.name}

@@ -58,6 +58,7 @@ const StudentProfile = () => {
   };
 
   return (
+
     <div className="max-w-lg mx-auto mt-10 p-6 bg-white rounded-lg shadow-md">
       <h2 className="text-2xl font-bold mb-4 text-blue-600">Profile</h2>
 
@@ -86,8 +87,10 @@ const StudentProfile = () => {
       >
         {loading ? "Updating..." : "Update Name"}
       </button>
+
     </div>
   );
+  
 };
 
 export default StudentProfile;
