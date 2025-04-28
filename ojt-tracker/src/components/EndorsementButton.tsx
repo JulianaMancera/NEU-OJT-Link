@@ -2,6 +2,7 @@ import { pdf } from "@react-pdf/renderer";
 import EndorsementPDF from "../services/EndorsementPDF";
 import { supabase } from "../../supabase";
 import fetchDaen from "../services/TableFetch/FetchDean";
+import Job from "../types/Job";
 
 interface CompanyProps{
     company:{
@@ -12,17 +13,6 @@ interface CompanyProps{
         contact_no: string,
     };    
     onClose: () => void;
-}
-interface Job{
-    job_id: string,
-    company_id: string,
-    created_at: string,
-    position: string,
-    description: string,
-    responsibility: string[],
-    qualifications: string[],
-    work_hrs: string,
-    schedule: string,
 }
 
 interface EndorsmentProps{

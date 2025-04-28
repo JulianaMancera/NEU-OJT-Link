@@ -5,7 +5,9 @@ import logo from "../assets/ojt-logo-dashboard.svg";
 import WeeklyReport from "../components/WeeklyReport";
 import WeeklyJournal from "../components/WeeklyJournal";
 import MonthlyReport from "../components/MonthlyReport";
-import { User, Settings, LogOut, CircleHelp, UserSquare2 } from "lucide-react";
+
+import { User, Settings, LogOut, CircleHelp } from "lucide-react";
+
 import { useNavigate } from "react-router-dom";
 import ReportsSubmitted from "../components/ReportsSubmitted";
 
@@ -250,13 +252,17 @@ const StudentDashboard: React.FC = () => {
                 className="w-8 h-8 rounded-full object-cover"
             />
         ) : (
-            <User className="w-6 h-6 text-black-800" />
+
+            <User className="w-6 h-6 text-blue-800" />
+
         )}
     </button>
 
     {isProfileOpen && (
-        <div className="absolute right-0 top-[4.5rem] bg-white text-gray-800 shadow-lg rounded-md overflow-hidden z-50 w-64 min-w-[16rem] ">
-            <div className="bg-[#3B82F6] text-black p-4 text-center">
+
+        <div className="absolute right-0 top-21 bg-white text-gray-800 shadow-lg rounded-md overflow-hidden z-50 w-64 min-w-[16rem] ">
+            <div className="bg-blue-800 text-black p-4 text-center">
+
                 <div className="w-16 h-16 rounded-full mx-auto overflow-hidden mb-2">
                     {profilePicture ? (
                         <img src={profilePicture} alt="Profile" className="w-full h-full object-cover" />

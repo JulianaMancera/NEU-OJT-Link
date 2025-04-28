@@ -28,15 +28,12 @@ const WeeklyReport = ({ isOpen, onClose, editingReport }: WeeklyReportProps) => 
   const resetMessage = () => setMessage("");
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      setFiles(Array.from(e.target.files));
-    }
+    if (e.target.files) setFiles(Array.from(e.target.files));
   };
 
   const handleDrop = (e: React.DragEvent<HTMLLabelElement>) => {
     e.preventDefault();
-    const droppedFiles = Array.from(e.dataTransfer.files);
-    setFiles(droppedFiles);
+    setFiles(Array.from(e.dataTransfer.files));
   };
 
   const removeFile = (index: number) => {
@@ -45,13 +42,11 @@ const WeeklyReport = ({ isOpen, onClose, editingReport }: WeeklyReportProps) => 
   };
 
   const isValidFileName = (fileName: string): boolean => {
-    const regex = /^WeeklyReport_[a-zA-Z]+_Week(\d+)\.pdf$/;
-    return regex.test(fileName);
+    return /^WeeklyReport_[a-zA-Z]+_Week(\d+)\.pdf$/.test(fileName);
   };
 
   const extractWeekNumber = (fileName: string): number | null => {
-    const regex = /Week(\d+)/;
-    const match = fileName.match(regex);
+    const match = fileName.match(/Week(\d+)/);
     return match ? parseInt(match[1], 10) : null;
   };
 
@@ -71,96 +66,128 @@ const WeeklyReport = ({ isOpen, onClose, editingReport }: WeeklyReportProps) => 
     setUploading(true);
     setProgress(0);
     let completed = 0;
+    let errors: string[] = [];
   
     for (const file of files) {
       const fileName = file.name;
-  
+
       if (file.type !== "application/pdf") {
-        setMessage(`❌ ${fileName} is not a PDF.`);
+        errors.push(`${fileName} is not a PDF.`);
         continue;
       }
   
       if (!isValidFileName(fileName)) {
-        setMessage(`❌ Invalid format: ${fileName}`);
+        errors.push(`Invalid format: ${fileName}. Format should be WeeklyReport_Surname_Week#.pdf`);
         continue;
       }
   
       const extractedWeek = extractWeekNumber(fileName);
       if (extractedWeek === null) {
-        setMessage(`❌ Week number missing: ${fileName}`);
+        errors.push(`Week number missing: ${fileName}`);
         continue;
       }
   
-      // Skip if editing and week doesn't match
       if (editingReport && extractedWeek !== editingReport.week_number) {
-        setMessage(`❌ Week mismatch for ${fileName}`);
+        errors.push(`Week mismatch for ${fileName}`);
         continue;
       }
   
-      // Prevent duplicate for that user
       const { data: existing, error: checkError } = await supabase
         .from("weekly_report")
-        .select("week_number")
+        .select("weekly_report_id, week_number")
         .eq("submitted_by", userName)
         .eq("week_number", extractedWeek)
         .maybeSingle();
   
       if (checkError) {
-        console.error("Check error:", checkError);
+        errors.push(`Database check failed: ${checkError.message}`);
         continue;
       }
   
       if (!editingReport && existing) {
-        setMessage(`⚠️ Week ${extractedWeek} already submitted. Skipping ${fileName}.`);
+        errors.push(`Week ${extractedWeek} already submitted. Skipping ${fileName}.`);
         continue;
       }
   
-      const timestamped = `${Date.now()}_${fileName}`;
-      const filePath = `weekly_reports/${timestamped}`;
+      try {
+        const timestamped = `${Date.now()}_${fileName}`;
+        const filePath = `weekly_reports/${timestamped}`;
   
-      const { error: uploadError } = await supabase.storage.from("weekly_reports").upload(filePath, file);
-      if (uploadError) {
-        console.error("Upload failed:", fileName, uploadError);
-        continue;
+        const { error: uploadError } = await supabase.storage
+          .from("weekly_reports")
+          .upload(filePath, file);
+          
+        if (uploadError) {
+          errors.push(`Upload failed: ${uploadError.message}`);
+          continue;
+        }
+  
+        const { data: fileData } = supabase.storage
+          .from("weekly_reports")
+          .getPublicUrl(filePath);
+  
+        if (editingReport) {
+          const { error: updateError } = await supabase
+            .from("weekly_report")
+            .update({
+              file_name: file.name,
+              file_url: fileData.publicUrl,
+              uploaded_at: new Date().toISOString(),
+              status: "pending"
+            })
+            .eq("weekly_report_id", editingReport.weekly_report_id);
+            
+          if (updateError) {
+            errors.push(`Database update failed: ${updateError.message}`);
+            continue;
+          }
+        } else {
+          const { error: insertError } = await supabase
+            .from("weekly_report")
+            .insert([{
+              file_name: file.name,
+              file_url: fileData.publicUrl,
+              uploaded_at: new Date().toISOString(),
+              submitted_by: userName,
+              start_date: new Date().toISOString(),
+              user_id: user.id,
+              week_number: extractedWeek,
+            }]);
+            
+          if (insertError) {
+            errors.push(`Database insert failed: ${insertError.message}`);
+            continue;
+          }
+        }
+  
+        completed++;
+      } catch (err: unknown) {
+        const errorMessage = err instanceof Error ? err.message : String(err);
+        errors.push(`Unexpected error: ${errorMessage}`);
       }
-  
-      const { data: fileData } = supabase.storage.from("weekly_reports").getPublicUrl(filePath);
-  
-      if (editingReport) {
-        await supabase
-          .from("weekly_report")
-          .update({
-            file_name: file.name,
-            file_url: fileData.publicUrl,
-            uploaded_at: new Date().toISOString(),
-            status: "pending"
-          })
-          .eq("weekly_report_id", editingReport.weekly_report_id);
-      } else {
-        await supabase.from("weekly_report").insert([{
-          file_name: file.name,
-          file_url: fileData.publicUrl,
-          uploaded_at: new Date().toISOString(),
-          submitted_by: userName,
-          start_date: new Date().toISOString(),
-          user_id: user.id,
-          week_number: extractedWeek,
-        }]);
-      }
-  
-      completed++;
+      
       setProgress(Math.round((completed / files.length) * 100));
     }
   
     setUploading(false);
-    setFiles([]);
-    setMessage(`✅ Uploaded ${completed} report(s) successfully.`);
-  };  
+    
+    if (errors.length > 0) {
+      if (completed > 0) {
+        setMessage(`✅ Uploaded ${completed} report(s) successfully with ${errors.length} errors.`);
+      } else {
+        setMessage(`❌ Upload failed. ${errors[0]}`);
+      }
+      console.error("Upload errors:", errors);
+    } else {
+      setMessage(`✅ Uploaded ${completed} report(s) successfully.`);
+      setFiles([]);
+    }
+  };
 
   if (!isOpen) return null;
 
   return (
-    <div className={`fixed inset-0 bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50`}>
+    <div className="fixed inset-0 bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50">
       <div className="fixed inset-0" onClick={() => { onClose(); resetMessage(); }}></div>
 
       <div className="relative bg-gray-200 shadow-xl rounded-lg p-6 border-2 w-full max-w-2xl z-50">
@@ -180,8 +207,7 @@ const WeeklyReport = ({ isOpen, onClose, editingReport }: WeeklyReportProps) => 
           <input type="file" accept="application/pdf" onChange={handleFileChange} className="hidden" />
         </label>
 
-         {/* Upload Progress */}
-         {uploading && progress !== null && (
+        {uploading && progress !== null && (
           <div className="mt-4">
             <p className="text-sm text-gray-700">Uploading... {Math.round(progress)}%</p>
             <div className="w-full bg-gray-300 h-2 rounded">
