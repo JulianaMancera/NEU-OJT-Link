@@ -22,7 +22,7 @@ const EndorsementSuccessModal: React.FC<EndorsementSuccessModalProps> = ({
 
   const handleProceedToDashboard = () => {
     onClose();
-    navigate('/dashboard');
+    navigate('/student-dashboard');
   };
 
   return (

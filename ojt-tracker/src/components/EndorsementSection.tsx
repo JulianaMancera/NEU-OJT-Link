@@ -14,7 +14,6 @@ interface EndorsementSectionProps {
 
 const EndorsementSection: React.FC<EndorsementSectionProps> = ({ company, job, onClose }) => {
   const [endorsement, setEndorsement] = useState<File | null>(null);
-  const [endorsementStatus, setEndorsementStatus] = useState<boolean>(false);
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [showErrorPopup, setShowErrorPopup] = useState<boolean>(false);
@@ -35,9 +34,16 @@ const EndorsementSection: React.FC<EndorsementSectionProps> = ({ company, job, o
 
   const handleEndorsementSubmission = async () => {
     if (endorsement) {
-      await submitEndorsement(endorsement, company, setEndorsementStatus, setLoading);
-      if (endorsementStatus) {
+      try {
+        setLoading(true);
+        await submitEndorsement(endorsement, company, () => {}, setLoading);
         setShowSuccessModal(true);
+      } catch (error) {
+        console.error(error);
+        setErrorMessage('Failed to submit endorsement letter. Please try again.');
+        setShowErrorPopup(true);
+      } finally {
+        setLoading(false);
       }
     }
   };
