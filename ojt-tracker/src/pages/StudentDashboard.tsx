@@ -6,7 +6,7 @@ import WeeklyReport from "../components/WeeklyReport";
 import WeeklyJournal from "../components/WeeklyJournal";
 import MonthlyReport from "../components/MonthlyReport";
 
-import { User, Settings, LogOut, CircleHelp } from "lucide-react";
+import { User, Settings, LogOut, CircleHelp, UserSquare2} from "lucide-react";
 
 import { useNavigate } from "react-router-dom";
 import ReportsSubmitted from "../components/ReportsSubmitted";

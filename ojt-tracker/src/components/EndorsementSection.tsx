@@ -4,6 +4,7 @@ import { handleEndorsementSubmit as submitEndorsement } from '../services/upload
 import EndorsementButton from './EndorsementButton';
 import Company from '../types/Company';
 import Job from '../types/Job';
+import EndorsementSuccessModal from './EndorsementSuccessModal';
 
 interface EndorsementSectionProps {
   company: Company;
@@ -17,6 +18,7 @@ const EndorsementSection: React.FC<EndorsementSectionProps> = ({ company, job, o
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [showErrorPopup, setShowErrorPopup] = useState<boolean>(false);
+  const [showSuccessModal, setShowSuccessModal] = useState<boolean>(false);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
@@ -35,7 +37,7 @@ const EndorsementSection: React.FC<EndorsementSectionProps> = ({ company, job, o
     if (endorsement) {
       await submitEndorsement(endorsement, company, setEndorsementStatus, setLoading);
       if (endorsementStatus) {
-        onClose();
+        setShowSuccessModal(true);
       }
     }
   };
@@ -76,6 +78,13 @@ const EndorsementSection: React.FC<EndorsementSectionProps> = ({ company, job, o
           </button>
         </div>
       )}
+      <EndorsementSuccessModal 
+        isOpen={showSuccessModal}
+        onClose={() => {
+          setShowSuccessModal(false);
+          onClose();
+        }}
+      />
     </div>
   );
 };
