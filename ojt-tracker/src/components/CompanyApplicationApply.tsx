@@ -27,18 +27,21 @@ const CompanyApplicationApply = ({
 
   return (
     <div className="text-black"> 
+      <br/>
+      <div className="text-center">
       <button
         onClick={handleBack}
-        className="text-blue-500 mb-4 mr-4 bg-black"
+        className="mb-4 mr-4 bg-[#5fbff9]"
       >
         Back to Job List
       </button>
       <button
         onClick={handleApply}
-        className="text-blue-500 mb-4 bg-black"
+        className="mb-4 bg-[#5fbff9]"
       >
         Apply Now
       </button>
+      </div>
       <p className="font-bold mt-4 text-[1.4rem]">Position</p>
       <p className="text-black leading-relaxed text-[1.15rem]">{job.position}</p>
       <p className="font-bold mt-3 text-[1.15rem]">Description</p>

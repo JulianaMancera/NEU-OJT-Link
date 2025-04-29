@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../../supabase";
 import { User } from "@supabase/supabase-js";
+import Sidebar from "../components/SideBar";
 
 interface Application {
   application_id: string;
@@ -14,6 +15,7 @@ const ApplicationApproval = () => {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
   const [applications, setApplications] = useState<(Application & { user_name?: string; company_name?: string })[]>([]);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     const fetchApplications = async () => {
@@ -91,9 +93,12 @@ const ApplicationApproval = () => {
   }
 
   return (
-    <div className="p-2">
-      <div className="bg-[linear-gradient(to_bottom,#5B75E0_10%,#96A0C9_75%)] w-screen h-screen p-20">
-        <h2 className="text-[2.3rem] font-bold text-center mb-10 text-white">
+    <div>
+      <div className="bg-blue-200 w-screen h-screen p-20">
+      <div className="w-full h-[80px] absolute left-0 top-0 bg-gradient-to-b from-[#578FCA] to-[#2B4764] border-1 border-black flex items-center justify-between px-6">
+      </div>
+      <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}/>
+        <h2 className="text-[2.3rem] font-bold text-center mb-10 mt-12 text-black">
           Application Approvals
         </h2>
 

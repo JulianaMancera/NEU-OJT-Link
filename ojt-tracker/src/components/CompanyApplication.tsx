@@ -191,7 +191,7 @@ const CompanyApplication: React.FC<CompanyApplicationProps> = ({
 
       {step === "requirement" && selectedJob && (
         <div className="text-black">
-          <p className="text-[1rem] font-semibold">Position: {selectedJob.position}</p>
+          <p className="text-[1.1rem] font-semibold text-center mt-4">Position: {selectedJob.position}</p>
           <br />
           <RequirementForm
             company={company}

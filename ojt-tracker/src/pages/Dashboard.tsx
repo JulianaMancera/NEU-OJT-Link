@@ -140,12 +140,12 @@ const Dashboard = () => {
               {selectedCompany === company && (
                 <div className="fixed inset-0 flex items-center justify-center z-50">
                   <div className="bg-[#FDFBF6] p-6 rounded-lg shadow-lg w-full max-w-[100vh] h-[60vh] overflow-y-auto overflow-x-hidden relative z-50">
-                    <div className="flex justify-between items-center">
-                      <h3 className="text-[1.5rem] font-bold text-black sticky top-0">{company.name}</h3>
-                      <button onClick={() => setSelectedCompany(null)} className="bg-black">
+                    <div className="flex justify-center items-center">
+                      <h3 className="text-[1.8rem] font-bold text-black sticky top-0 flex">{company.name}</h3>
+                      <button onClick={() => setSelectedCompany(null)} className="absolute right-0 bg-black mr-6">
                         <X size={15} color="white" />
                       </button>
-                    </div>
+                      </div>
                     <CompanyApplication 
                       company={company} 
                       onClose={() => setSelectedCompany(null)}
