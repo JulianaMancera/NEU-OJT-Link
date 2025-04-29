@@ -1,6 +1,9 @@
 import { useState, useEffect } from "react";
 import { supabase } from "../../supabase";
 import { FaCloudUploadAlt, FaTrash } from "react-icons/fa";
+import * as pdfjs from 'pdfjs-dist';
+// Set worker path explicitly to version 2.10.377
+pdfjs.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.worker.min.js';
 
 interface WeeklyReportProps {
   isOpen: boolean;
@@ -11,34 +14,217 @@ interface WeeklyReportProps {
   } | null;
 }
 
+interface TimeEntry {
+  date: string;
+  timeIn: string;
+  timeOut: string;
+  hours: number;
+  task: string;
+  remarks: string;
+}
+
 const WeeklyReport = ({ isOpen, onClose, editingReport }: WeeklyReportProps) => {
   const [files, setFiles] = useState<File[]>([]);
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState<number | null>(null);
   const [message, setMessage] = useState("");
+  const [extractedEntries, setExtractedEntries] = useState<TimeEntry[]>([]);
+  const [isExtracting, setIsExtracting] = useState(false);
+  const [totalHours, setTotalHours] = useState<number>(0);
 
   useEffect(() => {
     if (!isOpen) {
       setFiles([]);
       setMessage("");
       setProgress(null);
+      setExtractedEntries([]);
+      setTotalHours(0);
     }
   }, [isOpen]);
 
   const resetMessage = () => setMessage("");
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) setFiles(Array.from(e.target.files));
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const selectedFiles = Array.from(e.target.files);
+      setFiles(selectedFiles);
+      
+      // Extract table data from the first PDF
+      if (selectedFiles.length > 0 && selectedFiles[0].type === "application/pdf") {
+        await extractTableFromPdf(selectedFiles[0]);
+      }
+    }
   };
 
-  const handleDrop = (e: React.DragEvent<HTMLLabelElement>) => {
+  const handleDrop = async (e: React.DragEvent<HTMLLabelElement>) => {
     e.preventDefault();
-    setFiles(Array.from(e.dataTransfer.files));
+    const droppedFiles = Array.from(e.dataTransfer.files);
+    setFiles(droppedFiles);
+    
+    // Extract table data from the first PDF
+    if (droppedFiles.length > 0 && droppedFiles[0].type === "application/pdf") {
+      await extractTableFromPdf(droppedFiles[0]);
+    }
   };
+
+  const extractTableFromPdf = async (file: File) => {
+    setIsExtracting(true);
+    setMessage("🔍 Extracting table data from PDF...");
+    
+    try {
+      // Convert file to ArrayBuffer
+      const arrayBuffer = await file.arrayBuffer();
+
+
+      
+      // Load PDF document
+      const pdf = await pdfjs.getDocument({data: new Uint8Array(arrayBuffer)}).promise;
+      
+      const entries: TimeEntry[] = [];
+      let totalHoursSum = 0;
+      
+      // Process each page to look for table data
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const textContent = await page.getTextContent();
+        
+        // Extract text items with their positions
+        const items = textContent.items.map((item: any) => ({
+          text: item.str,
+          x: item.transform[4], // x position
+          y: item.transform[5], // y position
+          height: item.height
+        }));
+        
+        // Sort items by y-position (top to bottom) and then by x-position (left to right)
+        // This helps us read the table row by row
+        const sortedItems = items.sort((a, b) => {
+          // Group items into rows (items within ~5 units of y-position are in the same row)
+          const rowDiff = Math.abs(a.y - b.y);
+          if (rowDiff < 5) {
+            return a.x - b.x; // Same row, sort by x
+          }
+          return b.y - a.y; // Different rows, sort by y (top to bottom)
+        });
+        
+        // Process rows to extract table data
+        let currentRow: any[] = [];
+        let lastY = 0;
+        
+        sortedItems.forEach((item) => {
+          if (currentRow.length === 0 || Math.abs(item.y - lastY) < 5) {
+            // Same row or first item
+            currentRow.push(item);
+          } else {
+            // New row detected
+            // Process completed row if it looks like a data row
+            processTableRow(currentRow, entries);
+            // Start new row
+            currentRow = [item];
+          }
+          lastY = item.y;
+        });
+        
+        // Process the last row
+        if (currentRow.length > 0) {
+          processTableRow(currentRow, entries);
+        }
+      }
+      
+      // Calculate total hours
+      totalHoursSum = entries.reduce((sum, entry) => sum + (entry.hours || 0), 0);
+      setTotalHours(totalHoursSum);
+      
+      setExtractedEntries(entries);
+      setMessage(`✅ Found ${entries.length} time entries in the PDF. Total hours: ${totalHoursSum}`);
+    } catch (error) {
+      console.error("Error extracting table from PDF:", error);
+      setMessage("❌ Failed to extract table data from PDF.");
+    } finally {
+      setIsExtracting(false);
+    }
+  };
+  
+  const processTableRow = (rowItems: any[], entries: TimeEntry[]) => {
+    // Skip header rows or empty rows
+    if (rowItems.length < 3) return;
+    
+    // Check if this is a data row by looking for date pattern in the first column
+    const datePattern = /\d{2}\/\d{2}\/\d{4}/;
+    const rowText = rowItems.map(item => item.text).join(' ');
+    const dateMatch = rowText.match(datePattern);
+    
+    if (dateMatch) {
+      // This looks like a data row - try to extract the structured data
+      const rowData = rowItems.map(item => item.text);
+      
+      // Extract values based on the expected table structure
+      let date = '';
+      let timeIn = '';
+      let timeOut = '';
+      let hours = 0;
+      let task = '';
+      let remarks = '';
+      
+      // Find date
+      for (const text of rowData) {
+        if (text.match(datePattern)) {
+          date = text;
+          break;
+        }
+      }
+      
+      // Find time in and out (expected format like "8:00AM" and "3:00PM")
+      const timePattern = /\d{1,2}:\d{2}[AP]M/i;
+      const timesFound = rowData.filter(text => text.match(timePattern));
+      if (timesFound.length >= 2) {
+        timeIn = timesFound[0];
+        timeOut = timesFound[1];
+      }
+      
+      // Find hours (expected to be a number)
+      const hoursPattern = /^\d+$/;
+      for (const text of rowData) {
+        if (text.match(hoursPattern)) {
+          hours = parseInt(text, 10);
+          break;
+        }
+      }
+      
+      // Extract task and remarks (these are likely longer text items that don't match other patterns)
+      const nonMatchingItems = rowData.filter(text => 
+        !text.match(datePattern) && 
+        !text.match(timePattern) && 
+        !text.match(hoursPattern) &&
+        text.trim().length > 0
+      );
+      
+      // If there are multiple non-matching items, assign them to task/remarks appropriately
+      if (nonMatchingItems.length > 0) {
+        task = nonMatchingItems[0];
+        remarks = nonMatchingItems.slice(1).join(' ');  // Concatenate remaining items for remarks
+      }
+      
+      // Only add entry if we have at least date and hours
+      if (date && hours) {
+        entries.push({
+          date,
+          timeIn,
+          timeOut,
+          hours,
+          task,
+          remarks
+        });
+      }
+    }
+  };
+ 
 
   const removeFile = (index: number) => {
     setFiles(files.filter((_, i) => i !== index));
     resetMessage();
+    setExtractedEntries([]);
+    setTotalHours(0);
   };
 
   const isValidFileName = (fileName: string): boolean => {
@@ -66,11 +252,10 @@ const WeeklyReport = ({ isOpen, onClose, editingReport }: WeeklyReportProps) => 
     setUploading(true);
     setProgress(0);
     let completed = 0;
-    let errors: string[] = [];
+    const errors: string[] = [];
   
     for (const file of files) {
       const fileName = file.name;
-
       if (file.type !== "application/pdf") {
         errors.push(`${fileName} is not a PDF.`);
         continue;
@@ -126,6 +311,8 @@ const WeeklyReport = ({ isOpen, onClose, editingReport }: WeeklyReportProps) => 
           .from("weekly_reports")
           .getPublicUrl(filePath);
   
+        let reportId: number;
+  
         if (editingReport) {
           const { error: updateError } = await supabase
             .from("weekly_report")
@@ -133,7 +320,8 @@ const WeeklyReport = ({ isOpen, onClose, editingReport }: WeeklyReportProps) => 
               file_name: file.name,
               file_url: fileData.publicUrl,
               uploaded_at: new Date().toISOString(),
-              status: "pending"
+              status: "pending",
+              total_hours: totalHours
             })
             .eq("weekly_report_id", editingReport.weekly_report_id);
             
@@ -141,8 +329,10 @@ const WeeklyReport = ({ isOpen, onClose, editingReport }: WeeklyReportProps) => 
             errors.push(`Database update failed: ${updateError.message}`);
             continue;
           }
+          
+          reportId = editingReport.weekly_report_id;
         } else {
-          const { error: insertError } = await supabase
+          const { data: insertedReport, error: insertError } = await supabase
             .from("weekly_report")
             .insert([{
               file_name: file.name,
@@ -152,11 +342,51 @@ const WeeklyReport = ({ isOpen, onClose, editingReport }: WeeklyReportProps) => 
               start_date: new Date().toISOString(),
               user_id: user.id,
               week_number: extractedWeek,
-            }]);
+              total_hours: totalHours,
+            }])
+            .select("weekly_report_id")
+            .single();
             
-          if (insertError) {
-            errors.push(`Database insert failed: ${insertError.message}`);
+          if (insertError || !insertedReport) {
+            errors.push(`Database insert failed: ${insertError?.message || "Unknown error"}`);
             continue;
+          }
+          
+          reportId = insertedReport.weekly_report_id;
+        }
+  
+        // Insert time entries from the extracted table data
+        if (extractedEntries.length > 0) {
+          // First, delete any existing time entries for this report if editing
+          if (editingReport) {
+            const { error: deleteError } = await supabase
+              .from("time_entries")
+              .delete()
+              .eq("weekly_report_id", reportId);
+              
+            if (deleteError) {
+              errors.push(`Failed to clear existing time entries: ${deleteError.message}`);
+              // Continue anyway to try inserting new entries
+            }
+          }
+          
+          // Insert new time entries
+          const timeEntriesToInsert = extractedEntries.map(entry => ({
+            user_id: user.id,
+            date: entry.date,
+            time_in: entry.timeIn,
+            time_out: entry.timeOut,
+            hours: entry.hours,
+            created_at: new Date().toISOString()
+          }));
+          
+          const { error: timeEntryError } = await supabase
+            .from("time_entries")
+            .insert(timeEntriesToInsert);
+          
+          if (timeEntryError) {
+            errors.push(`Failed to insert time entries: ${timeEntryError.message}`);
+            // Continue the upload process despite this error
           }
         }
   
@@ -181,6 +411,8 @@ const WeeklyReport = ({ isOpen, onClose, editingReport }: WeeklyReportProps) => 
     } else {
       setMessage(`✅ Uploaded ${completed} report(s) successfully.`);
       setFiles([]);
+      setExtractedEntries([]);
+      setTotalHours(0);
     }
   };
 
@@ -189,12 +421,10 @@ const WeeklyReport = ({ isOpen, onClose, editingReport }: WeeklyReportProps) => 
   return (
     <div className="fixed inset-0 bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50">
       <div className="fixed inset-0" onClick={() => { onClose(); resetMessage(); }}></div>
-
       <div className="relative bg-gray-200 shadow-xl rounded-lg p-6 border-2 w-full max-w-2xl z-50">
         <h2 className="text-2xl font-semibold text-center mb-4">
           {editingReport ? `EDIT WEEK ${editingReport.week_number} REPORT` : "UPLOAD WEEKLY REPORT"}
         </h2>
-
         <label
           className="flex flex-col items-center justify-center border-2 border-dashed border-gray-400 bg-white p-6 rounded-lg cursor-pointer hover:bg-gray-300"
           onDrop={handleDrop}
@@ -207,6 +437,13 @@ const WeeklyReport = ({ isOpen, onClose, editingReport }: WeeklyReportProps) => 
           <input type="file" accept="application/pdf" onChange={handleFileChange} className="hidden" />
         </label>
 
+        {isExtracting && (
+          <div className="mt-4 p-2 bg-blue-100 text-blue-700 rounded flex items-center justify-center">
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-700 mr-2"></div>
+            Extracting table data from PDF...
+          </div>
+        )}
+
         {uploading && progress !== null && (
           <div className="mt-4">
             <p className="text-sm text-gray-700">Uploading... {Math.round(progress)}%</p>
@@ -218,7 +455,7 @@ const WeeklyReport = ({ isOpen, onClose, editingReport }: WeeklyReportProps) => 
 
         {files.length > 0 && (
           <div className="mt-4">
-            <h3 className="text-gray-700 font-medium mb-2">Uploaded</h3>
+            <h3 className="text-gray-700 font-medium mb-2">Selected File</h3>
             {files.map((file, index) => (
               <div key={index} className="flex items-center justify-between bg-white p-2 border rounded mb-2">
                 <span className="text-gray-700 truncate">{file.name}</span>
@@ -230,8 +467,52 @@ const WeeklyReport = ({ isOpen, onClose, editingReport }: WeeklyReportProps) => 
           </div>
         )}
 
+        {/* Extracted Time Entries */}
+        {extractedEntries.length > 0 && (
+          <div className="mt-4">
+            <h3 className="text-gray-700 font-medium mb-2">Extracted Time Entries</h3>
+            <div className="bg-white rounded border overflow-x-auto">
+              <table className="min-w-full">
+                <thead>
+                  <tr className="bg-gray-100">
+                    <th className="py-2 px-3 text-left text-xs font-medium text-gray-600 uppercase">Date</th>
+                    <th className="py-2 px-3 text-left text-xs font-medium text-gray-600 uppercase">Time In</th>
+                    <th className="py-2 px-3 text-left text-xs font-medium text-gray-600 uppercase">Time Out</th>
+                    <th className="py-2 px-3 text-left text-xs font-medium text-gray-600 uppercase">Hours</th>
+                    <th className="py-2 px-3 text-left text-xs font-medium text-gray-600 uppercase">Task</th>
+                    <th className="py-2 px-3 text-left text-xs font-medium text-gray-600 uppercase">Remarks</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {extractedEntries.map((entry, index) => (
+                    <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                      <td className="py-2 px-3 text-sm text-gray-700">{entry.date}</td>
+                      <td className="py-2 px-3 text-sm text-gray-700">{entry.timeIn}</td>
+                      <td className="py-2 px-3 text-sm text-gray-700">{entry.timeOut}</td>
+                      <td className="py-2 px-3 text-sm text-gray-700">{entry.hours}</td>
+                      <td className="py-2 px-3 text-sm text-gray-700">{entry.task}</td>
+                      <td className="py-2 px-3 text-sm text-gray-700">{entry.remarks}</td>
+                    </tr>
+                  ))}
+                  <tr className="bg-gray-200 font-medium">
+                    <td colSpan={3} className="py-2 px-3 text-sm text-gray-700 text-right">Total Hours:</td>
+                    <td className="py-2 px-3 text-sm text-gray-700">{totalHours}</td>
+                    <td colSpan={2}></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
         {message && (
-          <p className={`mt-4 text-center font-medium p-2 rounded ${message.includes("❌") ? "bg-red-100 text-red-600" : "bg-green-100 text-green-600"}`}>
+          <p className={`mt-4 text-center font-medium p-2 rounded ${
+            message.includes("❌") 
+              ? "bg-red-100 text-red-600" 
+              : message.includes("⚠️") || message.includes("🔍") 
+                ? "bg-yellow-100 text-yellow-600" 
+                : "bg-green-100 text-green-600"
+          }`}>
             {message}
           </p>
         )}
