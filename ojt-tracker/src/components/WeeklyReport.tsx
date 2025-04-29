@@ -31,6 +31,8 @@ const WeeklyReport = ({ isOpen, onClose, editingReport }: WeeklyReportProps) => 
   const [extractedEntries, setExtractedEntries] = useState<TimeEntry[]>([]);
   const [isExtracting, setIsExtracting] = useState(false);
   const [totalHours, setTotalHours] = useState<number>(0);
+  const [remainingHours, setRemainingHours] = useState<number>(300);
+
 
   useEffect(() => {
     if (!isOpen) {
@@ -132,6 +134,8 @@ const WeeklyReport = ({ isOpen, onClose, editingReport }: WeeklyReportProps) => 
       // Calculate total hours
       totalHoursSum = entries.reduce((sum, entry) => sum + (entry.hours || 0), 0);
       setTotalHours(totalHoursSum);
+      const remaining = 300 - totalHoursSum;
+      setRemainingHours(remaining);
       
       setExtractedEntries(entries);
       setMessage(`✅ Found ${entries.length} time entries in the PDF. Total hours: ${totalHoursSum}`);
@@ -516,6 +520,12 @@ const WeeklyReport = ({ isOpen, onClose, editingReport }: WeeklyReportProps) => 
             {message}
           </p>
         )}
+                {totalHours > 0 && (
+          <p className="text-sm text-blue-600 mt-1">
+            🕒 Remaining hours: <strong>{remainingHours}</strong> out of 300
+          </p>
+        )}
+
 
         <button
           onClick={handleUpload}
