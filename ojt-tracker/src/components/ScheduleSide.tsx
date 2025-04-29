@@ -30,22 +30,29 @@ const ScheduleSide: React.FC = () => {
   const [companyLogo, setCompanyLogo] = useState<string | null>(null);
   const [jobPosition, setJobPosition] = useState<string | null>(null);
   const [workDays, setWorkDays] = useState<WorkDay[]>([]);
-  const [totalHours, setTotalHours] = useState<number | null>(null); // Initialize as null
+  const [totalHours, setTotalHours] = useState<number | null>(null);
   const [hoursInput, setHoursInput] = useState("");
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [holidays, setHolidays] = useState<Holiday[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
 
   // Fetch company info, work days, total hours, logs, and holidays
   useEffect(() => {
     const fetchData = async () => {
       try {
+        // Reset state to ensure we don't use stale values
+        setTotalHours(null);
+        setError(null);
+
         const { data: { user }, error: userError } = await supabase.auth.getUser();
         if (userError || !user) {
           console.error("User fetch error:", userError?.message);
           setError("User not authenticated.");
           return;
         }
+
+        setUserId(user.id); // Store user ID for dependency
 
         // Fetch company and job details
         const { data: application, error: applicationError } = await supabase
@@ -104,37 +111,45 @@ const ScheduleSide: React.FC = () => {
         if (hoursError) {
           if (hoursError.code === "PGRST116") {
             console.log("No hours record found, initializing to 300...");
-            const { error: insertError } = await supabase
+            const { data: insertData, error: insertError } = await supabase
               .from("user_hours")
-              .insert({ user_id: user.id, total_hours: 300 });
+              .insert({ user_id: user.id, total_hours: 300 })
+              .select()
+              .single();
 
             if (insertError) {
               console.error("Error initializing total hours:", insertError.message);
-              setError("Failed to initialize hours.");
+              setError(`Failed to initialize hours: ${insertError.message}`);
+              setTotalHours(300); // Fallback to 300 even if insert fails
               return;
             }
+            console.log("Inserted new hours record:", insertData);
             setTotalHours(300);
             console.log("Total hours reset to 300 after initialization");
           } else {
             console.error("Error fetching total hours:", hoursError.message);
-            setError("Failed to load hours data.");
+            setError(`Failed to load hours data: ${hoursError.message}`);
+            setTotalHours(300); // Fallback to 300 on error
             return;
           }
         } else if (hoursData) {
           setTotalHours(hoursData.total_hours);
           console.log("Total hours set to:", hoursData.total_hours);
         } else {
-          // Fallback in case hoursData is null or undefined but no error
           console.log("Unexpected: hoursData is null, initializing to 300...");
-          const { error: insertError } = await supabase
+          const { data: insertData, error: insertError } = await supabase
             .from("user_hours")
-            .insert({ user_id: user.id, total_hours: 300 });
+            .insert({ user_id: user.id, total_hours: 300 })
+            .select()
+            .single();
 
           if (insertError) {
             console.error("Error initializing total hours:", insertError.message);
-            setError("Failed to initialize hours.");
+            setError(`Failed to initialize hours: ${insertError.message}`);
+            setTotalHours(300); // Fallback to 300 even if insert fails
             return;
           }
+          console.log("Inserted new hours record (fallback):", insertData);
           setTotalHours(300);
           console.log("Total hours reset to 300 (fallback)");
         }
@@ -184,11 +199,12 @@ const ScheduleSide: React.FC = () => {
       } catch (err) {
         console.error("Unexpected error in fetchData:", err);
         setError("An unexpected error occurred while loading data.");
+        setTotalHours(300); // Fallback to 300 on unexpected error
       }
     };
 
     fetchData();
-  }, []); // Empty dependency array ensures this runs only once on mount
+  }, [userId]); // Re-run if userId changes (e.g., after logout/login)
 
   const fetchWorkDays = async (applicationId: string) => {
     const { data, error } = await supabase
@@ -317,13 +333,13 @@ const ScheduleSide: React.FC = () => {
         <div className="rbc-toolbar-label">{label()}</div>
         <div className="flex justify-between w-full">
           <span className="rbc-btn-group">
-            <button type="button" onClick={goToCurrent} className="px-3 py-1 border border-gray-300 rounded-md">
+            <button type="button" onClick={goToCurrent} className="px-2 py-1 border border-gray-300 rounded-md text-sm">
               Today
             </button>
-            <button type="button" onClick={goToBack} className="px-3 py-1 border border-gray-300 rounded-md">
+            <button type="button" onClick={goToBack} className="px-2 py-1 border border-gray-300 rounded-md text-sm">
               Back
             </button>
-            <button type="button" onClick={goToNext} className="px-3 py-1 border border-gray-300 rounded-md">
+            <button type="button" onClick={goToNext} className="px-2 py-1 border border-gray-300 rounded-md text-sm">
               Next
             </button>
           </span>
@@ -331,28 +347,28 @@ const ScheduleSide: React.FC = () => {
             <button
               type="button"
               onClick={() => toolbar.onView('month')}
-              className={`px-3 py-1 border border-gray-300 rounded-md ${toolbar.view === 'month' ? 'bg-gray-200' : ''}`}
+              className={`px-2 py-1 border border-gray-300 rounded-md text-sm ${toolbar.view === 'month' ? 'bg-gray-200' : ''}`}
             >
               Month
             </button>
             <button
               type="button"
               onClick={() => toolbar.onView('week')}
-              className={`px-3 py-1 border border-gray-300 rounded-md ${toolbar.view === 'week' ? 'bg-gray-200' : ''}`}
+              className={`px-2 py-1 border border-gray-300 rounded-md text-sm ${toolbar.view === 'week' ? 'bg-gray-200' : ''}`}
             >
               Week
             </button>
             <button
               type="button"
               onClick={() => toolbar.onView('day')}
-              className={`px-3 py-1 border border-gray-300 rounded-md ${toolbar.view === 'day' ? 'bg-gray-200' : ''}`}
+              className={`px-2 py-1 border border-gray-300 rounded-md text-sm ${toolbar.view === 'day' ? 'bg-gray-200' : ''}`}
             >
               Day
             </button>
             <button
               type="button"
               onClick={() => toolbar.onView('agenda')}
-              className={`px-3 py-1 border border-gray-300 rounded-md ${toolbar.view === 'agenda' ? 'bg-gray-200' : ''}`}
+              className={`px-2 py-1 border border-gray-300 rounded-md text-sm ${toolbar.view === 'agenda' ? 'bg-gray-200' : ''}`}
             >
               Agenda
             </button>
@@ -362,12 +378,16 @@ const ScheduleSide: React.FC = () => {
     );
   };
 
+  // Calculate progress for the progress bar (assuming 300 is the initial total hours)
+  const initialTotalHours = 300;
+  const progressPercentage = totalHours !== null ? (totalHours / initialTotalHours) * 100 : 100;
+
   return (
-    <div className="space-y-10">
+    <div className="space-y-6">
       {/* Company Info, Work Days, Supervisors */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        <div className="bg-white shadow-lg rounded-2xl p-10 flex items-center space-x-6 border border-gray-100 transform hover:scale-101 transition-all duration-300">
-          <div className="w-32 h-32 rounded-xl border border-gray-200 flex items-center justify-center overflow-hidden flex-shrink-0">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="bg-white shadow-md rounded-lg p-6 flex items-center space-x-4">
+          <div className="w-16 h-16 rounded-full bg-yellow-400 flex items-center justify-center overflow-hidden flex-shrink-0">
             {companyLogo ? (
               <img
                 src={companyLogo}
@@ -375,56 +395,56 @@ const ScheduleSide: React.FC = () => {
                 className="max-w-full max-h-full object-contain"
               />
             ) : (
-              <div className="flex items-center justify-center w-full h-full bg-gray-50">
-                <span className="text-gray-400 font-medium">Logo</span>
+              <div className="flex items-center justify-center w-full h-full bg-yellow-400">
+                <span className="text-gray-600 font-medium text-sm">Logo</span>
               </div>
             )}
           </div>
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">{companyName || "Loading company..."}</h2>
-            <p className="text-base text-gray-600 mt-2">{jobPosition || "Loading position..."}</p>
+            <h2 className="text-xl font-bold text-gray-900">{companyName || "Loading company..."}</h2>
+            <p className="text-sm text-gray-500 mt-1">{jobPosition || "Loading position..."}</p>
           </div>
         </div>
-        <div className="bg-white shadow-lg rounded-2xl p-10 border border-gray-100 transform hover:scale-101 transition-all duration-300">
-          <h3 className="text-xl font-bold mb-6 text-gray-900 text-center">Work Days</h3>          
+        <div className="bg-white shadow-md rounded-lg p-6">
+          <h3 className="text-lg font-bold mb-4 text-gray-900 text-center">Work Days</h3>          
           {workDays.length > 0 ? (
-            <div className="space-y-4">
+            <div className="space-y-2">
               {sortDaysOfWeek(workDays).map((day, index) => (
-                <p key={index} className="text-gray-700 text-base">
+                <p key={index} className="text-gray-900 text-sm">
                   <span className="font-semibold">{day.day_of_week}:</span> {day.start_time} - {day.end_time}
                 </p>
               ))}
             </div>
           ) : (
-            <p className="text-gray-500 text-base text-center">Loading work schedule...</p>
+            <p className="text-gray-500 text-sm text-center">Loading work schedule...</p>
           )}
         </div>
-        <div className="bg-white shadow-lg rounded-2xl p-10 border border-gray-100 transform hover:scale-101 transition-all duration-300">
-          <h3 className="text-xl font-bold mb-6 text-gray-900 text-center">Supervisors</h3>
-          <div className="space-y-6">
-            <div className="flex items-center gap-4">
-              <UserSquare2 size={32} color="#1e40af"/>
-              <span className="font-semibold text-gray-800 text-base">Supervisor: Vincent Smith</span>
+        <div className="bg-white shadow-md rounded-lg p-6">
+          <h3 className="text-lg font-bold mb-4 text-gray-900 text-center">Supervisors</h3>
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <UserSquare2 size={24} color="#1e40af"/>
+              <span className="font-semibold text-gray-900 text-sm">Supervisor: Vincent Smith</span>
             </div>
-            <div className="flex items-center gap-4">
-              <UserSquare2 size={32} color="#1e40af"/>
-              <span className="font-semibold text-gray-800 text-base">OJT Coordinator: John Doe</span>
+            <div className="flex items-center gap-2">
+              <UserSquare2 size={24} color="#1e40af"/>
+              <span className="font-semibold text-gray-900 text-sm">OJT Coordinator: John Doe</span>
             </div>           
           </div>
         </div>
       </div>
 
       {/* Calendar and Hours Tracker */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        <div className="bg-white shadow-lg rounded-2xl p-10 border border-gray-100 col-span-2 transform hover:scale-101 transition-all duration-300">
-          <h3 className="text-xl font-bold mb-6 text-gray-900 text-center">Work Calendar</h3>
-          <Calendar<Holiday> // Specify the event type as Holiday
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="bg-white shadow-md rounded-lg p-6 col-span-2">
+          <h3 className="text-lg font-bold mb-4 text-gray-900 text-center">Work Calendar</h3>
+          <Calendar<Holiday>
             localizer={localizer}
             events={holidays}
             startAccessor="date"
             endAccessor="date"
             style={{ height: 500 }}
-            className="bg-white rounded-xl shadow-inner"
+            className="bg-white rounded-lg"
             eventPropGetter={() => ({
               style: {
                 backgroundColor: '#ef4444',
@@ -439,44 +459,57 @@ const ScheduleSide: React.FC = () => {
             }}
           />
         </div>
-        <div className="bg-white shadow-lg rounded-2xl p-8 border border-gray-100 transform hover:scale-101 transition-all duration-300">
-          <h3 className="text-xl font-bold mb-4 text-gray-900 text-center">Hours Tracker</h3>
-          <div className="space-y-5">
-            <div>
-              <p className="text-lg font-semibold text-gray-800 text-center">
-                {totalHours !== null ? `${totalHours} hours remaining` : "Loading hours..."}
+        <div className="bg-white shadow-md rounded-lg p-6">
+          <h3 className="text-lg font-bold mb-4 text-gray-900 text-center">Hours Tracker</h3>
+          <div className="space-y-4">
+            <div className="text-center">
+              <p className="text-2xl font-bold text-gray-900">
+                {totalHours !== null ? `${totalHours} hrs` : "Loading..."}
               </p>
+              <p className="text-xs text-gray-500 mt-1">Remaining of {initialTotalHours} hours</p>
+              <div className="mt-2">
+                <div className="w-full bg-gray-200 rounded-full h-2.5">
+                  <div
+                    className="bg-blue-600 h-2.5 rounded-full transition-all duration-300"
+                    style={{ width: `${progressPercentage}%` }}
+                  ></div>
+                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  {totalHours !== null ? `${Math.round(progressPercentage)}% remaining` : "Calculating..."}
+                </p>
+              </div>
             </div>
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-2">
               <input
                 type="number"
                 value={hoursInput}
                 onChange={(e) => setHoursInput(e.target.value)}
-                placeholder="Enter hours worked"
-                className="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-400 bg-white text-gray-800 text-base shadow-sm"
+                placeholder="Hours worked (e.g., 4.5)"
+                className="w-full p-3 border border-gray-300 rounded-lg text-gray-900 text-sm placeholder-gray-500"
                 min="0"
                 step="0.5"
               />
               <button
                 onClick={handleHoursSubmit}
-                className="bg-blue-600 text-white px-6 py-4 rounded-xl hover:bg-blue-700 transition-all duration-300 shadow-md hover:shadow-lg"
+                className="bg-blue-600 text-white px-4 py-3 rounded-lg hover:bg-blue-700 transition-all duration-300 font-medium text-sm"
+                disabled={!hoursInput || parseFloat(hoursInput) <= 0}
               >
                 Log
               </button>
             </div>
-            {error && <p className="text-red-500 text-sm text-center">{error}</p>}
-            <div className="mt-6">
-              <h4 className="text-base font-semibold text-gray-800 mb-4">Work Hours Log</h4>
+            {error && <p className="text-red-500 text-xs text-center">{error}</p>}
+            <div className="mt-4">
+              <h4 className="text-sm font-semibold text-gray-900 mb-2">Work Hours Log</h4>
               {logs.length > 0 ? (
-                <div className="max-h-56 overflow-y-auto space-y-4">
+                <div className="max-h-48 overflow-y-auto space-y-2">
                   {logs.map((log) => (
-                    <div key={log.id} className="text-sm text-gray-700 bg-gray-50 p-4 rounded-lg shadow-sm">
+                    <div key={log.id} className="text-xs text-gray-700">
                       <span>{log.hours} hours logged on {log.logged_at}</span>
                     </div>
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-gray-500 text-center">No hours logged yet.</p>
+                <p className="text-xs text-gray-500 text-center">No hours logged yet.</p>
               )}
             </div>
           </div>

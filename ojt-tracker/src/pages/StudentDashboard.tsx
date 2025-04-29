@@ -1,27 +1,21 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { User, Settings, LogOut, CircleHelp, Menu } from "lucide-react";
 import { supabase } from "../../supabase";
 import logo from "../assets/ojt-logo-dashboard.svg";
 import StudentSide from "../components/StudentSide";
 import ScheduleSide from "../components/ScheduleSide";
 import ReportsSide from "../components/ReportSide";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 const StudentDashboard: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation(); // Hook to get the current route
   const [isProfileOpen, setProfileOpen] = useState(false);
   const [userName, setUserName] = useState("");
   const [userRole, setUserRole] = useState<string | null>(null);
   const [profilePicture, setProfilePicture] = useState<string | null>(null);
-  const [sidebarWidth, setSidebarWidth] = useState(400);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false); // Changed to false
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [activeView, setActiveView] = useState<"schedule" | "reports">("schedule");
-  const isResizing = useRef(false);
-
-  // Ensure sidebar is closed on initial render (e.g., page refresh)
-  useEffect(() => {
-    setIsSidebarOpen(false);
-  }, []);
 
   // Fetch user data
   useEffect(() => {
@@ -50,37 +44,19 @@ const StudentDashboard: React.FC = () => {
     navigate("/");
   };
 
-  // Resizing logic
-  const startResizing = () => {
-    isResizing.current = true;
-  };
-
-  const stopResizing = () => {
-    isResizing.current = false;
-  };
-
-  const resize = (e: MouseEvent) => {
-    if (isResizing.current) {
-      const newWidth = e.clientX;
-      if (newWidth > 300 && newWidth < 600) {
-        setSidebarWidth(newWidth);
-      }
-    }
-  };
-
-  useEffect(() => {
-    window.addEventListener("mousemove", resize);
-    window.addEventListener("mouseup", stopResizing);
-    return () => {
-      window.removeEventListener("mousemove", resize);
-      window.removeEventListener("mouseup", stopResizing);
-    };
-  }, []);
-
-  // Toggle sidebar visibility
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
+
+  const handleViewChange = (view: "schedule" | "reports") => {
+    console.log("handleViewChange called, new view:", view);
+    setActiveView(view);
+    console.log("activeView updated to:", view);
+  };
+
+  // Determine the active page based on the current route
+  const isHomePage = location.pathname === "/dashboard"; // StudentDashboard (Home) page
+  const isExploreJobsPage = location.pathname === "/explore-jobs"; // Explore Jobs (company selection dashboard) page
 
   return (
     <div className="relative min-h-screen w-screen bg-gradient-to-br from-blue-50 to-blue-200">
@@ -95,10 +71,22 @@ const StudentDashboard: React.FC = () => {
             <Menu className="w-8 h-8 text-white" />
           </button>
           <img src={logo} alt="OJT Link Logo" className="w-52 h-52" />
-          <button className="bg-blue-600 text-white px-5 py-2 rounded-full hover:bg-blue-700 transition-all duration-300 shadow-md hover:shadow-lg">
+          <button
+            onClick={() => navigate("/student-dashboard")} 
+            className={`text-white px-5 py-2 rounded-full transition-all duration-300 shadow-md hover:shadow-lg ${
+              isHomePage ? "bg-blue-700 hover:brightness-110" : "bg-transparent hover:bg-blue-700"
+            }`}
+          >
             HOME
           </button>
-          <span className="text-xl font-semibold tracking-wide">Explore Jobs</span>
+          <button
+            onClick={() => navigate("/dashboard")} // Navigate to Explore Jobs (company selection dashboard) page
+            className={`text-white px-5 py-2 rounded-full transition-all duration-300 shadow-md hover:shadow-lg ${
+              isExploreJobsPage ? "bg-blue-700 hover:brightness-110" : "bg-transparent hover:bg-blue-700"
+            }`}
+          >
+            Explore Jobs
+          </button>
         </div>
         <button
           onClick={() => setProfileOpen(!isProfileOpen)}
@@ -117,7 +105,7 @@ const StudentDashboard: React.FC = () => {
 
         {isProfileOpen && (
           <div className="absolute right-6 top-20 bg-white text-gray-800 shadow-2xl rounded-xl w-80 z-50 animate-slide-down">
-            <div className="bg-blue-700 text-white p-6 text-center rounded-t-xl">
+            <div className="bg-blue-800 text-white p-4 text-center">
               <div className="w-24 h-24 rounded-full mx-auto overflow-hidden mb-3 border-4 border-blue-300">
                 {profilePicture ? (
                   <img src={profilePicture} alt="Profile" className="w-full h-full object-cover" />
@@ -173,33 +161,19 @@ const StudentDashboard: React.FC = () => {
         )}
       </header>
 
-      {/* Main Layout with Resizable Sidebar on the Left */}
-      <div className="flex h-screen pt-24">
+      {/* Main Layout with Toggleable Sidebar on the Left */}
+      <div className="flex h-screen pt-[80px]">
         {/* Sidebar with StudentSide (Buttons Only) */}
         <div
-          className={`overflow-y-auto p-10 bg-blue-50 shadow-inner transition-all duration-300 ${
+          className={`fixed top-[80px] left-0 h-[calc(100vh-80px)] w-64 bg-gray-100 shadow-inner z-40 transition-transform duration-300 ${
             isSidebarOpen ? "translate-x-0" : "-translate-x-full"
-          } md:translate-x-0 md:static md:shadow-none`}
-          style={{
-            width: isSidebarOpen ? `${sidebarWidth}px` : "0",
-            minWidth: isSidebarOpen ? "300px" : "0",
-            maxWidth: isSidebarOpen ? "600px" : "0",
-            visibility: isSidebarOpen ? "visible" : "hidden",
-          }}
+          }`}
         >
-          <StudentSide onViewChange={setActiveView} activeView={activeView} />
+          <StudentSide onViewChange={handleViewChange} activeView={activeView} />
         </div>
 
-        {/* Resizable Divider (only shown when sidebar is open) */}
-        {isSidebarOpen && (
-          <div
-            className="w-2 bg-gray-300 cursor-col-resize hover:bg-blue-500 transition-all duration-200"
-            onMouseDown={startResizing}
-          />
-        )}
-
         {/* Main Content Area */}
-        <div className="flex-1 overflow-y-auto p-10">
+        <div className="flex-1 overflow-y-auto p-11 relative z-0">
           {activeView === "schedule" && <ScheduleSide />}
           {activeView === "reports" && <ReportsSide />}
         </div>
