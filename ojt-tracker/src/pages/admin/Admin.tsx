@@ -47,7 +47,7 @@ const Admin = () => {
       <header className="fixed top-0 h-[80px] left-0 w-full bg-gradient-to-b from-[#578FCA] to-[#2B4764] text-white px-6 py-4 flex items-center justify-between shadow-md z-50 border-b border-black">
         <div className="flex items-center space-x-4">
         <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}/>
-          <img src={OJTLogo} alt="OJT Link Logo" className="w-[220px] h-[220px] ml-20" />
+          <img src={OJTLogo} alt="OJT Link Logo" className="w-[220px] h-[220px] ml-15" />
           <span className="text-lg font-semibold ml-5">Admin Dashboard</span>
         </div>
         <button

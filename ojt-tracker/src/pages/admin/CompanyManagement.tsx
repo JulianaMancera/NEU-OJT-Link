@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../../../supabase";
 import Sidebar from "../../components/SideBar";
+import OJTLogo from "/src/assets/ojt-white.png";
 
 interface Company {
   company_id: string;
@@ -83,8 +84,10 @@ const CompanyManagement = () => {
     <div className="p-5 w-screen h-full bg-blue-100">
       {/* Header */}
       <div className="w-full h-[80px] absolute left-0 top-0 bg-gradient-to-b from-[#578FCA] to-[#2B4764] border-1 border-black flex items-center justify-between px-6">
+      <img src={OJTLogo} alt="OJT Link Logo" className="w-[220px] h-[220px] ml-15" />
       </div>
       <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}/>
+  
       <div className="mt-24 bg-white border border-black rounded-lg p-6 max-w-8xl mx-auto text-black">
       <h2 className="text-center font-bold text-4xl mb-4 mt-5">Company Management</h2>
 
