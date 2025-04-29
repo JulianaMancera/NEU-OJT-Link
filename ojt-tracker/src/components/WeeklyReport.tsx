@@ -147,7 +147,8 @@ const WeeklyReport = ({ isOpen, onClose, editingReport }: WeeklyReportProps) => 
     // Skip header rows or empty rows
     if (rowItems.length < 5) return;
   
-    const rowData = rowItems.map(item => item.text).filter(text => text.trim() != '');
+    let rowData = rowItems.map(item => item.text).filter(text => text.trim() != '');
+    rowData = mergeSplitTimes(rowData);
     if (rowData.length < 5) return;
   
     console.log("Parsed Row: ", rowData);
@@ -529,3 +530,21 @@ const WeeklyReport = ({ isOpen, onClose, editingReport }: WeeklyReportProps) => 
 };
 
 export default WeeklyReport;
+
+function mergeSplitTimes(data : string[]): string[] {
+  const merged: string[] = [];
+  let i = 0;
+  while (i < data.length) {
+    const current = data[i].trim();
+    const next = data[i + 1]?.trim();
+
+    if (/\d{1,2}:\d{2}/.test(current) && /^(AM|PM)$/i.test(next)) {
+      merged.push(current + next.toUpperCase());
+      i += 2; // Skip next
+    } else {
+      merged.push(current);
+      i += 1;
+    }
+  }
+  return merged;
+}
