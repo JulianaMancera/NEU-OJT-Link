@@ -14,18 +14,20 @@ export const useCompanies = () => {
       try {
         // Fetch companies
         const { data: companiesData, error: companiesError } = await supabase
-          .from("company")
-          .select("*");
+        .from("company")
+        .select("*")
+        .eq("companyRestrict", "Active");
+      
 
-        if (companiesError) {
-          console.error("Error fetching companies:", companiesError);
-          setError(`Error fetching companies: ${companiesError.message}`);
+        if (companiesError) { 
+          console.error("Error fetching companies:", companiesError); 
+          setError(`Error fetching companies: ${companiesError.message}`); 
           return;
         }
 
         // Fetch jobs for each company
         const companiesWithJobs = await Promise.all(
-          companiesData.map(async (company) => {
+          companiesData.map(async (company) => { 
             try {
               const { data: jobsData, error: jobsError } = await supabase
                 .from("job")
