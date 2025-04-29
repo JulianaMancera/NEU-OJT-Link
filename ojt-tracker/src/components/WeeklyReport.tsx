@@ -75,8 +75,6 @@ const WeeklyReport = ({ isOpen, onClose, editingReport }: WeeklyReportProps) => 
       // Convert file to ArrayBuffer
       const arrayBuffer = await file.arrayBuffer();
 
-
-      
       // Load PDF document
       const pdf = await pdfjs.getDocument({data: new Uint8Array(arrayBuffer)}).promise;
       
@@ -99,20 +97,20 @@ const WeeklyReport = ({ isOpen, onClose, editingReport }: WeeklyReportProps) => 
         // Sort items by y-position (top to bottom) and then by x-position (left to right)
         // This helps us read the table row by row
         const sortedItems = items.sort((a, b) => {
-          // Group items into rows (items within ~5 units of y-position are in the same row)
-          const rowDiff = Math.abs(a.y - b.y);
-          if (rowDiff < 5) {
-            return a.x - b.x; // Same row, sort by x
+          if (Math.abs(a.y - b.y) > 1) {
+            return b.y - a.y; // Top to bottom
+          } else {
+            return a.x - b.x; // Left to right within same row
           }
-          return b.y - a.y; // Different rows, sort by y (top to bottom)
         });
+
         
         // Process rows to extract table data
         let currentRow: any[] = [];
         let lastY = 0;
         
         sortedItems.forEach((item) => {
-          if (currentRow.length === 0 || Math.abs(item.y - lastY) < 5) {
+          if (currentRow.length === 0 || Math.abs(item.y - lastY) < 10) {
             // Same row or first item
             currentRow.push(item);
           } else {
@@ -147,65 +145,67 @@ const WeeklyReport = ({ isOpen, onClose, editingReport }: WeeklyReportProps) => 
   
   const processTableRow = (rowItems: any[], entries: TimeEntry[]) => {
     // Skip header rows or empty rows
-    if (rowItems.length < 3) return;
-    
-    // Check if this is a data row by looking for date pattern in the first column
-    const datePattern = /\d{2}\/\d{2}\/\d{4}/;
-    const rowText = rowItems.map(item => item.text).join(' ');
-    const dateMatch = rowText.match(datePattern);
-    
-    if (dateMatch) {
-      // This looks like a data row - try to extract the structured data
-      const rowData = rowItems.map(item => item.text);
-      
+    if (rowItems.length < 5) return;
+  
+    const rowData = rowItems.map(item => item.text).filter(text => text.trim() != '');
+    if (rowData.length < 5) return;
+  
+    console.log("Parsed Row: ", rowData);
+  
+    // Attempt to reconstruct a date from adjacent pieces
+    let date = '';
+    let dateStartIndex = -1;
+    for (let i = 0; i < rowData.length - 2; i++) {
+      const combined = rowData[i] + rowData[i + 1] + rowData[i + 2];
+      if (/\d{1,2}\/\d{1,2}\/\d{4}/.test(combined)) {
+        date = combined;
+        dateStartIndex = i;
+        break;
+      }
+    }
+    if(dateStartIndex !== -1){
+      rowData.splice(dateStartIndex, 3, date)
+    }
+  
+    if (date) {
       // Extract values based on the expected table structure
-      let date = '';
       let timeIn = '';
       let timeOut = '';
       let hours = 0;
       let task = '';
       let remarks = '';
-      
-      // Find date
-      for (const text of rowData) {
-        if (text.match(datePattern)) {
-          date = text;
-          break;
-        }
-      }
-      
-      // Find time in and out (expected format like "8:00AM" and "3:00PM")
+
+
+ 
+      // Find time in and out
       const timePattern = /\d{1,2}:\d{2}[AP]M/i;
       const timesFound = rowData.filter(text => text.match(timePattern));
       if (timesFound.length >= 2) {
         timeIn = timesFound[0];
         timeOut = timesFound[1];
       }
-      
-      // Find hours (expected to be a number)
+  
+      // Find hours
       const hoursPattern = /^\d+$/;
-      for (const text of rowData) {
-        if (text.match(hoursPattern)) {
-          hours = parseInt(text, 10);
-          break;
-        }
+      const hoursText = rowData.find(text => text.match(hoursPattern));
+      if (hoursText) {
+        hours = parseInt(hoursText, 10);
       }
-      
-      // Extract task and remarks (these are likely longer text items that don't match other patterns)
-      const nonMatchingItems = rowData.filter(text => 
-        !text.match(datePattern) && 
-        !text.match(timePattern) && 
+  
+      // Extract task and remarks
+      const nonMatchingItems = rowData.filter(text =>
+        !text.match(/\d{1,2}\/\d{1,2}\/\d{4}/) &&
+        !text.match(timePattern) &&
         !text.match(hoursPattern) &&
         text.trim().length > 0
       );
-      
-      // If there are multiple non-matching items, assign them to task/remarks appropriately
+  
       if (nonMatchingItems.length > 0) {
         task = nonMatchingItems[0];
-        remarks = nonMatchingItems.slice(1).join(' ');  // Concatenate remaining items for remarks
+        remarks = nonMatchingItems.slice(1).join(' ');
       }
-      
-      // Only add entry if we have at least date and hours
+  
+      // Only add entry if we have a date and hours
       if (date && hours) {
         entries.push({
           date,
@@ -217,9 +217,8 @@ const WeeklyReport = ({ isOpen, onClose, editingReport }: WeeklyReportProps) => 
         });
       }
     }
-  };
- 
-
+  }; 
+  
   const removeFile = (index: number) => {
     setFiles(files.filter((_, i) => i !== index));
     resetMessage();
