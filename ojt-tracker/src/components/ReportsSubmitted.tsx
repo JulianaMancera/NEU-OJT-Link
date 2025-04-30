@@ -130,7 +130,7 @@ const ReportsSubmitted: React.FC<ReportsSubmittedProps> = ({
 
   return (
     <div className="bg-white shadow-md rounded-lg p-4 border border-black">
-      <h3 className="text-[1.1rem] font-semibold mb-2 text-center bg-[#D0E8FF] p-6 w-full h-2 flex justify-center items-center">Reports Submitted</h3>
+      <h3 className="text-[1.1rem] font-semibold mb-2 text-black text-center bg-[#D0E8FF] p-6 w-full h-2 flex justify-center items-center">Reports Submitted</h3>
       <div className="space-y-3">
         {reports.map((report) => (
           <div
@@ -141,11 +141,11 @@ const ReportsSubmitted: React.FC<ReportsSubmittedProps> = ({
               className="flex-grow cursor-pointer"
               onClick={() => fetchReport(report.week)}
             >
-              <div className="font-semibold">Week {report.week} Report</div>
+              <div className="font-semibold text-black">Week {report.week} Report</div>
               <div className="text-sm text-gray-600">Due: {report.dueDate}</div>
             </div>
 
-            <div className="flex items-center gap-3 ml-4">
+            <div className="flex items-center gap-3 ml-4 text-black">
               {getStatusTag(report.status)}
 
               {report.status !== "approved" && (
