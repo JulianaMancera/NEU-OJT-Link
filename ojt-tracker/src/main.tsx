@@ -10,6 +10,7 @@ import StudentProfile from "./pages/profile/StudentProfile";
 import Admin from "./pages/admin/Admin";
 import CompanyManagement from "./pages/admin/CompanyManagement";
 import AddJobs from "./pages/admin/AddJobs";
+import Reports from "./pages/admin/Reports";
 
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
@@ -24,6 +25,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
       <Route path="/admin" element={<Admin />} />
       <Route path="/company" element={<CompanyManagement />} />
       <Route path="/jobs" element={<AddJobs />} />
+      <Route path="/reports" element={<Reports />} />
     </Routes>
   </BrowserRouter>
 );
