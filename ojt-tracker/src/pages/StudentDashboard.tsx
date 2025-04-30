@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { File } from "lucide-react";
 import { supabase } from "../../supabase";
-import logo from "../assets/ojt-logo-dashboard.svg";
+import logo from "../assets/ojt-white.png";
 import WeeklyReport from "../components/WeeklyReport";
 import WeeklyJournal from "../components/WeeklyJournal";
 import MonthlyReport from "../components/MonthlyReport";
 
-import { User, Settings, LogOut, CircleHelp, UserSquare2} from "lucide-react";
+
+import { User, Settings, LogOut, CircleHelp, UserSquare2 } from "lucide-react";
+
 
 import { useNavigate } from "react-router-dom";
 import ReportsSubmitted from "../components/ReportsSubmitted";
@@ -260,7 +262,7 @@ const StudentDashboard: React.FC = () => {
 
     {isProfileOpen && (
 
-        <div className="absolute right-0 top-21 bg-white text-gray-800 shadow-lg rounded-md overflow-hidden z-50 w-64 min-w-[16rem] ">
+        <div className="absolute right-0 top-21 bg-white text-gray-800 shadow-lg rounded-md overflow-hidden z-50 w-64 min-w-[16rem] animate-slide-in-down">
             <div className="bg-blue-800 text-black p-4 text-center">
 
                 <div className="w-16 h-16 rounded-full mx-auto overflow-hidden mb-2">
