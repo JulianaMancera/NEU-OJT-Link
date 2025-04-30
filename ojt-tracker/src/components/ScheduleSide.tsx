@@ -436,7 +436,7 @@ const ScheduleSide: React.FC = () => {
 
       {/* Calendar and Hours Tracker */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white shadow-md rounded-lg p-6 col-span-2">
+        <div className="bg-white text-black shadow-md rounded-lg p-6 col-span-2">
           <h3 className="text-lg font-bold mb-4 text-gray-900 text-center">Work Calendar</h3>
           <Calendar<Holiday>
             localizer={localizer}
