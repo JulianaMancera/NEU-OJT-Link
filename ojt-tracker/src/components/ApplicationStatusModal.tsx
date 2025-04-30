@@ -112,8 +112,8 @@ const ApplicationStatusModal: React.FC<ApplicationStatusModalProps> = ({
 
   if (showEndorsement) {
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div ref={modalRef} className="bg-white rounded-lg p-8 max-w-md w-full mx-4">
+      <div className="fixed inset-0 bg-gradient-to-b from-[#3657DB] from-24% to-[#8D95B5] to-98% flex items-center justify-center z-50">
+        <div ref={modalRef} className="bg-white rounded-lg p-8 max-w-3xl w-full mx-4">
           <EndorsementSection 
             company={{
               company_id: companyId,
@@ -142,8 +142,8 @@ const ApplicationStatusModal: React.FC<ApplicationStatusModalProps> = ({
   
   if (showAvailability) {
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div ref={modalRef} className="bg-white rounded-lg p-8 max-w-2xl w-full mx-4 overflow-y-auto max-h-[90vh]">
+      <div className="fixed inset-0 bg-gradient-to-b from-[#3657DB] from-24% to-[#8D95B5] to-98% flex items-center justify-center z-50">
+        <div ref={modalRef} className="bg-white rounded-lg p-8 max-w-4xl w-full mx-4 overflow-y-auto max-h-[90vh]">
           <AvailabilitySection
             applicationId={applicationId}
             company={{
@@ -162,8 +162,8 @@ const ApplicationStatusModal: React.FC<ApplicationStatusModalProps> = ({
   }
   
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div ref={modalRef} className="bg-white rounded-lg p-8 max-w-md w-full mx-4">
+    <div className="fixed inset-0 bg-gradient-to-b from-[#3657DB] from-24% to-[#8D95B5] to-98% flex items-center justify-center z-50">
+      <div ref={modalRef} className="bg-white rounded-lg p-8 max-w-xl w-full mx-4">
         <h2 className="text-2xl font-bold text-center mb-4">{content.title}</h2>
         <p className="text-gray-600 text-center mb-6">{content.message}</p>
         <div className="flex justify-center">

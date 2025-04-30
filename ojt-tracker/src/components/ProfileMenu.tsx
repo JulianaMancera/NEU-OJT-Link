@@ -91,7 +91,9 @@ export const ProfileMenu = ({ userName, userRole, profilePicture, onLogout }: Pr
       </button>
 
       {isProfileOpen && (
-        <div className="absolute right-0 top-16 bg-white text-gray-800 shadow-lg rounded-md overflow-hidden z-50 w-64 min-w-[16rem]">
+
+        <div className="absolute right-6 top-20 bg-white text-gray-800 shadow-2xl rounded-xl w-80 z-50 animate-slide-down">
+
           <div className="bg-blue-800 text-white p-4 text-center">
             <div className="w-16 h-16 rounded-full mx-auto overflow-hidden mb-2">
               {renderProfileImage('large')}

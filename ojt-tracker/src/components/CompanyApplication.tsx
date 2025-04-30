@@ -5,6 +5,7 @@ import { Company } from '../types/Company';
 import CompanyApplicationApply from './CompanyApplicationApply';
 import RequirementForm from './RequirementForm';
 import ApplicationStatusModal from './ApplicationStatusModal';
+import ApplicationInProgressModal from './ApplicationInProgressModal';
 import { Loading } from './Loading';
 import { supabase } from '../../supabase';
 
@@ -16,26 +17,34 @@ interface CompanyApplicationProps {
   initialStep?: 'selectJob' | 'apply' | 'requirement' | 'dashboard';
 }
 
-
-const CompanyApplication: React.FC<CompanyApplicationProps> = ({ 
-  company, 
+const CompanyApplication: React.FC<CompanyApplicationProps> = ({
+  company,
   onClose,
-  initialStep = 'selectJob'
+  initialStep = 'selectJob',
 }) => {
-
   const navigate = useNavigate();
   const [step, setStep] = useState<'selectJob' | 'apply' | 'requirement' | 'dashboard'>(initialStep);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [showStatusModal, setShowStatusModal] = useState(false);
-  const [applicationStatus, setApplicationStatus] = useState<'submitted' | 'approved' | 'availability_submitted' | 'endorsement_submitted'>('submitted');
+  const [showInProgressModal, setShowInProgressModal] = useState(false);
+  const [applicationStatus, setApplicationStatus] = useState<
+    'submitted' | 'approved' | 'availability_submitted' | 'endorsement_submitted'
+  >('submitted');
   const [loading, setLoading] = useState(false);
-  const [userApplications, setUserApplications] = useState<{job_id: string, status: string}[]>([]);
+  const [userApplications, setUserApplications] = useState<{ job_id: string; status: string }[]>([]);
+
+  // Debug modal state changes
+  useEffect(() => {
+    console.log('showInProgressModal state:', showInProgressModal);
+  }, [showInProgressModal]);
 
   useEffect(() => {
     const fetchUserApplications = async () => {
       try {
-        setLoading(true); // Start loading
-        const { data: { user } } = await supabase.auth.getUser();
+        setLoading(true);
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
         if (!user) {
           console.error('No authenticated user found');
           return;
@@ -55,7 +64,7 @@ const CompanyApplication: React.FC<CompanyApplicationProps> = ({
       } catch (error) {
         console.error('Error in fetchUserApplications:', error);
       } finally {
-        setLoading(false); // End loading
+        setLoading(false);
       }
     };
 
@@ -64,8 +73,8 @@ const CompanyApplication: React.FC<CompanyApplicationProps> = ({
 
   const handleJobSelect = (job: Job) => {
     try {
-      const existingApplication = userApplications.find(app => app.job_id === job.job_id);
-      
+      const existingApplication = userApplications.find((app) => app.job_id === job.job_id);
+
       if (existingApplication) {
         alert(`You have already applied to this job. Current status: ${existingApplication.status}`);
         return;
@@ -79,86 +88,161 @@ const CompanyApplication: React.FC<CompanyApplicationProps> = ({
   };
 
   const handleRequirementSubmit = async (files: File[]) => {
+    setLoading(true);
+    console.log('CompanyApplication: handleRequirementSubmit called with files:', files);
+
     try {
-      setLoading(true); // Start loading
-      console.log('Submitting requirements...');
-
-      // Upload files to Supabase Storage
-      const uploadPromises = files.map(async (file, index) => {
-        const { data, error } = await supabase.storage
-          .from('application-files') // Replace with your bucket name
-          .upload(`user-files/${Date.now()}-${index}-${file.name}`, file);
-        if (error) {
-          throw new Error(`File upload failed: ${error.message}`);
-        }
-        return data?.path;
-      });
-
-      const filePaths = await Promise.all(uploadPromises);
-      console.log('Uploaded files:', filePaths);
-
-      // Save application data to Supabase
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user || !selectedJob) {
         throw new Error('User or selected job not found');
       }
 
-      const { error: insertError } = await supabase
+      // Generate a unique identifier for this submission
+      const timestamp = new Date().getTime();
+      const randomString = Math.random().toString(36).substring(2, 8);
+      const uniqueId = `${timestamp}_${randomString}`;
+
+      // Upload all files
+      console.log('Starting file uploads...');
+      const fileFields = [
+        'resume',
+        'coverLetter',
+        'com',
+        'cv',
+        'medCert',
+        'notarized',
+        'psyTest',
+      ];
+      const uploadPromises = files.map(async (file, index) => {
+        const fieldKey = fileFields[index];
+        const fileExtension = file.name.split('.').pop();
+        const uniqueFilename = `${fieldKey}_${user.id}_${company.company_id}_${uniqueId}.${fileExtension}`;
+        const filePath = `${fieldKey}/${uniqueFilename}`;
+
+        console.log(`Uploading file: ${filePath}`);
+        const { data, error } = await supabase.storage
+          .from('applicant-documents')
+          .upload(filePath, file);
+
+        if (error) {
+          console.error(`Error uploading ${fieldKey}:`, error);
+          throw error;
+        }
+        console.log(`Successfully uploaded ${fieldKey}:`, data?.path);
+        return data?.path;
+      });
+
+      const uploadedPaths = await Promise.all(uploadPromises);
+      console.log('All files uploaded successfully:', uploadedPaths);
+
+      // Create application record
+      console.log('Creating application record...');
+      const { data: applicationData, error: applicationError } = await supabase
         .from('application')
-        .insert({
-          user_id: user.id,
-          job_id: selectedJob.job_id,
-          company_id: company.company_id,
-          status: 'submitted',
-          files: filePaths, // Store file paths in the database
-        });
+        .insert([
+          {
+            user_id: user.id,
+            company_id: company.company_id,
+            email: user.email,
+            job_id: selectedJob.job_id,
+            status: 'pending',
+            start_date: null,
+            end_date: null,
+          },
+        ])
+        .select()
+        .single();
 
-      if (insertError) {
-        throw new Error(`Failed to save application: ${insertError.message}`);
+      if (applicationError) {
+        console.error('Error creating application:', applicationError);
+        throw new Error('Failed to create application');
       }
+      console.log('Application created successfully:', applicationData);
 
-      setApplicationStatus('submitted');
-      setShowStatusModal(true);
-      setStep('dashboard');
-      
+      // Create requirements record
+      console.log('Creating requirements record...');
+      const { error: requirementsError } = await supabase.from('requirements').insert([
+        {
+          student_id: user.id,
+          created_at: new Date().toISOString(),
+          resume_url: uploadedPaths[0],
+          cover_letter_url: uploadedPaths[1],
+          com_url: uploadedPaths[2],
+          cv_url: uploadedPaths[3],
+          medCert_url: uploadedPaths[4],
+          notarize_url: uploadedPaths[5],
+          psyTest_url: uploadedPaths[6],
+          company_id: company.company_id,
+          job_id: selectedJob.job_id,
+        },
+      ]);
+
+      if (requirementsError) {
+        console.error('Error creating requirements:', requirementsError);
+        // Delete the application if requirements creation fails
+        console.log('Deleting application due to requirements error...');
+        await supabase
+          .from('application')
+          .delete()
+          .eq('application_id', applicationData.application_id);
+        throw new Error('Failed to create requirements');
+      }
+      console.log('Requirements created successfully');
+
       // Update localStorage
       console.log('Updating localStorage with application data...');
       const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-      const updatedApplications = [...(userData.applications || []), {
-        company_id: company.company_id,
-        job_id: selectedJob?.job_id,
-        status: 'submitted',
-        date: new Date().toISOString()
-      }];
-      
-      localStorage.setItem('userData', JSON.stringify({
-        ...userData,
-        applications: updatedApplications
-      }));
+      const updatedApplications = [
+        ...(userData.applications || []),
+        {
+          company_id: company.company_id,
+          job_id: selectedJob?.job_id,
+          status: 'submitted',
+          date: new Date().toISOString(),
+        },
+      ];
+
+      localStorage.setItem(
+        'userData',
+        JSON.stringify({
+          ...userData,
+          applications: updatedApplications,
+        })
+      );
       console.log('Successfully updated localStorage');
     } catch (error: unknown) {
-      // Type error as Error for safe handling, as discussed previously
       const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
       console.error('Error in handleRequirementSubmit:', errorMessage);
+      // Still show the modal even if there's an error, to debug rendering
+      setApplicationStatus('submitted');
+      setShowInProgressModal(true);
+      console.log('showInProgressModal set to true despite error');
+      setStep('dashboard');
     } finally {
-      setLoading(false); // End loading
+      setLoading(false);
     }
   };
 
   const handleModalClose = () => {
     setShowStatusModal(false);
+    setShowInProgressModal(false);
+    console.log('Modal closed, navigating to dashboard');
     onClose();
-    navigate('/dashboard');
+    setTimeout(() => navigate('/dashboard'), 500); // Increased delay for visibility
   };
 
-  const handleStatusUpdate = (status: 'submitted' | 'approved' | 'availability_submitted' | 'endorsement_submitted') => {
+  const handleStatusUpdate = (
+    status: 'submitted' | 'approved' | 'availability_submitted' | 'endorsement_submitted'
+  ) => {
     setApplicationStatus(status);
   };
 
   return (
     <div className="flex items-center justify-center">
       {loading && <Loading />}
-      {step === "selectJob" && (
+      {step === 'selectJob' && (
         <div className="text-black">
           <br />
           <h3 className="text-lg font-semibold text-gray-800 mb-4 text-center">Possible Jobs</h3>
@@ -180,18 +264,18 @@ const CompanyApplication: React.FC<CompanyApplicationProps> = ({
         </div>
       )}
 
-      {step === "apply" && selectedJob && (
-        <CompanyApplicationApply 
-          job={selectedJob} 
-          company={company} 
-          setStep={setStep} 
-          setSelectedJob={setSelectedJob} 
+      {step === 'apply' && selectedJob && (
+        <CompanyApplicationApply
+          job={selectedJob}
+          company={company}
+          setStep={setStep}
+          setSelectedJob={setSelectedJob}
         />
       )}
 
-      {step === "requirement" && selectedJob && (
+      {step === 'requirement' && selectedJob && (
         <div className="text-black">
-          <p className="text-[1rem] font-semibold">Position: {selectedJob.position}</p>
+          <p className="text-[1.1rem] font-semibold text-center mt-4">Position: {selectedJob.position}</p>
           <br />
           <RequirementForm
             company={company}
@@ -211,10 +295,12 @@ const CompanyApplication: React.FC<CompanyApplicationProps> = ({
         applicationId={selectedJob?.job_id || ''}
         job={{
           job_id: selectedJob?.job_id || '',
-          position: selectedJob?.position || ''
+          position: selectedJob?.position || '',
         }}
         onUpdateStatus={handleStatusUpdate}
       />
+
+      <ApplicationInProgressModal isOpen={showInProgressModal} onClose={handleModalClose} />
     </div>
   );
 };

@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../../../supabase";
+import Sidebar from "../../components/SideBar";
+import OJTLogo from "/src/assets/ojt-white.png";
 
 interface Company {
   company_id: string;
@@ -15,6 +17,7 @@ const CompanyManagement = () => {
   const [newCompany, setNewCompany] = useState<Partial<Company>>({});
   const [editingCompanyId, setEditingCompanyId] = useState<string | null>(null);
   const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     fetchCompanies();
@@ -78,8 +81,15 @@ const CompanyManagement = () => {
   };
 
   return (
-    <div className="p-5 w-screen h-full bg-[linear-gradient(to_bottom,#0A279C_20%,#5F74C9_86%)]">
-      <h2 className="text-center font-bold text-2xl mb-4 mt-5">Company Management</h2>
+    <div className="p-5 w-screen h-full bg-blue-100">
+      {/* Header */}
+      <div className="w-full h-[80px] absolute left-0 top-0 bg-gradient-to-b from-[#578FCA] to-[#2B4764] border-1 border-black flex items-center justify-between px-6">
+      <img src={OJTLogo} alt="OJT Link Logo" className="w-[220px] h-[220px] ml-15" />
+      </div>
+      <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}/>
+  
+      <div className="mt-24 bg-white border border-black rounded-lg p-6 max-w-8xl mx-auto text-black">
+      <h2 className="text-center font-bold text-4xl mb-4 mt-5">Company Management</h2>
 
       <div className="mb-8">
         <h3 className="font-semibold mb-2">{editingCompanyId ? "Edit Company" : "Add Company"}</h3>
@@ -120,7 +130,7 @@ const CompanyManagement = () => {
           />
           <button
             onClick={handleAddOrUpdateCompany}
-            className="bg-blue-500 text-white px-4 py-2 rounded"
+            className="bg-[#90D5FF] hover:bg-blue-200 transition-colors text-black px-4 py-2 rounded"
           >
             {editingCompanyId ? "Update Company" : "Add Company"}
           </button>
@@ -128,7 +138,7 @@ const CompanyManagement = () => {
       </div>
 
       <table className="w-full border">
-        <thead className="bg-gray-950">
+        <thead className="bg-gray-950 text-white">
           <tr>
             <th className="p-2 border">Logo</th>
             <th className="p-2 border">Name</th>
@@ -140,7 +150,7 @@ const CompanyManagement = () => {
         </thead>
         <tbody>
           {companies.map((company) => (
-            <tr key={company.company_id} className="text-center">
+            <tr key={company.company_id} className="text-center" style={{ backgroundColor: '#E8E8E8' }}>
               <td className="p-2 border">
                 <img src={company.logo_url} alt="Logo" className="h-10 mx-auto" />
               </td>
@@ -160,6 +170,7 @@ const CompanyManagement = () => {
           ))}
         </tbody>
       </table>
+    </div>
     </div>
   );
 };
