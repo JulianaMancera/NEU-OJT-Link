@@ -32,76 +32,122 @@ const Monitoring = () => {
   useEffect(() => {
     const fetchApplications = async () => {
       try {
-        const { data: rawApps, error } = await supabase
+        const { data: rawApps, error: appsError } = await supabase
           .from("application")
           .select("*")
           .eq("status", "approved");
-
-        if (error) throw error;
-
+    
+        if (appsError) {
+          console.error("❌ Error fetching applications:", appsError.message);
+          throw appsError;
+        }
+    
         const monitoring = await Promise.all(
           (rawApps || []).map(async (app) => {
-            const { data: userData } = await supabase
-              .from("user")
-              .select("name, profilePicture")
-              .eq("user_id", app.user_id)
-              .single();
-
-            const { data: companyData } = await supabase
-              .from("company")
-              .select("name")
-              .eq("company_id", app.company_id)
-              .single();
-
-            const { data: jobData } = await supabase
-              .from("job")
-              .select("position")
-              .eq("job_id", app.job_id)
-              .single();
-
-            const { data: reportsData } = await supabase
-              .from("weeklyReports")
-              .select("number_of_hours, date_submitted")
-              .eq("user_id", app.user_id);
-
-              const { data: userHoursData } = await supabase
+            try {
+              // Fetch user data
+              const { data: userData, error: userError } = await supabase
+                .from("user")
+                .select("name, profilePicture")
+                .eq("user_id", app.user_id)
+                .single();
+    
+              if (userError) console.error(`⚠️ User fetch failed (user_id: ${app.user_id}):`, userError.message);
+    
+              const userName = userData?.name || "Unknown";
+    
+              // Fetch company data
+              const { data: companyData, error: companyError } = await supabase
+                .from("company")
+                .select("name")
+                .eq("company_id", app.company_id)
+                .single();
+    
+              if (companyError) console.error(`⚠️ Company fetch failed (company_id: ${app.company_id}):`, companyError.message);
+    
+              // Fetch job data
+              const { data: jobData, error: jobError } = await supabase
+                .from("job")
+                .select("position")
+                .eq("job_id", app.job_id)
+                .single();
+    
+              if (jobError) console.error(`⚠️ Job fetch failed (job_id: ${app.job_id}):`, jobError.message);
+    
+              // Fetch user hours
+              const { data: userHoursData, error: hoursError } = await supabase
               .from("user_hours")
               .select("total_hours")
-              .eq("user_id", app.user_id)
-              .single();
-            
-            const totalHours = userHoursData?.total_hours || null;            
+              .eq("user_id", app.user_id);
 
-            const lastReportDate = reportsData?.length
-              ? reportsData
-                  .map((r) => new Date(r.date_submitted))
-                  .sort((a, b) => b.getTime() - a.getTime())[0]
-                  .toLocaleDateString()
-              : null;
+              if (hoursError) {console.error(`⚠️ user_hours fetch failed (user_id: ${app.user_id}):`, hoursError.message);}
 
-            return {
-              ...app,
-              userName: userData?.name || "Unknown",
-              profilePicture: userData?.profilePicture || null,
-              companyName: companyData?.name || "Unknown",
-              jobPosition: jobData?.position || "Unknown",
-              totalHours,
-              lastReportDate,
-            };
+              // Fetch weekly reports
+              const { data: weeklyReports, error: weeklyError } = await supabase
+                .from("weekly_report")
+                .select("uploaded_at")
+                .ilike("submitted_by", userName);
+    
+              if (weeklyError) console.error(`⚠️ Weekly reports fetch failed (user_id: ${userName}):`, weeklyError.message);
+    
+              // Fetch monthly reports
+              const { data: monthlyReports, error: monthlyError } = await supabase
+                .from("monthly_report")
+                .select("uploaded_at")
+                .ilike("submitted_by", userName);
+    
+              if (monthlyError) console.error(`⚠️ Monthly reports fetch failed (submitted_by: ${userName}):`, monthlyError.message);
+    
+              // Combine all report dates and find the latest one
+              const allReportDates = [
+                ...(weeklyReports || []).map(r => new Date(r.uploaded_at).getTime()),
+                ...(monthlyReports || []).map(r => new Date(r.uploaded_at).getTime())
+              ];
+    
+              const latestReportDate = allReportDates.length > 0 
+                ? new Date(Math.max(...allReportDates)).toISOString().split('T')[0]
+                : null;
+    
+                const totalHours = userHoursData && userHoursData.length > 0 
+                ? userHoursData[0].total_hours 
+                : null;    
+    
+              return {
+                ...app,
+                userName,
+                profilePicture: userData?.profilePicture || null,
+                companyName: companyData?.name || "Unknown",
+                jobPosition: jobData?.position || "Unknown",
+                totalHours,
+                lastReportDate: latestReportDate,
+                isActive: totalHours !== null,
+              };
+            } catch (innerError) {
+              console.error("🚨 Error processing application entry:", innerError);
+              return {
+                ...app,
+                userName: "Error",
+                profilePicture: null,
+                companyName: "Error",
+                jobPosition: "Error",
+                totalHours: null,
+                lastReportDate: null,
+                isActive: false,
+              };
+            }
           })
         );
-
+    
         setApplications(monitoring);
       } catch (error) {
-        console.error("Failed to fetch applications:", error);
+        console.error("❌ Top-level fetchApplications error:", error);
         setMessage("❌ Failed to load application data.");
         setTimeout(() => setMessage(""), 3000);
       }
     };
-
-    fetchApplications();
-  }, []);
   
+    fetchApplications();
+  }, []);  
 
   return (
     <div className="relative min-h-screen w-screen bg-blue-100 p-6">
@@ -159,9 +205,8 @@ const Monitoring = () => {
             (companyFilter === "" || app.companyName === companyFilter)
         )
         .map((app) => {
-          const required = 300;
-          const left = app.totalHours === null ? "Not Started" : Math.max(0, required - (app.totalHours || 0));
-          const status = app.isActive ? "Active" : "Inactive"; // Display Active/Inactive based on isActive
+          const left = app.totalHours === null ? "Not Started" : app.totalHours;
+          const status = app.isActive ? "Active" : "Inactive";
 
           return (
             <div
