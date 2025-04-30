@@ -1,10 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { File } from "lucide-react";
 import { supabase } from "../../supabase";
 import WeeklyReport from "../components/WeeklyReport";
 import WeeklyJournal from "../components/WeeklyJournal";
 import MonthlyReport from "../components/MonthlyReport";
 import ReportsSubmitted from "../components/ReportsSubmitted";
+import GenerateMonthlyReport from "./GenerateMonthlyReport";
 
 interface Report {
   weekly_report_id: number;
@@ -18,12 +19,80 @@ const ReportSide: React.FC = () => {
   const [isWeeklyJournalModalOpen, setIsWeeklyJournalModalOpen] = useState(false);
   const [isMonthlyReportModalOpen, setIsMonthlyReportModalOpen] = useState(false);
   const [editingReport, setEditingReport] = useState<Report | null>(null);
+  const [companyName, setCompanyName] = useState<string | null>(null);
+  const [jobPosition, setJobPosition] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
 
   const templates = [
     { name: "Weekly Report", file: "WeeklyReport_Surname.pdf" },
     { name: "Weekly Journal", file: "WeeklyJournal_Surname.pdf" },
     { name: "Monthly Report", file: "MonthlyReport_Surname.pdf" },
   ];
+
+  // Fetch company and job details
+  useEffect(() => {
+    const fetchCompanyAndJob = async () => {
+      try {
+        setError(null);
+
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        if (userError || !user) {
+          console.error("User fetch error:", userError?.message);
+          setError("User not authenticated.");
+          return;
+        }
+
+        setUserId(user.id);
+
+        const { data: application, error: applicationError } = await supabase
+          .from("application")
+          .select("company_id, job_id")
+          .eq("user_id", user.id)
+          .eq("status", "approved")
+          .single();
+
+        if (applicationError || !application) {
+          console.error("No approved application found:", applicationError?.message);
+          setError("No approved application found.");
+          return;
+        }
+
+        const { company_id, job_id } = application;
+
+        const { data: company, error: companyError } = await supabase
+          .from("company")
+          .select("name")
+          .eq("company_id", company_id)
+          .single();
+
+        if (companyError || !company) {
+          console.error("Company not found:", companyError?.message);
+          setError("Company not found.");
+          return;
+        }
+
+        const { data: job, error: jobError } = await supabase
+          .from("job")
+          .select("position")
+          .eq("job_id", job_id)
+          .single();
+
+        if (jobError || !job) {
+          console.error("Job position not found:", jobError?.message);
+          setError("Job position not found.");
+          return;
+        }
+
+        setCompanyName(company.name);
+        setJobPosition(job.position);
+      } catch (err) {
+        console.error("Unexpected error in fetchCompanyAndJob:", err);
+        setError("An unexpected error occurred while loading company data.");
+      }
+    };
+
+    fetchCompanyAndJob();
+  }, [userId]);
 
   const handleDownload = async (fileName: string) => {
     setLoading(fileName);
@@ -69,7 +138,7 @@ const ReportSide: React.FC = () => {
     const {
       data: { user },
     } = await supabase.auth.getUser();
-    
+
     if (!user) return;
 
     const { data, error } = await supabase
@@ -131,6 +200,13 @@ const ReportSide: React.FC = () => {
               </button>
             ))}
           </div>
+          {companyName && jobPosition ? (
+            <GenerateMonthlyReport companyName={companyName} job={jobPosition} />
+          ) : (
+            <p className="text-gray-500 text-sm text-center mt-4">
+              Company or job details not available
+            </p>
+          )}
         </div>
       </div>
 
@@ -138,19 +214,16 @@ const ReportSide: React.FC = () => {
       <div className="col-span-2">
         <div className="bg-white shadow-lg rounded-2xl p-10 border border-gray-100 transform hover:scale-101 transition-all duration-300 h-full">
           <h3 className="text-xl font-bold mb-6 text-gray-900 text-center bg-blue-50 p-4 rounded-xl">Reports</h3>
-          <ReportsSubmitted 
-            onEdit={handleEditReport}
-            onRemove={handleRemoveReport}
-          />
+          <ReportsSubmitted onEdit={handleEditReport} onRemove={handleRemoveReport} />
         </div>
       </div>
 
       {/* Modals */}
-      <WeeklyReport 
-        isOpen={isWeeklyReportModalOpen} 
+      <WeeklyReport
+        isOpen={isWeeklyReportModalOpen}
         onClose={() => {
           setIsWeeklyReportModalOpen(false);
-          setEditingReport(null); 
+          setEditingReport(null);
         }}
         editingReport={editingReport}
       />

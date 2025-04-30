@@ -1,27 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { User, Settings, LogOut, CircleHelp, Menu } from "lucide-react";
 import { supabase } from "../../supabase";
-
-import logo from "../assets/ojt-logo-dashboard.svg";
+import logo from "../assets/ojt-white.png";
 import StudentSide from "../components/StudentSide";
 import ScheduleSide from "../components/ScheduleSide";
 import ReportsSide from "../components/ReportSide";
 import { useNavigate, useLocation } from "react-router-dom";
-
-import { useNavigate } from "react-router-dom";
-import ReportsSubmitted from "../components/ReportsSubmitted";
-import GenerateMonthlyReport from "../components/GenerateMonthlyReport";
-
-interface WorkDay {
-  day_of_week: string;
-  start_time: string;
-  end_time: string;
-}
-
-interface Report {
-  weekly_report_id: number;
-  week_number: number;
-}
 
 const StudentDashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -114,7 +98,6 @@ const StudentDashboard: React.FC = () => {
               alt="Profile"
               className="w-12 h-12 rounded-full object-cover border-2 border-blue-300"
             />
-
           ) : (
             <User className="w-8 h-8 text-white" />
           )}
@@ -132,8 +115,6 @@ const StudentDashboard: React.FC = () => {
               </div>
               <p className="font-semibold text-xl">{userName}</p>
               <p className="text-sm text-blue-200 capitalize">{userRole}</p>
-
-
             </div>
             <ul className="text-sm">
               <li>
@@ -174,7 +155,6 @@ const StudentDashboard: React.FC = () => {
                 >
                   <LogOut className="w-6 h-6 mr-3" /> Log out
                 </button>
-
               </li>
             </ul>
           </div>
@@ -190,7 +170,6 @@ const StudentDashboard: React.FC = () => {
           }`}
         >
           <StudentSide onViewChange={handleViewChange} activeView={activeView} />
-
         </div>
 
         {/* Main Content Area */}
