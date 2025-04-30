@@ -184,7 +184,7 @@ const Reports = () => {
                         >
                           <option value="pending">pending</option>
                           <option value="approved">approved</option>
-                          <option value="rejected">revise</option>
+                          <option value="revise">revise</option>
                         </select>
                       </td>
                       <td className="p-2 border">
