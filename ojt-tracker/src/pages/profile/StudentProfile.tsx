@@ -58,37 +58,38 @@ const StudentProfile = () => {
   };
 
   return (
+    <div className="min-h-screen w-screen flex items-center justify-center" style={{ backgroundColor: "#A1E3F9" }}>
+      <div className="max-w-lg w-full mx-4 p-6 bg-white rounded-lg shadow-md">
+        <h2 className="text-2xl font-bold mb-4 text-blue-600">Profile</h2>
 
-    <div className="max-w-lg mx-auto mt-10 p-6 bg-white rounded-lg shadow-md">
-      <h2 className="text-2xl font-bold mb-4 text-blue-600">Profile</h2>
+        {user?.profilePicture && (
+          <img
+            src={user.profilePicture}
+            alt="Profile"
+            className="w-24 h-24 rounded-full mx-auto mb-4"
+          />
+        )}
 
-      {user?.profilePicture && (
-        <img
-          src={user.profilePicture}
-          alt="Profile"
-          className="w-24 h-24 rounded-full mx-auto mb-4"
+        <label className="block text-gray-700 text-sm font-bold mb-2">
+          Name:
+        </label>
+        <input
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          className="w-full px-4 py-2 border rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
-      )}
 
-      <label className="block text-gray-700 text-sm font-bold mb-2">
-        Name:
-      </label>
-      <input
-        type="text"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-      />
-
-      <button
-        onClick={updateName}
-        className="mt-4 w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-700 transition disabled:bg-blue-300"
-        disabled={loading}
-      >
-        {loading ? "Updating..." : "Update Name"}
-      </button>
-
+        <button
+          onClick={updateName}
+          className="mt-4 w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-700 transition disabled:bg-blue-300"
+          disabled={loading}
+        >
+          {loading ? "Updating..." : "Update Name"}
+        </button>
+      </div>
     </div>
+
   );
   
 };

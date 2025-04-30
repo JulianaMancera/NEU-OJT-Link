@@ -28,7 +28,7 @@ export const JobRow = ({
   return (
     <div 
       key={job.job_id} 
-      className={`grid grid-cols-12 items-center text-left border-b border-white p-2 text-black ${
+      className={`grid grid-cols-12 items-center text-left border-b-1 border-black p-2 text-black border-l-2 border-r-2 ${
         !job.isAvailable ? 'opacity-70 bg-gray-200' : ''
       }`} 
       style={{ backgroundColor: '#D9D9D9' }}

@@ -29,7 +29,7 @@ const RequirementForm: React.FC<RequirementFormProps> = ({ company, job, onSubmi
     { key: 'resume', label: 'Resume' },
     { key: 'coverLetter', label: 'Cover Letter' },
     { key: 'com', label: 'COM' },
-    { key: 'cv', label: 'CV' },
+    { key: 'cv', label: 'Curriculum Vitae'},
     { key: 'medCert', label: 'Medical Certificate' },
     { key: 'notarized', label: 'Notarized Parent Consent' },
     { key: 'psyTest', label: 'Psychological Test' },
@@ -71,11 +71,9 @@ const RequirementForm: React.FC<RequirementFormProps> = ({ company, job, onSubmi
 
   return (
     <div className="border border-black rounded-lg p-10 w-full max-w-[1000px] mx-auto">
-      <p className="font-semibold text-center text-[1.2rem] mb-4">
-        Application for {job.position} at {company.name}
-      </p>
-      <p className="font-semibold text-center text-[1.2rem] mb-8">Please Submit Requirements</p>
 
+      <p className="font-semibold text-center text-[1.5rem] mb-8">Please Submit Requirements</p>
+      
       {showErrorPopup && (
         <div className="text-red-500 text-center mb-4">{errorMessage}</div>
       )}
