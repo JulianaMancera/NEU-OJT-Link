@@ -4,6 +4,7 @@ import { handleEndorsementSubmit as submitEndorsement } from '../services/upload
 import EndorsementButton from './EndorsementButton';
 import Company from '../types/Company';
 import Job from '../types/Job';
+import EndorsementSuccessModal from './EndorsementSuccessModal';
 
 interface EndorsementSectionProps {
   company: Company;
@@ -13,10 +14,10 @@ interface EndorsementSectionProps {
 
 const EndorsementSection: React.FC<EndorsementSectionProps> = ({ company, job, onClose }) => {
   const [endorsement, setEndorsement] = useState<File | null>(null);
-  const [endorsementStatus, setEndorsementStatus] = useState<boolean>(false);
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [showErrorPopup, setShowErrorPopup] = useState<boolean>(false);
+  const [showSuccessModal, setShowSuccessModal] = useState<boolean>(false);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
@@ -33,9 +34,16 @@ const EndorsementSection: React.FC<EndorsementSectionProps> = ({ company, job, o
 
   const handleEndorsementSubmission = async () => {
     if (endorsement) {
-      await submitEndorsement(endorsement, company, setEndorsementStatus, setLoading);
-      if (endorsementStatus) {
-        onClose();
+      try {
+        setLoading(true);
+        await submitEndorsement(endorsement, company, () => {}, setLoading);
+        setShowSuccessModal(true);
+      } catch (error) {
+        console.error(error);
+        setErrorMessage('Failed to submit endorsement letter. Please try again.');
+        setShowErrorPopup(true);
+      } finally {
+        setLoading(false);
       }
     }
   };
@@ -76,6 +84,13 @@ const EndorsementSection: React.FC<EndorsementSectionProps> = ({ company, job, o
           </button>
         </div>
       )}
+      <EndorsementSuccessModal 
+        isOpen={showSuccessModal}
+        onClose={() => {
+          setShowSuccessModal(false);
+          onClose();
+        }}
+      />
     </div>
   );
 };
