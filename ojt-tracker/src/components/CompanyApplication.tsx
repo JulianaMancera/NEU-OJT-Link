@@ -33,44 +33,47 @@ const CompanyApplication: React.FC<CompanyApplicationProps> = ({
   const [loading, setLoading] = useState(false);
   const [userApplications, setUserApplications] = useState<{ job_id: string; status: string }[]>([]);
 
+  // Fetch user applications from Supabase
+  const fetchUserApplications = async () => {
+    try {
+      setLoading(true);
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) {
+        console.error('No authenticated user found');
+        return;
+      }
+
+      const { data: applications, error } = await supabase
+        .from('application')
+        .select('job_id, status')
+        .eq('user_id', user.id);
+
+      if (error) {
+        console.error('Error fetching user applications:', error);
+        return;
+      }
+
+      setUserApplications(applications || []);
+    } catch (error) {
+      console.error('Error in fetchUserApplications:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Load user applications on component mount
+  useEffect(() => {
+    fetchUserApplications();
+  }, []);
+
   // Debug modal state changes
   useEffect(() => {
     console.log('showInProgressModal state:', showInProgressModal);
   }, [showInProgressModal]);
 
-  useEffect(() => {
-    const fetchUserApplications = async () => {
-      try {
-        setLoading(true);
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-        if (!user) {
-          console.error('No authenticated user found');
-          return;
-        }
-
-        const { data: applications, error } = await supabase
-          .from('application')
-          .select('job_id, status')
-          .eq('user_id', user.id);
-
-        if (error) {
-          console.error('Error fetching user applications:', error);
-          return;
-        }
-
-        setUserApplications(applications || []);
-      } catch (error) {
-        console.error('Error in fetchUserApplications:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchUserApplications();
-  }, []);
-
+  // Handle job selection and check for existing applications
   const handleJobSelect = (job: Job) => {
     try {
       const existingApplication = userApplications.find((app) => app.job_id === job.job_id);
@@ -87,6 +90,7 @@ const CompanyApplication: React.FC<CompanyApplicationProps> = ({
     }
   };
 
+  // Handle requirement submission and file uploads
   const handleRequirementSubmit = async (files: File[]) => {
     setLoading(true);
     console.log('CompanyApplication: handleRequirementSubmit called with files:', files);
@@ -116,7 +120,7 @@ const CompanyApplication: React.FC<CompanyApplicationProps> = ({
         'psyTest',
       ];
       const uploadPromises = files.map(async (file, index) => {
-        const fieldKey = fileFields[index];
+        const fieldKey = fileFields[index] || `file_${index}`;
         const fileExtension = file.name.split('.').pop();
         const uniqueFilename = `${fieldKey}_${user.id}_${company.company_id}_${uniqueId}.${fileExtension}`;
         const filePath = `${fieldKey}/${uniqueFilename}`;
@@ -167,13 +171,13 @@ const CompanyApplication: React.FC<CompanyApplicationProps> = ({
         {
           student_id: user.id,
           created_at: new Date().toISOString(),
-          resume_url: uploadedPaths[0],
-          cover_letter_url: uploadedPaths[1],
-          com_url: uploadedPaths[2],
-          cv_url: uploadedPaths[3],
-          medCert_url: uploadedPaths[4],
-          notarize_url: uploadedPaths[5],
-          psyTest_url: uploadedPaths[6],
+          resume_url: uploadedPaths[0] || null,
+          cover_letter_url: uploadedPaths[1] || null,
+          com_url: uploadedPaths[2] || null,
+          cv_url: uploadedPaths[3] || null,
+          medCert_url: uploadedPaths[4] || null,
+          notarize_url: uploadedPaths[5] || null,
+          psyTest_url: uploadedPaths[6] || null,
           company_id: company.company_id,
           job_id: selectedJob.job_id,
         },
@@ -198,7 +202,7 @@ const CompanyApplication: React.FC<CompanyApplicationProps> = ({
         ...(userData.applications || []),
         {
           company_id: company.company_id,
-          job_id: selectedJob?.job_id,
+          job_id: selectedJob.job_id,
           status: 'submitted',
           date: new Date().toISOString(),
         },
@@ -212,32 +216,44 @@ const CompanyApplication: React.FC<CompanyApplicationProps> = ({
         })
       );
       console.log('Successfully updated localStorage');
+
+      // Refresh user applications to ensure hasApplied is accurate
+      await fetchUserApplications();
+
+      // Show success modal
+      setApplicationStatus('submitted');
+      setShowInProgressModal(true);
+      setStep('dashboard');
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
       console.error('Error in handleRequirementSubmit:', errorMessage);
-      // Still show the modal even if there's an error, to debug rendering
-      setApplicationStatus('submitted');
-      setShowInProgressModal(true);
-      console.log('showInProgressModal set to true despite error');
+      setShowInProgressModal(true); // Show modal for debugging
       setStep('dashboard');
     } finally {
       setLoading(false);
     }
   };
 
+  // Handle modal close and navigation
   const handleModalClose = () => {
     setShowStatusModal(false);
     setShowInProgressModal(false);
     console.log('Modal closed, navigating to dashboard');
     onClose();
-    setTimeout(() => navigate('/dashboard'), 500); // Increased delay for visibility
+    setTimeout(() => navigate('/dashboard'), 500);
   };
 
+  // Handle status updates
   const handleStatusUpdate = (
     status: 'submitted' | 'approved' | 'availability_submitted' | 'endorsement_submitted'
   ) => {
     setApplicationStatus(status);
   };
+
+  // Determine if the user has applied to the selected job
+  const hasApplied = selectedJob
+    ? userApplications.some((app) => app.job_id === selectedJob.job_id && app.status !== 'rejected')
+    : false;
 
   return (
     <div className="flex items-center justify-center">
@@ -270,6 +286,7 @@ const CompanyApplication: React.FC<CompanyApplicationProps> = ({
           company={company}
           setStep={setStep}
           setSelectedJob={setSelectedJob}
+          hasApplied={hasApplied}
         />
       )}
 

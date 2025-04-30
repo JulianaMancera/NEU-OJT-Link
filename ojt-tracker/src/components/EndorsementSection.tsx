@@ -18,6 +18,7 @@ const EndorsementSection: React.FC<EndorsementSectionProps> = ({ company, job, o
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [showErrorPopup, setShowErrorPopup] = useState<boolean>(false);
   const [showSuccessModal, setShowSuccessModal] = useState<boolean>(false);
+  const [hasSubmitted, setHasSubmitted] = useState<boolean>(false); // Track submission status
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
@@ -37,6 +38,7 @@ const EndorsementSection: React.FC<EndorsementSectionProps> = ({ company, job, o
       try {
         setLoading(true);
         await submitEndorsement(endorsement, company, () => {}, setLoading);
+        setHasSubmitted(true); // Mark as submitted after success
         setShowSuccessModal(true);
       } catch (error) {
         console.error(error);
@@ -49,11 +51,16 @@ const EndorsementSection: React.FC<EndorsementSectionProps> = ({ company, job, o
   };
 
   return (
-    <div className="text-black">
-      <p className="text-[1rem] font-semibold">Position: {job.position}</p>
-      <br />
-      <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '18px', flexDirection: 'column' }}>
-        <p>You already submitted for this position</p>
+    <div className="bg-white p-6 rounded-xl shadow-lg max-w-lg mx-auto text-black">
+      <h2 className="text-xl font-semibold text-gray-800 mb-4">Endorsement Submission</h2>
+      <p className="text-base font-medium text-gray-700 mb-2">Position: {job.position}</p>
+
+      <div className="flex flex-col items-center gap-4">
+        {hasSubmitted && (
+          <p className="text-sm text-gray-500 mb-4">
+            You have already submitted for this position.
+          </p>
+        )}
         <EndorsementButton 
           companyProps={{ company, onClose }}
           job={job}
@@ -66,33 +73,39 @@ const EndorsementSection: React.FC<EndorsementSectionProps> = ({ company, job, o
           onChange={handleFileChange}
         />
       </div>
-      {showErrorPopup && <p className="text-red-500">{errorMessage}</p>}
+
+      {showErrorPopup && (
+        <p className="text-red-500 text-sm text-center mt-4">{errorMessage}</p>
+      )}
+
       {endorsement && (
-        <div className="flex gap-4 mt-8 justify-center">
+        <div className="flex justify-center gap-4 mt-6">
           <button 
             onClick={handleEndorsementSubmission} 
-            className="text-white bg-black px-4 py-2 rounded"
+            className="bg-blue-600 text-white px-6 py-2.5 rounded-lg hover:bg-blue-700 transition-colors duration-200 font-medium disabled:bg-blue-400"
             disabled={loading}
           >
             {loading ? 'Submitting...' : 'Submit'}
           </button>
           <button 
             onClick={onClose} 
-            className="text-white bg-gray-500 px-4 py-2 rounded"
+            className="bg-gray-200 text-gray-700 px-6 py-2.5 rounded-lg hover:bg-gray-300 transition-colors duration-200 font-medium"
           >
             Cancel
           </button>
         </div>
       )}
+
       <EndorsementSuccessModal 
         isOpen={showSuccessModal}
         onClose={() => {
           setShowSuccessModal(false);
           onClose();
         }}
+        userName="Student"
       />
     </div>
   );
 };
 
-export default EndorsementSection; 
+export default EndorsementSection;
