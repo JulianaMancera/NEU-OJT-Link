@@ -4,7 +4,7 @@ import { supabase } from "../../supabase";
 import logo from "../assets/ojt-white.png";
 import WeeklyReport from "../components/WeeklyReport";
 import WeeklyJournal from "../components/WeeklyJournal";
-import MonthlyReport from "../components/MonthlyReport";
+import MonthlyReport from '../components/MonthlyReport';
 
 
 import { User, Settings, LogOut, CircleHelp, UserSquare2 } from "lucide-react";
@@ -12,6 +12,7 @@ import { User, Settings, LogOut, CircleHelp, UserSquare2 } from "lucide-react";
 
 import { useNavigate } from "react-router-dom";
 import ReportsSubmitted from "../components/ReportsSubmitted";
+import GenerateMonthlyReport from "../components/GenerateMonthlyReport";
 
 interface WorkDay {
   day_of_week: string;
@@ -398,6 +399,9 @@ const StudentDashboard: React.FC = () => {
                 </button>
                 ))}
             </div>
+            {jobPosition && companyName && 
+            <GenerateMonthlyReport companyName={companyName} job={jobPosition} />
+            }
         </div>
         <WeeklyReport 
           isOpen={isWeeklyReportModalOpen} 
