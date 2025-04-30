@@ -104,7 +104,7 @@ const StudentDashboard: React.FC = () => {
         </button>
 
         {isProfileOpen && (
-          <div className="absolute right-6 top-20 bg-white text-gray-800 shadow-2xl rounded-xl w-80 z-50 animate-slide-down">
+          <div className="absolute right-6 top-20 bg-white text-gray-800 shadow-2xl rounded-xl w-80 z-50 animate-slide-down animate-slide-in-down">
             <div className="bg-blue-800 text-white p-4 text-center">
               <div className="w-24 h-24 rounded-full mx-auto overflow-hidden mb-3 border-4 border-blue-300">
                 {profilePicture ? (
