@@ -12,7 +12,7 @@ export const handleEndorsementSubmit = async (endorsement: File, company: Compan
     const { data: endorsementData, error: endorsementError } = await supabase
       .storage
       .from("applicant-documents")
-      .upload(`resumes/${user.data.user?.id}_${company.company_id}_${endorsement.name}`, endorsement);
+      .upload(`endorsement-letter/${user.data.user?.id}_/${company.company_id}_${endorsement.name}`, endorsement);
     // Upload Cover Letter
         // Handle errors
     if (endorsementError) {
