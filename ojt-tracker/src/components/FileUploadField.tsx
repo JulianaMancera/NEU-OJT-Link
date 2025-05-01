@@ -6,16 +6,21 @@ interface FileUploadFieldProps {
   fieldKey: string;
   label: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>, key: string) => void;
-  error?: string; // Added error prop
-  required?: boolean; // Added required prop
-  disabled?: boolean; // Added disabled prop
+  error?: string;
+  required?: boolean;
+  disabled?: boolean;
 }
 
-// Function to render file icon
 const renderFileIcon = () => <File size={40} className="text-gray-500" />;
-
-// Function to render preview icon
 const previewFileIcon = () => <Eye size={25} className="text-gray-500" />;
+
+/**
+ * Validate file name: Must follow `Surname_Label.pdf`
+ */
+const validateFileName = (fileName: string, label: string) => {
+  const regex = new RegExp(`^[A-Za-z]+_${label}\\.pdf$`, "i");
+  return regex.test(fileName);
+};
 
 const FileUploadField: React.FC<FileUploadFieldProps> = ({
   file,
@@ -27,26 +32,40 @@ const FileUploadField: React.FC<FileUploadFieldProps> = ({
   disabled,
 }) => {
   const [isDragOver, setDragOver] = useState(false);
+  const [showModal, setShowModal] = useState(false);
 
-  // Handle drag-and-drop
+  const handleFileValidation = (fileInput: File) => {
+    if (!validateFileName(fileInput.name, label)) {
+      setShowModal(true);
+      return false;
+    }
+    return true;
+  };
+
   const handleDrop = (e: React.DragEvent<HTMLLabelElement>) => {
     e.preventDefault();
     setDragOver(false);
-
     if (disabled) return;
 
-    const droppedFiles = e.dataTransfer.files;
-    if (droppedFiles.length > 0) {
+    const droppedFile = e.dataTransfer.files?.[0];
+    if (droppedFile && handleFileValidation(droppedFile)) {
       const fakeInput = {
-        target: { files: droppedFiles },
+        target: { files: [droppedFile] },
       } as unknown as React.ChangeEvent<HTMLInputElement>;
       onChange(fakeInput, fieldKey);
     }
   };
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = e.target.files?.[0];
+    if (selectedFile && handleFileValidation(selectedFile)) {
+      onChange(e, fieldKey);
+    }
+  };
+
   return (
-    <div className="flex flex-col items-center">
-      {/* Label with required indicator */}
+    <div className="flex flex-col items-center relative">
+      {/* Label */}
       <div className="rounded-lg text-black border bg-gray-50 border-gray-300 px-4 py-2 w-full text-center mb-2 font-bold truncate">
         {label}
         {required && <span className="text-red-500 ml-1">*</span>}
@@ -55,7 +74,7 @@ const FileUploadField: React.FC<FileUploadFieldProps> = ({
       {/* File Icon */}
       <div className="mb-2 mt-2 flex justify-center">{renderFileIcon()}</div>
 
-      {/* File Upload Area */}
+      {/* Upload Area */}
       <label
         className={`bg-[#5fbff9] text-black rounded-md border border-dashed px-4 py-5 text-sm transition-all duration-300 block w-full text-center
           ${isDragOver && !disabled ? "border-blue-500 bg-blue-200" : error ? "border-red-500 bg-red-50" : "border-gray-300"}
@@ -74,7 +93,7 @@ const FileUploadField: React.FC<FileUploadFieldProps> = ({
         <input
           type="file"
           accept=".pdf"
-          onChange={(e) => onChange(e, fieldKey)}
+          onChange={handleInputChange}
           className="hidden"
           disabled={disabled}
           aria-describedby={error ? `${fieldKey}-error` : undefined}
@@ -82,7 +101,7 @@ const FileUploadField: React.FC<FileUploadFieldProps> = ({
         />
       </label>
 
-      {/* File Name or Error Message */}
+      {/* File name or error */}
       <div className="mt-1 flex justify-center mb-4 min-h-[1.5rem]">
         {error ? (
           <span
@@ -99,7 +118,7 @@ const FileUploadField: React.FC<FileUploadFieldProps> = ({
         )}
       </div>
 
-      {/* Preview Icon */}
+      {/* Eye icon preview */}
       {file && !error && (
         <div className="flex justify-center w-full mt-2">
           <button
@@ -114,6 +133,25 @@ const FileUploadField: React.FC<FileUploadFieldProps> = ({
           >
             {previewFileIcon()}
           </button>
+        </div>
+      )}
+
+      {/* Modal for invalid file format */}
+      {showModal && (
+        <div className="fixed inset-0 z-50 bg-black bg-opacity-40 flex items-center justify-center">
+          <div className="bg-white rounded-lg shadow-lg p-6 w-96 text-center">
+            <h2 className="text-lg font-semibold text-red-600 mb-2">Invalid File Name</h2>
+            <p className="text-sm text-gray-700 mb-4">
+              The file name format is not supported.<br />
+              <strong>Format:</strong> <code>Surname_{label}.pdf</code>
+            </p>
+            <button
+              className="mt-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
+              onClick={() => setShowModal(false)}
+            >
+              OK
+            </button>
+          </div>
         </div>
       )}
     </div>

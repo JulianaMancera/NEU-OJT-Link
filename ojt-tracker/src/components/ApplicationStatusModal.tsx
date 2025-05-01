@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AvailabilitySection from './AvailabilitySection';
 import EndorsementSection from './EndorsementSection';
+import EndorsementSuccessModal from './EndorsementSuccessModal';
 import { useClickOutside } from '../hooks/useClickOutside';
 
 interface ApplicationStatusModalProps {
@@ -16,6 +17,7 @@ interface ApplicationStatusModalProps {
     position: string;
   };
   onUpdateStatus?: (status: 'submitted' | 'approved' | 'availability_submitted' | 'endorsement_submitted') => void;
+  userName?: string;
 }
 
 const ApplicationStatusModal: React.FC<ApplicationStatusModalProps> = ({
@@ -26,11 +28,13 @@ const ApplicationStatusModal: React.FC<ApplicationStatusModalProps> = ({
   companyId,
   applicationId,
   job,
-  onUpdateStatus
+  onUpdateStatus,
+  userName = ""
 }) => {
   const navigate = useNavigate();
   const [showAvailability, setShowAvailability] = useState(false);
   const [showEndorsement, setShowEndorsement] = useState(false);
+  const [showEndorsementSuccess, setShowEndorsementSuccess] = useState(status === 'endorsement_submitted');
   
   const modalRef = useClickOutside(() => {
     if (isOpen) {
@@ -81,8 +85,7 @@ const ApplicationStatusModal: React.FC<ApplicationStatusModalProps> = ({
           message: `Your endorsement letter has been submitted successfully. You may proceed to student dashboard`,
           buttonText: 'Close',
           buttonAction: () => {
-            onClose();
-            navigate('/dashboard');
+            setShowEndorsementSuccess(true);
           }
         };
       default:
@@ -106,9 +109,28 @@ const ApplicationStatusModal: React.FC<ApplicationStatusModalProps> = ({
   };
 
   const handleEndorsementCompletion = () => {
+    if (onUpdateStatus) {
+      onUpdateStatus('endorsement_submitted');
+    }
     setShowEndorsement(false);
-    onClose();
+    setShowEndorsementSuccess(true);
   };
+
+  const handleEndorsementSuccessClose = () => {
+    setShowEndorsementSuccess(false);
+    onClose();
+    navigate('/dashboard');
+  };
+
+  if (showEndorsementSuccess) {
+    return (
+      <EndorsementSuccessModal
+        isOpen={true}
+        onClose={handleEndorsementSuccessClose}
+        userName={userName}
+      />
+    );
+  }
 
   if (showEndorsement) {
     return (
