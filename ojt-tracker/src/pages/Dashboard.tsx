@@ -2,6 +2,7 @@ import { supabase } from "../../supabase";
 import { useNavigate } from "react-router-dom";
 import CompanyApplication from "../components/CompanyApplication";
 import ApplicationStatusModal from "../components/ApplicationStatusModal";
+import EndorsementSuccessModal from "../components/EndorsementSuccessModal";
 import OJTLogo from "/src/assets/ojt-white.png";
 import { ProfileMenu } from "../components/ProfileMenu";
 import { Search, X } from "lucide-react";
@@ -21,6 +22,9 @@ const Dashboard = () => {
     approvedJob,
     showApprovalModal,
     setShowApprovalModal,
+    showEndorsementSuccessModal,
+    setShowEndorsementSuccessModal,
+    userName: applicationUserName,
     updateApplicationStatus
   } = useApplicationData();
   const {
@@ -41,6 +45,11 @@ const Dashboard = () => {
     if (applicationStatus === 'availability_submitted' && approvedCompany) {
       setSelectedCompany(approvedCompany);
     }
+  };
+
+  const handleEndorsementSuccessClose = () => {
+    setShowEndorsementSuccessModal(false);
+    navigate('/dashboard');
   };
 
   if (loading) return <Loading />;
@@ -73,8 +82,15 @@ const Dashboard = () => {
             company_id: approvedCompany.company_id
           }}
           onUpdateStatus={updateApplicationStatus}
+          userName={applicationUserName || userName}
         />
       )}
+
+      <EndorsementSuccessModal
+        isOpen={showEndorsementSuccessModal}
+        onClose={handleEndorsementSuccessClose}
+        userName={applicationUserName || userName}
+      />
 
       <div className="w-screen min-h-screen bg-[linear-gradient(to_bottom,#091545_1%,#1735AB_59%)] flex flex-col items-center p-28">
         <div className="relative w-full max-w-xl h-12 bg-[#fcfbf4]/85 border-2 border-black flex items-center px-5 mb-6">
