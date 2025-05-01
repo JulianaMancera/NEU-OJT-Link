@@ -6,11 +6,9 @@ import OJTLogo from "/src/assets/ojt-white.png";
 
 type User = {
   user_id: string;
-  name: string;
   email: string;
   date_registered: string;
   role: string;
-  profilePicture: string | null;
 };
 
 const UserRole = () => {
@@ -41,7 +39,7 @@ const UserRole = () => {
         setIsLoading(true);
         const { data: usersData, error: usersError } = await supabase
           .from("user")
-          .select("user_id, name, email, date_registered, role, profilePicture");
+          .select("user_id, email, date_registered, role");
 
         if (usersError) throw usersError;
         if (!usersData || usersData.length === 0) {
@@ -63,9 +61,10 @@ const UserRole = () => {
     fetchUsers();
   }, []);
 
+  // Since we don't have a 'name' column, we'll filter by email instead
   const filteredUsers = users.filter(
     (user) =>
-      user.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
+      user.email.toLowerCase().includes(searchQuery.toLowerCase()) &&
       (roleFilter === "" || user.role === roleFilter)
   );
 
@@ -88,11 +87,11 @@ const UserRole = () => {
           <div className="relative w-full sm:w-64">
             <input
               type="text"
-              placeholder="Search by name..."
+              placeholder="Search by email..."
               className="w-full pl-4 pr-4 py-2 border border-gray-300 rounded-md bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              aria-label="Search by name"
+              aria-label="Search by email"
             />
           </div>
 
@@ -117,23 +116,22 @@ const UserRole = () => {
           <table className="w-full border-collapse">
             <thead className="bg-black text-white">
               <tr>
-                <th className="p-3 border border-gray-300 text-sm font-semibold text-center w-1/5">User ID</th>
-                <th className="p-3 border border-gray-300 text-sm font-semibold text-center w-1/5">Name</th>
-                <th className="p-3 border border-gray-300 text-sm font-semibold text-center w-1/5">Email</th>
-                <th className="p-3 border border-gray-300 text-sm font-semibold text-center w-1/5">Date Registered</th>
-                <th className="p-3 border border-gray-300 text-sm font-semibold text-center w-1/5">Role</th>
+                <th className="p-3 border border-gray-2025 text-sm font-semibold text-center w-1/4">User ID</th>
+                <th className="p-3 border border-gray-2025 text-sm font-semibold text-center w-1/4">Email</th>
+                <th className="p-3 border border-gray-2025 text-sm font-semibold text-center w-1/4">Date Registered</th>
+                <th className="p-3 border border-gray-2025 text-sm font-semibold text-center w-1/4">Role</th>
               </tr>
             </thead>
             <tbody>
               {isLoading ? (
                 <tr>
-                  <td colSpan={5} className="p-8 text-center">
+                  <td colSpan={4} className="p-8 text-center">
                     <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto"></div>
                   </td>
                 </tr>
               ) : filteredUsers.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="p-8 text-center text-gray-500">
+                  <td colSpan={4} className="p-8 text-center text-gray-500">
                     No users match your filters.
                   </td>
                 </tr>
@@ -145,33 +143,12 @@ const UserRole = () => {
                       index % 2 === 0 ? "bg-white" : "bg-gray-50"
                     }`}
                   >
-                    <td className="p-3 border border-gray-300 text-center truncate">{user.user_id}</td>
-                    <td className="p-3 border border-gray-300 text-center">
-                      <div className="flex items-center space-x-3 justify-start">
-                        {user.profilePicture ? (
-                          <img
-                            src={user.profilePicture}
-                            alt={`${user.name}'s profile`}
-                            className="w-8 h-8 rounded-full object-cover border border-gray-200"
-                          />
-                        ) : (
-                          <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-medium text-gray-600">
-                            {user.name
-                              .split(" ")
-                              .map((name) => name.charAt(0))
-                              .join("")
-                              .toUpperCase()
-                              .slice(0, 2)}
-                          </div>
-                        )}
-                        <span className="truncate">{user.name}</span>
-                      </div>
-                    </td>
-                    <td className="p-3 border border-gray-300 text-center truncate">{user.email}</td>
-                    <td className="p-3 border border-gray-300 text-center">
+                    <td className="p-3 border border-gray-2025 text-center truncate">{user.user_id}</td>
+                    <td className="p-3 border border-gray-2025 text-center truncate">{user.email}</td>
+                    <td className="p-3 border border-gray-2025 text-center">
                       {formatPhilippineDateTime(user.date_registered)}
                     </td>
-                    <td className="p-3 border border-gray-300 text-center">
+                    <td className="p-3 border border-gray-2025 text-center">
                       <span
                         className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${
                           user.role === "admin"
@@ -180,8 +157,6 @@ const UserRole = () => {
                             ? "bg-purple-100 text-purple-800"
                             : user.role === "student"
                             ? "bg-green-100 text-green-800"
-                            : user.role === "faculty"
-                            ? "bg-yellow-100 text-yellow-800"
                             : "bg-gray-100 text-gray-800"
                         }`}
                       >

@@ -13,7 +13,6 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: {
   const [monitoringExpanded, setMonitoringExpanded] = useState(false);
   const [companyExpanded, setCompanyExpanded] = useState(false);
 
-
   const handleNavigation = (route: string, label: string) => {
     setActive(label);
     navigate(route);
@@ -59,11 +58,11 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: {
             <span className="text-sm font-medium">Dashboard</span>
           </button>
 
-           {/* User Role */}
-           <button
-            onClick={() => handleNavigation("/admin", "Dashboard")}
+          {/* User Role */}
+          <button
+            onClick={() => handleNavigation("/user-role", "User Role")}
             className={`flex items-center gap-2 bg-[#B3E5FC] px-4 py-2 rounded-lg hover:bg-[#81D4FA] text-black ${
-              active === "Dashboard" ? "ring-2 ring-[#0288D1]" : ""
+              active === "User Role" ? "ring-2 ring-[#0288D1]" : ""
             }`}
           >
             <Pencil />
@@ -80,7 +79,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: {
               <span className="text-sm font-medium text-left">Student Monitoring</span>
             </span>
             <span className="translate-x-2">
-            {monitoringExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16}/>}
+              {monitoringExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16}/>}
             </span>
           </button>
 
@@ -92,7 +91,6 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: {
                 { label: "Monitoring", route: "/monitoring" },
                 { label: "Reports", route: "/reports" },
                 { label: "Compilation of Reports", route: "/company" },
-
               ].map((item) => (
                 <button
                   key={item.label}
