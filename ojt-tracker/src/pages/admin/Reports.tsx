@@ -89,15 +89,15 @@ const Reports = () => {
   };
 
   return (
-    <div className="p-5 w-screen h-full bg-blue-100">
+    <div className="relative min-h-screen w-screen bg-gradient-to-b from-[#5F74C9] to-[#0A279C] p-8">
       {/* Header */}
       <div className="w-full h-[80px] absolute left-0 top-0 bg-gradient-to-b from-[#578FCA] to-[#2B4764] border-black flex items-center justify-between px-6">
         <img src={OJTLogo} alt="OJT Link Logo" className="w-[220px] h-[220px] ml-15" />
       </div>
       <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 
-      <div className="mt-24 bg-white border border-black rounded-lg p-6 max-w-8xl mx-auto text-black">
-        <h2 className="text-center font-bold text-4xl mb-4 mt-5">Reports Management</h2>
+      <div className="mt-24 bg-[#FFFCF9] border border-black rounded-lg p-6 max-w-8xl mx-auto text-black">
+       <h2 className="text-center justify-center py-4 font-bold text-5xl mb-6">Reports Management</h2>
 
         {/* View Toggle Buttons */}
         <div className="flex justify-center gap-4 mb-6">
@@ -146,7 +146,7 @@ const Reports = () => {
             <tbody>
               {view === 'weekly'
                 ? weeklyReports.map(report => (
-                    <tr key={report.weekly_report_id} className="text-center bg-gray-200">
+                    <tr key={report.weekly_report_id} className="text-center bg-gray-100">
                       <td className="p-2 border">{report.submitted_by}</td>
                       <td className="p-2 border">{report.start_date}</td>
                       <td className="p-2 border">{report.end_date || '-'}</td>

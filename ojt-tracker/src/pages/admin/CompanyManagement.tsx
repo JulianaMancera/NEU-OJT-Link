@@ -145,15 +145,15 @@ const CompanyManagement = () => {
   };
 
   return (
-    <div className="p-10 w-screen min-h-screen bg-blue-100">
+    <div className="relative min-h-screen w-screen bg-gradient-to-b from-[#5F74C9] to-[#0A279C] p-8">
       {/* Header */}
       <div className="w-screen h-[80px] fixed left-0 top-0 bg-gradient-to-b from-[#578FCA] to-[#2B4764] border-b border-black flex items-center justify-between px-6 z-10">
-        <img src={OJTLogo} alt="OJT Link Logo" className="w-[150px] h-auto" />
+      <img src={OJTLogo} alt="OJT Link Logo" className="w-[220px] h-[220px] ml-15" />
       </div>
       <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 
-      <div className="mt-20 bg-white border border-black rounded-lg p-6 max-w-full mx-auto text-black">
-        <h2 className="text-center font-bold text-6xl mb-6">Company Management</h2>
+      <div className="mt-24 bg-[#FFFCF9] border border-black rounded-lg p-6 max-w-8xl mx-auto text-black">
+        <h2 className="text-center justify-center py-4 font-bold text-5xl mb-6">Company Management</h2>
 
         {error && (
           <div className="bg-red-100 text-red-700 p-3 rounded mb-4 text-center">

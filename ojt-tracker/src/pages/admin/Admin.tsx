@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { User, Settings, LogOut, CircleHelp, MoonStar} from "lucide-react";
+import { User, Settings, LogOut, CircleHelp } from "lucide-react";
 import { supabase } from "../../../supabase";
 import OJTLogo from "/src/assets/ojt-white.png";
 import Sidebar from "../../components/SideBar";
@@ -52,13 +52,13 @@ const Admin = () => {
         </div>
         <button
           onClick={() => setProfileOpen(!isProfileOpen)}
-          className="relative p-2 hover:bg-violet-100 rounded-full transition-colors overflow-hidden"
+          className="relative p-3 hover:bg-blue-800 rounded-full transition-all duration-300"
         >
           {profilePicture ? (
             <img
               src={profilePicture}
               alt="Profile"
-              className="w-8 h-8 rounded-full object-cover"
+               className="w-12 h-12 rounded-full object-cover border-2 border-blue-300"
             />
           ) : (
             <User className="w-6 h-6 text-white" />
@@ -67,56 +67,51 @@ const Admin = () => {
 
         {isProfileOpen && (
           <div className="absolute right-6 top-[4.5rem] bg-white text-gray-800 shadow-lg rounded-md overflow-hidden z-50 w-64 min-w-[16rem] animate-slide-in-down">
-            <div className="bg-violet-800 text-black p-4 text-center">
-              <div className="w-16 h-16 rounded-full mx-auto overflow-hidden mb-2">
-                {profilePicture ? (
-                  <img src={profilePicture} alt="Profile" className="w-full h-full object-cover" />
-                ) : (
-                  <User className="w-8 h-8 mx-auto text-white" />
+                     <div className="bg-blue-800 text-white p-4 text-center">
+                       <div className="w-24 h-24 rounded-full mx-auto overflow-hidden mb-3 border-4 border-blue-300">
+                         {profilePicture ? (
+                           <img src={profilePicture} alt="Profile" className="w-full h-full object-cover" />
+                         ) : (
+                           <User className="w-12 h-12 mx-auto text-white" />
+                         )}
+                       </div>
+                       <p className="font-semibold text-xl">{userName}</p>
+                       <p className="text-sm text-blue-200 capitalize">{userRole}</p>
+                     </div>
+                     <ul className="text-sm">
+                       <li>
+                         <button
+                           onClick={() => {
+                             navigate("/profile");
+                             setProfileOpen(false);
+                           }}
+                           className="w-full text-left px-6 py-4 hover:bg-gray-100 flex items-center transition-all duration-200"
+                         >
+                           <User className="w-6 h-6 mr-3" /> Profile
+                         </button>
+                       </li>
+                       <li>
+                         <button className="w-full text-left px-6 py-4 hover:bg-gray-100 flex items-center transition-all duration-200">
+                           <Settings className="w-6 h-6 mr-3" /> Settings
+                         </button>
+                       </li>
+                       <li>
+                         <button className="w-full text-left px-6 py-4 hover:bg-gray-100 flex items-center transition-all duration-200">
+                           <CircleHelp className="w-6 h-6 mr-3 " /> Help & Support
+                         </button>
+                       </li>
+                      <li>
+                        <button
+                          onClick={handleLogout}
+                           className="w-full text-left px-6 py-4 hover:bg-red-50 text-red-600 flex items-center transition-all duration-200"
+                                  >
+                                   <LogOut className="w-6 h-6 mr-3" /> Log out
+                        </button>
+                      </li>
+                    </ul>
+                  </div>
                 )}
-              </div>
-              <p className="font-semibold">{userName}</p>
-              <p className="text-xs text-violet-200">{userRole}</p>
-            </div>
-            <ul className="text-sm">
-              <li>
-                <button
-                  onClick={() => {
-                    navigate('/profile');
-                    setProfileOpen(false);
-                  }}
-                  className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center"
-                >
-                  <User className="w-4 h-4 mr-2" /> Profile
-                </button>
-              </li>
-              <li>
-                <button className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center">
-                  <Settings className="w-4 h-4 mr-2" /> Settings
-                </button>
-              </li>
-              <li>
-                <button className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center">
-                  <MoonStar className="w-4 h-4 mr-2" /> Appearance
-                </button>
-              </li>
-              <li>
-                <button className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center">
-                  <CircleHelp className="w-4 h-4 mr-2" /> Help & Support
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={handleLogout}
-                  className="w-full text-left px-4 py-2 hover:bg-red-100 text-red-600 flex items-center"
-                >
-                  <LogOut className="w-4 h-4 mr-2" /> Log out
-                </button>
-              </li>
-            </ul>
-          </div>
-        )}
-      </header>
+              </header>
 
       {/* Sidebar + Main Content */}
       <div className="flex pt-24 space-x-6">
