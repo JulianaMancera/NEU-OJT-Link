@@ -100,7 +100,8 @@ const RequirementForm: React.FC<RequirementFormProps> = ({ company, job, onSubmi
             <span className="text-3xl font-bold text-blue-600">{job.position}</span>{' '}
             at {company.name}
           </h2>
-          <p className="text-gray-600 mt-2">Please upload the required documents below</p>
+          <p className="text-gray-600 mt-2 text-[1.1rem]">Please upload the required documents below</p>
+          <p className='text-semibold mt-2'>Filename Format Example: Surname_Resume</p>
         </div>
 
         {/* General Error */}

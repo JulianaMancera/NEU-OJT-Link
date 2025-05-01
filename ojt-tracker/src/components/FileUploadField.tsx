@@ -4,7 +4,7 @@ import { Eye, File } from "lucide-react";
 interface FileUploadFieldProps {
   file: File | null;
   fieldKey: string;
-  label: string;
+  label: string; // e.g. "Endorsement Letter"
   onChange: (e: React.ChangeEvent<HTMLInputElement>, key: string) => void;
   error?: string;
   required?: boolean;
@@ -15,10 +15,18 @@ const renderFileIcon = () => <File size={40} className="text-gray-500" />;
 const previewFileIcon = () => <Eye size={25} className="text-gray-500" />;
 
 /**
- * Validate file name: Must follow `Surname_Label.pdf`
+ * Converts label like "Endorsement Letter" to "Endorsement_Letter"
+ */
+const formatLabelForValidation = (label: string) => {
+  return label.trim().replace(/\s+/g, "_");
+};
+
+/**
+ * Validates filename matches "Surname_Label.pdf"
  */
 const validateFileName = (fileName: string, label: string) => {
-  const regex = new RegExp(`^[A-Za-z]+_${label}\\.pdf$`, "i");
+  const formattedLabel = formatLabelForValidation(label);
+  const regex = new RegExp(`^[A-Za-z]+_${formattedLabel}\\.pdf$`, "i");
   return regex.test(fileName);
 };
 
@@ -140,10 +148,14 @@ const FileUploadField: React.FC<FileUploadFieldProps> = ({
       {showModal && (
         <div className="fixed inset-0 z-50 bg-black bg-opacity-40 flex items-center justify-center">
           <div className="bg-white rounded-lg shadow-lg p-6 w-96 text-center">
-            <h2 className="text-lg font-semibold text-red-600 mb-2">Invalid File Name</h2>
+            <h2 className="text-lg font-semibold text-red-600 mb-2">
+              Invalid File Name
+            </h2>
             <p className="text-sm text-gray-700 mb-4">
-              The file name format is not supported.<br />
-              <strong>Format:</strong> <code>Surname_{label}.pdf</code>
+              The file name format is not supported.
+              <br />
+              <strong>Format:</strong>{" "}
+              <code>Surname_{formatLabelForValidation(label)}.pdf</code>
             </p>
             <button
               className="mt-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition"

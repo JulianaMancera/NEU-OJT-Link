@@ -65,6 +65,7 @@ const EndorsementSection: React.FC<EndorsementSectionProps> = ({ company, job, o
           companyProps={{ company, onClose }}
           job={job}
         />
+        <p>Filename Format: Surname_Endorsement_Letter</p>
         <FileUploadField
           key="endorsement"
           label="Endorsement Letter"
