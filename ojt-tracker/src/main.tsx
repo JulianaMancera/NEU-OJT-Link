@@ -12,7 +12,7 @@ import CompanyManagement from "./pages/admin/CompanyManagement";
 import AddJobs from "./pages/admin/AddJobs";
 import Reports from "./pages/admin/Reports";
 import Monitoring from "./pages/admin/Monitoring";
-
+import UserRole from "./pages/admin/UserRole";
 
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
@@ -29,6 +29,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
       <Route path="/jobs" element={<AddJobs />} />
       <Route path="/reports" element={<Reports />} />
       <Route path="/monitoring" element={<Monitoring />} />
+      <Route path="/user-role" element={<UserRole />} />
     </Routes>
   </BrowserRouter>
 );
