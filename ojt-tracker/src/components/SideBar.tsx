@@ -78,7 +78,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: {
                 { label: "Application", route: "/application-approval" },
                 { label: "Monitoring", route: "/monitoring" },
                 { label: "Company Management", route: "/company" },
-                { label: "Reports", route: "/reports" },
+                { label: "Summary", route: "/reports" },
               ].map((item) => (
                 <button
                   key={item.label}
