@@ -343,6 +343,7 @@ const WeeklyReport = ({ isOpen, onClose, editingReport }: WeeklyReportProps) => 
               user_id: user.id,
               week_number: extractedWeek,
               total_hours: totalHours,
+              status: "pending",
             }])
             .select("weekly_report_id")
             .single();
