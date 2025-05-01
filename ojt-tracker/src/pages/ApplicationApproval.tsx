@@ -3,11 +3,13 @@ import { supabase } from "../../supabase";
 import { User } from "@supabase/supabase-js";
 import Sidebar from "../components/SideBar";
 import OJTLogo from "/src/assets/ojt-white.png";
+import { updateApprovedApplicationCount } from "../services/JobService";
 
 interface Application {
   application_id: string;
   user_id: string;
   company_id: string;
+  job_id: string;
   email: string;
   status: 'approved' | 'pending' | 'rejected';
 }
@@ -15,7 +17,11 @@ interface Application {
 const ApplicationApproval = () => {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
-  const [applications, setApplications] = useState<(Application & { user_name?: string; company_name?: string })[]>([]);
+  const [applications, setApplications] = useState<(Application & { 
+    user_name?: string; 
+    company_name?: string;
+    job_position?: string;
+  })[]>([]);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
@@ -30,7 +36,10 @@ const ApplicationApproval = () => {
 
       setUser(user);
 
-      const { data, error } = await supabase.from("application").select("*");
+      const { data, error } = await supabase.from("application").select(`
+        *,
+        job:job_id (position)
+      `);
 
       if (error) {
         console.error("Error fetching applications:", error.message);
@@ -54,7 +63,8 @@ const ApplicationApproval = () => {
         return {
           ...app,
           user_name: userData?.name || 'Unknown',
-          company_name: companyData?.name || 'Unknown'
+          company_name: companyData?.name || 'Unknown',
+          job_position: (app.job as { position: string })?.position || 'Unknown'
         };
       }));
 
@@ -71,19 +81,36 @@ const ApplicationApproval = () => {
       return;
     }
 
-    const { error } = await supabase
-      .from("application")
-      .update({ status: newStatus })
-      .eq('application_id', applicationId);
+    try {
+      setLoading(true);
+      const application = applications.find(app => app.application_id === applicationId);
+      
+      const { error } = await supabase
+        .from("application")
+        .update({ status: newStatus })
+        .eq('application_id', applicationId);
 
-    if (error) {
-      console.error("Error updating application status:", error.message);
-    } else {
+      if (error) {
+        console.error("Error updating application status:", error.message);
+        return;
+      }
+
+      if (newStatus === 'approved' && application?.job_id) {
+        try {
+          await updateApprovedApplicationCount(application.job_id);
+          console.log('Successfully updated approved application count for job', application.job_id);
+        } catch (countError) {
+          console.error('Error updating approved application count:', countError);
+        }
+      }
+
       setApplications(applications.map(app => 
         app.application_id === applicationId 
           ? { ...app, status: newStatus } 
           : app
       ));
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -110,6 +137,7 @@ const ApplicationApproval = () => {
               <th className="border p-2">Application ID</th>
               <th className="border p-2">Username</th>
               <th className="border p-2">Company Name</th>
+              <th className="border p-2">Job Position</th>
               <th className="border p-2">Email</th>
               <th className="border p-2">Status</th>
             </tr>
@@ -120,6 +148,7 @@ const ApplicationApproval = () => {
                 <td className="border p-2">{application.application_id}</td>
                 <td className="border p-2">{application.user_name}</td>
                 <td className="border p-2">{application.company_name}</td>
+                <td className="border p-2">{application.job_position}</td>
                 <td className="border p-2">{application.email}</td>
                 <td className="border p-2">
                   <select
@@ -129,6 +158,7 @@ const ApplicationApproval = () => {
                       e.target.value as Application['status']
                     )}
                     className="w-full p-1 font-semibold"
+                    disabled={loading}
                   >
                     <option value="pending">Pending</option>
                     <option value="approved">Approved</option>

@@ -49,17 +49,18 @@ export const JobRow = ({
         )}
       </div>
 
-      {/* Slots column */}
+      {/* Slots column - Changed to display available_slots */}
       <div className="col-span-2 flex justify-center items-center gap-2 mr-3">
         {editMode === job.job_id ? (
           <>
             <button
               onClick={() => onSlotChange(job.job_id, -1)}
               className="p-1 rounded border border-black bg-white text-black"
+              disabled={job.available_slots <= 0}
             >
               <Minus size={16} />
             </button>
-            <span>{job.slots ?? 0}</span>
+            <span>{job.available_slots ?? 0}</span>
             <button
               onClick={() => onSlotChange(job.job_id, 1)}
               className="p-1 rounded border border-black bg-white text-black"
@@ -68,7 +69,7 @@ export const JobRow = ({
             </button>
           </>
         ) : (
-          <span>{job.slots ?? 0}</span>
+          <span>{job.available_slots ?? 0}</span>
         )}
       </div>
 

@@ -7,17 +7,31 @@ interface Company {
   name: string;
 }
 
+interface Job {
+  job_id?: number;
+  company_id: string;
+  position: string;
+  slots: number;
+  isAvailable: boolean;
+  approved_application_count: number;
+  available_slots: number;
+}
+
 interface JobFormProps {
   companies: Company[];
   onSuccess: () => void;
   onClose: () => void;
+  onSave?: (newJob: Omit<Job, 'job_id'>) => Promise<void>;
 }
 
-const AddJobForm = ({ companies, onSuccess, onClose }: JobFormProps) => {
-  const [newJob, setNewJob] = useState({
+const AddJobForm = ({ companies, onSuccess, onClose, onSave }: JobFormProps) => {
+  const [newJob, setNewJob] = useState<Omit<Job, 'job_id'>>({
     company_id: "",
     position: "",
-    slots: 1
+    slots: 1,
+    isAvailable: true,
+    approved_application_count: 0,
+    available_slots: 1
   });
   const [message, setMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -33,17 +47,22 @@ const AddJobForm = ({ companies, onSuccess, onClose }: JobFormProps) => {
       return;
     }
 
-    const { error } = await supabase.from("job").insert([newJob]);
+    try {
+      if (onSave) {
+        await onSave(newJob);
+      } else {
+        const { error } = await supabase.from("job").insert([newJob]);
+        if (error) throw error;
+      }
 
-    if (error) {
-      setMessage(`❌ Failed to add job: ${error.message}`);
-      console.error(error);
-    } else {
       setMessage("✅ Job added successfully!");
       setTimeout(() => {
         onSuccess();
         onClose();
       }, 1000);
+    } catch (error) {
+      setMessage(`❌ Failed to add job: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      console.error(error);
     }
     setIsSubmitting(false);
   };
@@ -51,7 +70,8 @@ const AddJobForm = ({ companies, onSuccess, onClose }: JobFormProps) => {
   const handleSlotChange = (delta: number) => {
     setNewJob(prev => ({
       ...prev,
-      slots: Math.max(1, prev.slots + delta)
+      slots: Math.max(1, prev.slots + delta),
+      available_slots: Math.max(1, prev.slots + delta)
     }));
   };
 
@@ -59,15 +79,11 @@ const AddJobForm = ({ companies, onSuccess, onClose }: JobFormProps) => {
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div className="fixed inset-0" onClick={onClose}></div>
       
-      {/* Modal container */}
       <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-        {/* Modal panel */}
         <div 
           className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full"
           onClick={(e) => e.stopPropagation()}
         >
-
-          {/* Modal content */}
           <div className="bg-white px-6 py-6 sm:p-6">
             <h2 className="text-2xl font-bold text-gray-900 mb-6">Add New Job Position</h2>
             
@@ -91,6 +107,7 @@ const AddJobForm = ({ companies, onSuccess, onClose }: JobFormProps) => {
                   onChange={(e) => setNewJob({...newJob, position: e.target.value})}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder-gray-400"
                   placeholder="e.g. Software Engineer"
+                  required
                 />
               </div>
 
@@ -103,6 +120,7 @@ const AddJobForm = ({ companies, onSuccess, onClose }: JobFormProps) => {
                   value={newJob.company_id}
                   onChange={(e) => setNewJob({...newJob, company_id: e.target.value})}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900"
+                  required
                 >
                   <option value="">Select a company</option>
                   {companies.map((company) => (
@@ -113,9 +131,9 @@ const AddJobForm = ({ companies, onSuccess, onClose }: JobFormProps) => {
                 </select>
               </div>
 
-              <div className="mb-8">
+              <div className="mb-6">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Available Slots
+                  Total Slots
                 </label>
                 <div className="flex items-center justify-center gap-4">
                   <button
