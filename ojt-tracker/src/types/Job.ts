@@ -8,6 +8,7 @@ export interface Job {
     qualifications?: string[],
     work_hrs?: string,
     schedule?: string,
+    slots?: number,
     isAvailable?: boolean,
 }
 

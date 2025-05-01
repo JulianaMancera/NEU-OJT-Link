@@ -5,7 +5,8 @@ export interface Job {
   company_id: string;
   position: string;
   slots: number;
-  isAvailable: boolean;
+  isAvailable?: boolean;
+  originalSlots?: number; // Added for internal use
 }
 
 export interface Company {
@@ -25,11 +26,27 @@ export const fetchJobs = async (): Promise<Job[]> => {
   return data || [];
 };
 
-export const updateJob = async (job: Partial<Job>): Promise<void> => {
+export const fetchApprovedApplicationsCount = async (jobId: number): Promise<number> => {
+  const { count, error } = await supabase
+    .from('applications')
+    .select('*', { count: 'exact' })
+    .eq('job_id', jobId)
+    .eq('status', 'approved');
+
+  if (error) {
+    console.error('Error fetching approved applications count:', error);
+    return 0;
+  }
+
+  return count || 0;
+};
+
+export const updateJob = async (job: Job): Promise<void> => {
+  const { originalSlots, ...jobToUpdate } = job;
   const { error } = await supabase
     .from("job")
-    .update(job)
-    .eq("job_id", job.job_id!);
+    .update(jobToUpdate)
+    .eq("job_id", job.job_id);
   if (error) throw error;
 };
 

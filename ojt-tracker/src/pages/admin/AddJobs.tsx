@@ -1,14 +1,18 @@
 import { useEffect, useState } from "react";
-import { fetchCompanies, fetchJobs, updateJob, Job, Company } from "../../services/JobService";
+import { fetchCompanies, fetchJobs, updateJob, Job, Company, fetchApprovedApplicationsCount } from "../../services/JobService";
 import { JobRow } from "../../components/JobRow";
 import AddJobForm from "../../components/AddJobsForm";
 import { MessageNotification } from "../../components/MessageNotification";
 import Sidebar from "../../components/SideBar";
 import OJTLogo from "/src/assets/ojt-white.png";
 
+interface ExtendedJob extends Job {
+  availableSlots: number;
+}
+
 const AddJobs = () => {
   const [companies, setCompanies] = useState<Company[]>([]);
-  const [jobs, setJobs] = useState<Job[]>([]);
+  const [jobs, setJobs] = useState<ExtendedJob[]>([]);
   const [editMode, setEditMode] = useState<number | null>(null);
   const [message, setMessage] = useState("");
   const [showForm, setShowForm] = useState(false);
@@ -21,8 +25,19 @@ const AddJobs = () => {
           fetchCompanies(),
           fetchJobs()
         ]);
+        
+        const jobsWithAvailableSlots = await Promise.all(
+          jobsData.map(async (job) => {
+            const approvedCount = await fetchApprovedApplicationsCount(job.job_id);
+            return {
+              ...job,
+              availableSlots: Math.max(0, job.slots - approvedCount)
+            };
+          })
+        );
+
         setCompanies(companiesData);
-        setJobs(jobsData);
+        setJobs(jobsWithAvailableSlots);
       } catch (error) {
         console.error("Error loading data:", error);
         setMessage("❌ Failed to load data");
@@ -45,15 +60,46 @@ const AddJobs = () => {
   };
 
   const handleSlotChange = (jobId: number, delta: number) => {
-    setJobs(jobs.map(j => j.job_id === jobId ? { ...j, slots: Math.max(0, (j.slots ?? 0) + delta) } : j));
+    setJobs(jobs.map(j => {
+      if (j.job_id === jobId) {
+        const newSlots = Math.max(0, j.slots + delta);
+        return { 
+          ...j, 
+          slots: newSlots,
+          availableSlots: Math.max(0, newSlots - (j.slots - j.availableSlots))
+        };
+      }
+      return j;
+    }));
   };
 
-  const handleSave = async (job: Job) => {
+  const handleSave = async (job: ExtendedJob) => {
     try {
-      await updateJob(job);
+      // Create a Job object without the ExtendedJob properties
+      const jobToSave: Job = {
+        job_id: job.job_id,
+        company_id: job.company_id,
+        position: job.position,
+        slots: job.slots,
+        isAvailable: job.isAvailable
+      };
+      
+      await updateJob(jobToSave);
       setMessage("✅ Job updated successfully!");
       setEditMode(null);
-      setJobs(await fetchJobs());
+      
+      // Refresh data to get updated application counts
+      const jobsData = await fetchJobs();
+      const updatedJobs = await Promise.all(
+        jobsData.map(async (j) => {
+          const approvedCount = await fetchApprovedApplicationsCount(j.job_id);
+          return {
+            ...j,
+            availableSlots: Math.max(0, j.slots - approvedCount)
+          };
+        })
+      );
+      setJobs(updatedJobs);
     } catch (error) {
       console.error("Error saving job:", error);
       setMessage("❌ Failed to save changes.");
@@ -68,9 +114,29 @@ const AddJobs = () => {
     const newStatus = !job.isAvailable;
     
     try {
-      await updateJob({ job_id: jobId, isAvailable: newStatus });
+      const jobToUpdate: Job = {
+        job_id: job.job_id,
+        company_id: job.company_id,
+        position: job.position,
+        slots: job.slots,
+        isAvailable: newStatus
+      };
+      
+      await updateJob(jobToUpdate);
       setMessage(`✅ Job ${newStatus ? "unrestricted" : "restricted"} successfully!`);
-      setJobs(await fetchJobs());
+      
+      // Refresh data
+      const jobsData = await fetchJobs();
+      const updatedJobs = await Promise.all(
+        jobsData.map(async (j) => {
+          const approvedCount = await fetchApprovedApplicationsCount(j.job_id);
+          return {
+            ...j,
+            availableSlots: Math.max(0, j.slots - approvedCount)
+          };
+        })
+      );
+      setJobs(updatedJobs);
     } catch (error) {
       console.error("Error toggling job status:", error);
       setMessage(`❌ Failed to ${newStatus ? "unrestrict" : "restrict"} job`);
@@ -80,14 +146,13 @@ const AddJobs = () => {
 
   return (
     <div className="relative min-h-screen w-screen bg-blue-100 p-6">
-      {/* Header */}
       <div className="w-full h-[80px] absolute left-0 top-0 bg-gradient-to-b from-[#578FCA] to-[#2B4764] border-1 border-black flex items-center justify-between px-6">
-      <img src={OJTLogo} alt="OJT Link Logo" className="w-[220px] h-[220px] ml-15" />
+        <img src={OJTLogo} alt="OJT Link Logo" className="w-[220px] h-[220px] ml-15" />
       </div>
       <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}/>
 
       <div className="mt-24 bg-white border border-black rounded-lg p-6 max-w-6xl mx-auto">
-      <MessageNotification message={message} />
+        <MessageNotification message={message} />
         <div className="mb-4">
           <div className="flex justify-center mb-2">
             <h2 className="text-[1.8rem] font-bold text-black">Add Jobs</h2>
@@ -102,8 +167,18 @@ const AddJobs = () => {
             {showForm && (
               <AddJobForm 
                 companies={companies}
-                onSuccess={() => {
-                  fetchJobs().then(setJobs);
+                onSuccess={async () => {
+                  const jobsData = await fetchJobs();
+                  const updatedJobs = await Promise.all(
+                    jobsData.map(async (j) => {
+                      const approvedCount = await fetchApprovedApplicationsCount(j.job_id);
+                      return {
+                        ...j,
+                        availableSlots: Math.max(0, j.slots - approvedCount)
+                      };
+                    })
+                  );
+                  setJobs(updatedJobs);
                   setMessage("✅ Job added successfully!");
                   setTimeout(() => setMessage(""), 3000);
                 }}
@@ -113,7 +188,6 @@ const AddJobs = () => {
           </div>
         </div>
 
-        {/* Header row */}
         <div className="grid grid-cols-12 font-semibold p-2 rounded text-black border-2" style={{ backgroundColor: '#E8E8E8' }}>
           <div className="col-span-3 ml-10">Job</div>
           <div className="col-span-2 ml-16">Slots</div>
@@ -124,7 +198,10 @@ const AddJobs = () => {
         {jobs.map((job) => (
           <JobRow
             key={job.job_id}
-            job={job}
+            job={{
+              ...job,
+              slots: job.availableSlots // Pass availableSlots as slots to the component
+            }}
             companies={companies}
             editMode={editMode}
             onEditToggle={handleEditToggle}
