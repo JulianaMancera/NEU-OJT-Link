@@ -104,7 +104,7 @@ const StudentDashboard: React.FC = () => {
         </button>
 
         {isProfileOpen && (
-          <div className="absolute right-6 top-20 bg-white text-gray-800 shadow-2xl rounded-xl w-80 z-50 animate-slide-down animate-slide-in-down">
+          <div className="absolute right-6 top-[4.5rem] bg-white text-gray-800 shadow-lg rounded-md overflow-hidden z-50 w-64 min-w-[16rem] animate-slide-in-down">
             <div className="bg-blue-800 text-white p-4 text-center">
               <div className="w-24 h-24 rounded-full mx-auto overflow-hidden mb-3 border-4 border-blue-300">
                 {profilePicture ? (
@@ -125,17 +125,17 @@ const StudentDashboard: React.FC = () => {
                   }}
                   className="w-full text-left px-6 py-4 hover:bg-gray-100 flex items-center transition-all duration-200"
                 >
-                  <User className="w-6 h-6 mr-3 text-blue-600" /> Profile
+                  <User className="w-6 h-6 mr-3" /> Profile
                 </button>
               </li>
               <li>
                 <button className="w-full text-left px-6 py-4 hover:bg-gray-100 flex items-center transition-all duration-200">
-                  <Settings className="w-6 h-6 mr-3 text-blue-600" /> Settings
+                  <Settings className="w-6 h-6 mr-3" /> Settings
                 </button>
               </li>
               <li>
                 <button className="w-full text-left px-6 py-4 hover:bg-gray-100 flex items-center transition-all duration-200">
-                  <CircleHelp className="w-6 h-6 mr-3 text-blue-600" /> Help & Support
+                  <CircleHelp className="w-6 h-6 mr-3 " /> Help & Support
                 </button>
               </li>
               {userRole === "admin" && (

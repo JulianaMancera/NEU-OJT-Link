@@ -9,7 +9,10 @@ export interface Company {
         logo_url?: string,
         hasApprovedApplication?: boolean,
         applicationId?: string,
-        jobs?: Job[],
+        start_time: string | null;
+        end_time:   string | null;
+        companyRestrict: 'Active' | 'Restricted';
+        jobs: Job[],
 }
 
 export default Company;
