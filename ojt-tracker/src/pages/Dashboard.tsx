@@ -2,7 +2,8 @@ import { supabase } from "../../supabase";
 import { useNavigate } from "react-router-dom";
 import CompanyApplication from "../components/CompanyApplication";
 import ApplicationStatusModal from "../components/ApplicationStatusModal";
-import OJTLogo from "/src/assets/ojt-logo-dashboard.svg";
+import EndorsementSuccessModal from "../components/EndorsementSuccessModal";
+import OJTLogo from "/src/assets/ojt-white.png";
 import { ProfileMenu } from "../components/ProfileMenu";
 import { Search, X } from "lucide-react";
 import { Loading } from "../components/Loading";
@@ -21,6 +22,9 @@ const Dashboard = () => {
     approvedJob,
     showApprovalModal,
     setShowApprovalModal,
+    showEndorsementSuccessModal,
+    setShowEndorsementSuccessModal,
+    userName: applicationUserName,
     updateApplicationStatus
   } = useApplicationData();
   const {
@@ -41,6 +45,11 @@ const Dashboard = () => {
     if (applicationStatus === 'availability_submitted' && approvedCompany) {
       setSelectedCompany(approvedCompany);
     }
+  };
+
+  const handleEndorsementSuccessClose = () => {
+    setShowEndorsementSuccessModal(false);
+    navigate('/dashboard');
   };
 
   if (loading) return <Loading />;
@@ -73,8 +82,15 @@ const Dashboard = () => {
             company_id: approvedCompany.company_id
           }}
           onUpdateStatus={updateApplicationStatus}
+          userName={applicationUserName || userName}
         />
       )}
+
+      <EndorsementSuccessModal
+        isOpen={showEndorsementSuccessModal}
+        onClose={handleEndorsementSuccessClose}
+        userName={applicationUserName || userName}
+      />
 
       <div className="w-screen min-h-screen bg-[linear-gradient(to_bottom,#091545_1%,#1735AB_59%)] flex flex-col items-center p-28">
         <div className="relative w-full max-w-xl h-12 bg-[#fcfbf4]/85 border-2 border-black flex items-center px-5 mb-6">
@@ -140,12 +156,12 @@ const Dashboard = () => {
               {selectedCompany === company && (
                 <div className="fixed inset-0 flex items-center justify-center z-50">
                   <div className="bg-[#FDFBF6] p-6 rounded-lg shadow-lg w-full max-w-[100vh] h-[60vh] overflow-y-auto overflow-x-hidden relative z-50">
-                    <div className="flex justify-between items-center">
-                      <h3 className="text-[1.5rem] font-bold text-black sticky top-0">{company.name}</h3>
-                      <button onClick={() => setSelectedCompany(null)} className="bg-black">
+                    <div className="flex justify-center items-center">
+                      <h3 className="text-[1.8rem] font-bold text-black sticky top-0 flex">{company.name}</h3>
+                      <button onClick={() => setSelectedCompany(null)} className="absolute right-0 bg-black mr-6">
                         <X size={15} color="white" />
                       </button>
-                    </div>
+                      </div>
                     <CompanyApplication 
                       company={company} 
                       onClose={() => setSelectedCompany(null)}

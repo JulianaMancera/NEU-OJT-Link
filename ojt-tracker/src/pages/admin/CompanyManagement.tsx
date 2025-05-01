@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../../../supabase";
 import { Job } from '../../types/Job';
+import Sidebar from "../../components/SideBar";
+import OJTLogo from "/src/assets/ojt-white.png";
+
 
 interface Company {
   company_id: string;
@@ -21,6 +24,8 @@ const CompanyManagement = () => {
   const [editingCompanyId, setEditingCompanyId] = useState<string | null>(null);
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
 
   useEffect(() => {
     fetchCompanies();
@@ -106,8 +111,16 @@ const CompanyManagement = () => {
   
 
   return (
-    <div className="p-5 w-screen h-full bg-[linear-gradient(to_bottom,#0A279C_20%,#5F74C9_86%)]">
-      <h2 className="text-center font-bold text-2xl mb-4 mt-5">Company Management</h2>
+    <div className="p-5 w-screen h-full bg-blue-100">
+      {/* Header */}
+      <div className="w-full h-[80px] absolute left-0 top-0 bg-gradient-to-b from-[#578FCA] to-[#2B4764] border-1 border-black flex items-center justify-between px-6">
+      <img src={OJTLogo} alt="OJT Link Logo" className="w-[220px] h-[220px] ml-15" />
+      </div>
+      <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}/>
+  
+      <div className="mt-24 bg-white border border-black rounded-lg p-6 max-w-8xl mx-auto text-black">
+      <h2 className="text-center font-bold text-4xl mb-4 mt-5">Company Management</h2>
+
 
     {/* New Company Button */}
     <div className="flex justify-center mb-4">
@@ -117,10 +130,56 @@ const CompanyManagement = () => {
         >
           New Company
         </button>
+
+      <div className="mb-8">
+        <h3 className="font-semibold mb-2">{editingCompanyId ? "Edit Company" : "Add Company"}</h3>
+        <div className="flex flex-wrap gap-4">
+          <input
+            type="text"
+            placeholder="Company Name"
+            value={newCompany.name || ""}
+            onChange={(e) => setNewCompany({ ...newCompany, name: e.target.value })}
+            className="border p-2 w-60"
+          />
+          <input
+            type="text"
+            placeholder="Address"
+            value={newCompany.address || ""}
+            onChange={(e) => setNewCompany({ ...newCompany, address: e.target.value })}
+            className="border p-2 w-60"
+          />
+          <input
+            type="email"
+            placeholder="Email"
+            value={newCompany.email || ""}
+            onChange={(e) => setNewCompany({ ...newCompany, email: e.target.value })}
+            className="border p-2 w-60"
+          />
+          <input
+            type="text"
+            placeholder="Contact No"
+            value={newCompany.contact_no || ""}
+            onChange={(e) => setNewCompany({ ...newCompany, contact_no: e.target.value })}
+            className="border p-2 w-60"
+          />
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(e) => setLogoFile(e.target.files?.[0] || null)}
+            className="border p-2 w-60"
+          />
+          <button
+            onClick={handleAddOrUpdateCompany}
+            className="bg-[#90D5FF] hover:bg-blue-200 transition-colors text-black px-4 py-2 rounded"
+          >
+            {editingCompanyId ? "Update Company" : "Add Company"}
+          </button>
+        </div>
+
       </div>
 
       <table className="w-full border">
-        <thead className="bg-gray-950">
+        <thead className="bg-gray-950 text-white">
           <tr>
             <th className="p-2 border">Logo</th>
             <th className="p-2 border">Name</th>
@@ -133,7 +192,7 @@ const CompanyManagement = () => {
         </thead>
         <tbody>
           {companies.map((company) => (
-            <tr key={company.company_id} className="text-center">
+            <tr key={company.company_id} className="text-center" style={{ backgroundColor: '#E8E8E8' }}>
               <td className="p-2 border">
                 <img src={company.logo_url} alt="Logo" className="h-10 mx-auto" />
               </td>
@@ -244,6 +303,7 @@ const CompanyManagement = () => {
           </div>
         </div>
       )}
+    </div>
     </div>
   );
 };

@@ -1,5 +1,4 @@
 import React, { useState, ChangeEvent } from 'react';
-import { supabase } from '../../supabase';
 import FileUploadField from './FileUploadField';
 import { Loading } from './Loading';
 import { Job } from '../types/Job';
@@ -14,8 +13,7 @@ interface RequirementFormProps {
 
 const RequirementForm: React.FC<RequirementFormProps> = ({ company, job, onSubmit, onClose }) => {
   const [loading, setLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
-  const [showErrorPopup, setShowErrorPopup] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [files, setFiles] = useState<Record<string, File | null>>({
     resume: null,
     coverLetter: null,
@@ -23,210 +21,143 @@ const RequirementForm: React.FC<RequirementFormProps> = ({ company, job, onSubmi
     cv: null,
     medCert: null,
     notarized: null,
-    psyTest: null
+    psyTest: null,
   });
 
   const fileFields = [
-    { key: 'resume', label: 'Resume' },
-    { key: 'coverLetter', label: 'Cover Letter' },
-    { key: 'com', label: 'COM' },
-    { key: 'cv', label: 'CV' },
-    { key: 'medCert', label: 'Medical Certificate' },
-    { key: 'notarized', label: 'Notarized Parent Consent' },
-    { key: 'psyTest', label: 'Psychological Test' }
+    { key: 'resume', label: 'Resume', required: true },
+    { key: 'coverLetter', label: 'Cover Letter', required: true },
+    { key: 'com', label: 'COM', required: true },
+    { key: 'cv', label: 'Curriculum Vitae', required: true },
+    { key: 'medCert', label: 'Medical Certificate', required: true },
+    { key: 'notarized', label: 'Notarized Parent Consent', required: true },
+    { key: 'psyTest', label: 'Psychological Test', required: true },
   ];
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>, fieldKey: string) => {
     const file = e.target.files?.[0] || null;
-    setFiles(prev => ({
-      ...prev,
-      [fieldKey]: file
-    }));
+    if (file && !['application/pdf'].includes(file.type)) {
+      setErrors((prev) => ({ ...prev, [fieldKey]: 'Only PDF files are allowed' }));
+      return;
+    }
+    if (file && file.size > 5 * 1024 * 1024) {
+      setErrors((prev) => ({ ...prev, [fieldKey]: 'File size must be under 5MB' }));
+      return;
+    }
+    setErrors((prev) => ({ ...prev, [fieldKey]: '' }));
+    setFiles((prev) => ({ ...prev, [fieldKey]: file }));
   };
 
   const handleRequirementSubmit = async () => {
     setLoading(true);
-    setShowErrorPopup(false);
+    setErrors({});
 
-    // Check if all files are uploaded
-    const missingFiles = fileFields.filter(({ key }) => !files[key]);
-    if (missingFiles.length > 0) {
-      setErrorMessage('Please upload all required files');
-      setShowErrorPopup(true);
+    // Validate required files
+    const newErrors: Record<string, string> = {};
+    fileFields.forEach(({ key, required }) => {
+      if (required && !files[key]) {
+        newErrors[key] = 'This file is required';
+      }
+    });
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
       setLoading(false);
       return;
     }
 
     try {
-      console.log('Starting requirement submission process...');
-      const user = await supabase.auth.getUser();
-      if (!user.data.user) {
-        console.error('No authenticated user found');
-        throw new Error('User not authenticated');
-      }
-      console.log('User authenticated:', user.data.user.id);
-
-      // First, check if user already has an application for this job
-      console.log('Checking for existing application...');
-      console.log('Job ID:', job.job_id);
-      console.log('User ID:', user.data.user.id);
-      
-      const { data: existingApplication, error: checkError } = await supabase
-        .from('application')
-        .select('*')
-        .eq('user_id', user.data.user.id)
-        .eq('job_id', job.job_id)
-        .single();
-
-      if (checkError) {
-        console.error('Error checking for existing application:', checkError);
-      }
-      console.log('Existing application check result:', existingApplication);
-
-      if (existingApplication) {
-        console.error('Duplicate application found:', existingApplication);
-        throw new Error('You have already applied to this job');
-      }
-
-      // Generate a unique identifier for this submission
-      const timestamp = new Date().getTime();
-      const randomString = Math.random().toString(36).substring(2, 8);
-      const uniqueId = `${timestamp}_${randomString}`;
-
-      // Upload all files
-      console.log('Starting file uploads...');
-      const uploadPromises = fileFields.map(async ({ key }) => {
-        const file = files[key];
-        if (!file) return null;
-
-        // Get file extension
-        const fileExtension = file.name.split('.').pop();
-        // Create unique filename
-        const uniqueFilename = `${key}_${user.data.user?.id}_${company.company_id}_${uniqueId}.${fileExtension}`;
-        const filePath = `${key}/${uniqueFilename}`;
-        
-        console.log(`Uploading file: ${filePath}`);
-        
-        const { data, error } = await supabase.storage
-          .from('applicant-documents')
-          .upload(filePath, file);
-
-        if (error) {
-          console.error(`Error uploading ${key}:`, error);
-          throw error;
-        }
-        console.log(`Successfully uploaded ${key}:`, data?.path);
-        return data?.path;
-      });
-
-      const uploadedPaths = await Promise.all(uploadPromises);
-      console.log('All files uploaded successfully:', uploadedPaths);
-
-      // Create application record first
-      console.log('Creating application record...');
-      const { data: applicationData, error: applicationError } = await supabase
-        .from('application')
-        .insert([{
-          user_id: user.data.user.id,
-          company_id: company.company_id,
-          email: user.data.user.email,
-          job_id: job.job_id,
-          status: 'pending',
-          start_date: null,
-          end_date: null
-        }])
-        .select()
-        .single();
-
-      if (applicationError) {
-        console.error('Error creating application:', applicationError);
-        throw new Error('Failed to create application');
-      }
-      console.log('Application created successfully:', applicationData);
-
-      // Then create requirements record
-      console.log('Creating requirements record...');
-      console.log('Student ID:', user.data.user.id);
-      console.log('Company ID:', company.company_id);
-      console.log('Job ID:', job.job_id);
-      
-      const { error: requirementsError } = await supabase.from('requirements').insert([{
-        student_id: user.data.user.id,
-        created_at: new Date().toISOString(),
-        resume_url: uploadedPaths[0],
-        cover_letter_url: uploadedPaths[1],
-        com_url: uploadedPaths[2],
-        cv_url: uploadedPaths[3],
-        medCert_url: uploadedPaths[4],
-        notarize_url: uploadedPaths[5],
-        psyTest_url: uploadedPaths[6],
-        company_id: company.company_id,
-        job_id: job.job_id
-      }]);
-
-      if (requirementsError) {
-        console.error('Error creating requirements:', requirementsError);
-        // If requirements creation fails, delete the application
-        console.log('Deleting application due to requirements error...');
-        await supabase
-          .from('application')
-          .delete()
-          .eq('application_id', applicationData.application_id);
-        throw new Error('Failed to create requirements');
-      }
-      console.log('Requirements created successfully');
-
-      onSubmit(Object.values(files).filter(Boolean) as File[]);
+      const fileArray = Object.values(files).filter((file): file is File => file !== null);
+      await onSubmit(fileArray);
+      onClose();
     } catch (error) {
-      console.error('Error in requirement submission process:', error);
-      setErrorMessage(error instanceof Error ? error.message : 'Error submitting requirements. Please try again.');
-      setShowErrorPopup(true);
+      console.error('RequirementForm: Error during submission:', error);
+      setErrors({ general: 'Error submitting requirements. Please try again.' });
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="border border-black rounded-lg p-10 w-full max-w-[1000px] mx-auto">
-      <p className="font-semibold text-center text-[1.2rem] mb-8">Please Submit Requirements</p>
-      
-      {showErrorPopup && (
-        <div className="text-red-500 text-center mb-4">
-          {errorMessage}
-        </div>
-      )}
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {fileFields.map(({ key, label }) => (
-          <div key={key}>
-            <FileUploadField
-              label={label}
-              fieldKey={key}
-              file={files[key]}
-              onChange={handleFileChange}
-            />
-          </div>
-        ))}
-      </div>
-
-      <div className="flex gap-4 mt-8 justify-center">
-        <button
-          onClick={handleRequirementSubmit}
-          disabled={loading}
-          className="text-white bg-black px-4 py-2 rounded disabled:opacity-50"
-        >
-          {loading ? <Loading /> : 'Submit'}
-        </button>
+    <div className="fixed inset-0 bg-gradient-to-b from-[#3657DB] from-24% to-[#8D95B5] to-98% bg-opacity-50 flex items-center justify-center p-4" role="dialog" aria-labelledby="modal-title">
+      <div className="bg-white rounded-lg shadow-xl p-9 w-full max-w-4xl relative">
+        {/* Close Button */}
         <button
           onClick={onClose}
           disabled={loading}
-          className="text-white bg-black px-4 py-2 rounded disabled:opacity-50"
+          className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 disabled:opacity-50"
+          aria-label="Close modal"
         >
-          Cancel
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
         </button>
+
+        {/* Header */}
+        <div className="text-center mb-6">
+          <h2 id="modal-title" className="text-2xl font-semibold">
+            Application for{' '}
+            <span className="text-3xl font-bold text-blue-600">{job.position}</span>{' '}
+            at {company.name}
+          </h2>
+          <p className="text-gray-600 mt-2">Please upload the required documents below</p>
+        </div>
+
+        {/* General Error */}
+        {errors.general && (
+          <div className="bg-red-100 text-red-700 p-3 rounded mb-4 flex justify-between items-center">
+            <span>{errors.general}</span>
+            <button
+              onClick={() => setErrors({})}
+              className="text-red-700 hover:text-red-900"
+              aria-label="Dismiss error"
+            >
+              ✕
+            </button>
+          </div>
+        )}
+
+        {/* Scrollable File Upload Fields */}
+        <div className="max-h-[60vh] overflow-y-auto pr-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {fileFields.map(({ key, label, required }) => (
+              <div key={key} className="space-y-2">
+                <FileUploadField
+                  label={label}
+                  fieldKey={key}
+                  file={files[key]}
+                  onChange={handleFileChange}
+                  error={errors[key]}
+                  required={required}
+                  disabled={loading}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+
+       {/* Actions */}
+          <div className="flex gap-4 mt-6 justify-center">
+            <button
+              onClick={handleRequirementSubmit}
+              disabled={loading}
+              className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2"
+              aria-label="Submit application"
+            >
+              {loading ? <Loading /> : 'Submit'}
+            </button>
+            <button
+              onClick={onClose}
+              disabled={loading}
+              className="bg-gray-300 text-gray-800 px-6 py-2 rounded-lg hover:bg-gray-400 disabled:opacity-50"
+              aria-label="Cancel application"
+            >
+              Cancel
+            </button>
+          </div>
       </div>
     </div>
   );
 };
 
-export default RequirementForm; 
+export default RequirementForm;

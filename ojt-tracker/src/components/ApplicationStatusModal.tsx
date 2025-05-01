@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AvailabilitySection from './AvailabilitySection';
 import EndorsementSection from './EndorsementSection';
+import EndorsementSuccessModal from './EndorsementSuccessModal';
 import { useClickOutside } from '../hooks/useClickOutside';
 
 interface ApplicationStatusModalProps {
@@ -16,6 +17,7 @@ interface ApplicationStatusModalProps {
     position: string;
   };
   onUpdateStatus?: (status: 'submitted' | 'approved' | 'availability_submitted' | 'endorsement_submitted') => void;
+  userName?: string;
 }
 
 const ApplicationStatusModal: React.FC<ApplicationStatusModalProps> = ({
@@ -26,11 +28,13 @@ const ApplicationStatusModal: React.FC<ApplicationStatusModalProps> = ({
   companyId,
   applicationId,
   job,
-  onUpdateStatus
+  onUpdateStatus,
+  userName = ""
 }) => {
   const navigate = useNavigate();
   const [showAvailability, setShowAvailability] = useState(false);
   const [showEndorsement, setShowEndorsement] = useState(false);
+  const [showEndorsementSuccess, setShowEndorsementSuccess] = useState(status === 'endorsement_submitted');
   
   const modalRef = useClickOutside(() => {
     if (isOpen) {
@@ -81,8 +85,7 @@ const ApplicationStatusModal: React.FC<ApplicationStatusModalProps> = ({
           message: `Your endorsement letter has been submitted successfully. You may proceed to student dashboard`,
           buttonText: 'Close',
           buttonAction: () => {
-            onClose();
-            navigate('/dashboard');
+            setShowEndorsementSuccess(true);
           }
         };
       default:
@@ -106,14 +109,33 @@ const ApplicationStatusModal: React.FC<ApplicationStatusModalProps> = ({
   };
 
   const handleEndorsementCompletion = () => {
+    if (onUpdateStatus) {
+      onUpdateStatus('endorsement_submitted');
+    }
     setShowEndorsement(false);
-    onClose();
+    setShowEndorsementSuccess(true);
   };
+
+  const handleEndorsementSuccessClose = () => {
+    setShowEndorsementSuccess(false);
+    onClose();
+    navigate('/dashboard');
+  };
+
+  if (showEndorsementSuccess) {
+    return (
+      <EndorsementSuccessModal
+        isOpen={true}
+        onClose={handleEndorsementSuccessClose}
+        userName={userName}
+      />
+    );
+  }
 
   if (showEndorsement) {
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div ref={modalRef} className="bg-white rounded-lg p-8 max-w-md w-full mx-4">
+      <div className="fixed inset-0 bg-gradient-to-b from-[#3657DB] from-24% to-[#8D95B5] to-98% flex items-center justify-center z-50">
+        <div ref={modalRef} className="bg-white rounded-lg p-8 max-w-3xl w-full mx-4">
           <EndorsementSection 
             company={{
               company_id: companyId,
@@ -142,8 +164,8 @@ const ApplicationStatusModal: React.FC<ApplicationStatusModalProps> = ({
   
   if (showAvailability) {
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div ref={modalRef} className="bg-white rounded-lg p-8 max-w-2xl w-full mx-4 overflow-y-auto max-h-[90vh]">
+      <div className="fixed inset-0 bg-gradient-to-b from-[#3657DB] from-24% to-[#8D95B5] to-98% flex items-center justify-center z-50">
+        <div ref={modalRef} className="bg-white rounded-lg p-8 max-w-4xl w-full mx-4 overflow-y-auto max-h-[90vh]">
           <AvailabilitySection
             applicationId={applicationId}
             company={{
@@ -162,8 +184,8 @@ const ApplicationStatusModal: React.FC<ApplicationStatusModalProps> = ({
   }
   
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div ref={modalRef} className="bg-white rounded-lg p-8 max-w-md w-full mx-4">
+    <div className="fixed inset-0 bg-gradient-to-b from-[#3657DB] from-24% to-[#8D95B5] to-98% flex items-center justify-center z-50">
+      <div ref={modalRef} className="bg-white rounded-lg p-8 max-w-xl w-full mx-4">
         <h2 className="text-2xl font-bold text-center mb-4">{content.title}</h2>
         <p className="text-gray-600 text-center mb-6">{content.message}</p>
         <div className="flex justify-center">
