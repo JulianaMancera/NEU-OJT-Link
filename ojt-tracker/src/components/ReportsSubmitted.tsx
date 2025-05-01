@@ -3,10 +3,11 @@ import { supabase } from "../../supabase";
 import { Pencil, Trash2 } from "lucide-react";
 
 interface Report {
-  id: number;
+  id: string;
   week: number;
+  submittedDate: string;
   dueDate: string;
-  status: "approved" | "pending" | "rejected";
+  status: "approved" | "pending" | "revise";
   fileUrl?: string;
 }
 
@@ -30,7 +31,8 @@ const ReportsSubmitted: React.FC<ReportsSubmittedProps> = ({
 
       const { data, error } = await supabase
         .from("weekly_report")
-        .select("weekly_report_id, week_number, uploaded_at, status, file_url")
+        // include start_date so we can show when they actually submitted
+        .select("weekly_report_id, week_number, start_date, status, file_url")
         .eq("submitted_by", user.user_metadata?.full_name)
         .order("week_number", { ascending: true });
 
@@ -39,35 +41,45 @@ const ReportsSubmitted: React.FC<ReportsSubmittedProps> = ({
         return;
       }
 
-      const updatedReports = data?.map((r) => ({
-        id: r.weekly_report_id,
-        week: r.week_number,
-        dueDate: calculateDueDate(r.week_number),
-        status: r.status as Report["status"],
-        fileUrl: r.file_url,
-      }));
+      const updated = data?.map((r) => {
+        const submitted = new Date(r.start_date);
+        return {
+          id: r.weekly_report_id,
+          week: r.week_number,
+          submittedDate: submitted.toLocaleDateString("en-US", {
+            month: "long",
+            day: "numeric",
+            year: "numeric",
+          }),
+          dueDate: calculateDueDate(submitted),
+          status: r.status as Report["status"],
+          fileUrl: r.file_url,
+        };
+      }) ?? [];
 
-      setReports(updatedReports || []);
+      setReports(updated);
     };
 
     fetchReports();
   }, []);
 
-  const calculateDueDate = (week: number): string => {
-    const baseDate = new Date("2025-03-16");
-    const due = new Date(baseDate);
-    due.setDate(baseDate.getDate() + (week - 1) * 7);
-    return due.toLocaleDateString("en-US", {
+  // Given the actual start_date, find that week's Saturday at 11:59 PM
+  const calculateDueDate = (start: Date): string => {
+    // JS: Sunday=0 … Saturday=6
+    const day = start.getDay();
+    const daysToSat = (6 - day + 7) % 7;
+    const due = new Date(start);
+    due.setDate(start.getDate() + daysToSat);
+    const dateStr = due.toLocaleDateString("en-US", {
       month: "long",
       day: "numeric",
       year: "numeric",
     });
+    return `${dateStr} (Saturday 11:59 PM)`;
   };
 
   const handleDelete = async (week: number) => {
-    const confirmed = confirm(`Delete Week ${week} report?`);
-    if (!confirmed) return;
-
+    if (!confirm(`Delete Week ${week} report?`)) return;
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -83,7 +95,6 @@ const ReportsSubmitted: React.FC<ReportsSubmittedProps> = ({
       alert("Failed to delete report.");
       return;
     }
-
     setReports(reports.filter((r) => r.week !== week));
     onRemove?.(week);
   };
@@ -99,14 +110,12 @@ const ReportsSubmitted: React.FC<ReportsSubmittedProps> = ({
       .select("file_url")
       .eq("submitted_by", user.user_metadata?.full_name)
       .eq("week_number", week)
-      .limit(1)
       .single();
 
     if (error || !data) {
       alert(`No file found for Week ${week}`);
       return;
     }
-
     const filePath = data.file_url.split("/weekly_reports/").pop()!;
     const { data: signedUrlData } = await supabase.storage
       .from("weekly_reports")
@@ -121,8 +130,8 @@ const ReportsSubmitted: React.FC<ReportsSubmittedProps> = ({
     switch (status) {
       case "approved":
         return <span className="text-green-600 font-semibold">Approved</span>;
-      case "rejected":
-        return <span className="text-red-600 font-semibold">Rejected</span>;
+      case "revise":
+        return <span className="text-red-600 font-semibold">Revise</span>;
       default:
         return <span className="text-black-600 font-semibold">Submitted</span>;
     }
@@ -130,7 +139,9 @@ const ReportsSubmitted: React.FC<ReportsSubmittedProps> = ({
 
   return (
     <div className="bg-white shadow-md rounded-lg p-4 border border-black">
-      <h3 className="text-[1.1rem] font-semibold mb-2 text-black text-center bg-[#D0E8FF] p-6 w-full h-2 flex justify-center items-center">Reports Submitted</h3>
+      <h3 className="text-[1.1rem] font-semibold mb-2 text-black text-center bg-[#D0E8FF] p-6 w-full flex justify-center items-center">
+        Reports Submitted
+      </h3>
       <div className="space-y-3">
         {reports.map((report) => (
           <div
@@ -141,8 +152,15 @@ const ReportsSubmitted: React.FC<ReportsSubmittedProps> = ({
               className="flex-grow cursor-pointer"
               onClick={() => fetchReport(report.week)}
             >
-              <div className="font-semibold text-black">Week {report.week} Report</div>
-              <div className="text-sm text-gray-600">Due: {report.dueDate}</div>
+              <div className="font-semibold text-black">
+                Week {report.week} Report
+              </div>
+              <div className="text-sm text-gray-600">
+                Date Submitted: {report.submittedDate}
+              </div>
+              <div className="text-sm text-gray-600">
+                Due: {report.dueDate}
+              </div>
             </div>
 
             <div className="flex items-center gap-3 ml-4 text-black">
