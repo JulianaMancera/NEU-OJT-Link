@@ -295,8 +295,8 @@ const WeeklyReport = ({ isOpen, onClose, editingReport }: WeeklyReportProps) => 
       }
   
       try {
-        const timestamped = `${Date.now()}_${fileName}`;
-        const filePath = `weekly_reports/${timestamped}`;
+        const time = new Date();
+        const filePath = `weekly_reports/${user.id}_WeeklyReport_${time}`;
   
         const { error: uploadError } = await supabase.storage
           .from("weekly_reports")

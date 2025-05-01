@@ -12,7 +12,9 @@ import CompanyManagement from "./pages/admin/CompanyManagement";
 import AddJobs from "./pages/admin/AddJobs";
 import Reports from "./pages/admin/Reports";
 import Monitoring from "./pages/admin/Monitoring";
+import CompilationReport from "./pages/admin/CompilationReport";
 import UserRole from "./pages/admin/UserRole";
+
 
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
@@ -26,6 +28,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
       <Route path="/profile" element={<StudentProfile />} />
       <Route path="/admin" element={<Admin />} />
       <Route path="/company" element={<CompanyManagement />} />
+      <Route path="/compilation-report" element={<CompilationReport />} />
       <Route path="/jobs" element={<AddJobs />} />
       <Route path="/reports" element={<Reports />} />
       <Route path="/monitoring" element={<Monitoring />} />
