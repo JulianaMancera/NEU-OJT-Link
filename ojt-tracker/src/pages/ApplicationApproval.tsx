@@ -3,6 +3,7 @@ import { supabase } from "../../supabase";
 import { User } from "@supabase/supabase-js";
 import Sidebar from "../components/SideBar";
 import OJTLogo from "/src/assets/ojt-white.png";
+import { Loading } from "../components/Loading";
 
 interface Application {
   application_id: string;
@@ -87,7 +88,7 @@ const ApplicationApproval = () => {
     }
   };
 
-  if (loading) return <p className="text-center mt-10">Loading...</p>;
+  if (loading) return <Loading />;
 
   if (!user) {
     return <p className="text-center mt-10">Please log in to view applications</p>;
