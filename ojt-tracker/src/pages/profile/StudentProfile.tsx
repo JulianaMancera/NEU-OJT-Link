@@ -1,5 +1,8 @@
 import { useState, useEffect } from "react";
 import { supabase } from '../../../supabase';
+import OJTLogo from "/src/assets/ojt-white.png";
+import { User } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 // Define the type for the user object
 type UserProfile = {
@@ -13,6 +16,9 @@ const StudentProfile = () => {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
+  const [isImageLoading, setIsImageLoading] = useState(true);
+  const [imageError, setImageError] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -20,13 +26,13 @@ const StudentProfile = () => {
       if (!user) return;
 
       const { data, error } = await supabase
-        .from("Users")
+        .from("users") // Changed to lowercase "users"
         .select("name, profilePicture")
-        .eq("userID", user.id)
+        .eq("id", user.id) // Changed "userID" to "id"
         .single();
 
       if (error) {
-        console.error("Error fetching user:", error);
+        console.error("Error fetching user:", error.message);
         return;
       }
 
@@ -37,61 +43,123 @@ const StudentProfile = () => {
     fetchUser();
   }, []);
 
+  useEffect(() => {
+    if (user?.profilePicture) {
+      const img = new Image();
+      img.src = user.profilePicture;
+      img.onload = () => {
+        setIsImageLoading(false);
+        setImageError(null);
+      };
+      img.onerror = () => {
+        setIsImageLoading(false);
+        setImageError("Failed to load profile picture.");
+      };
+    } else {
+      setIsImageLoading(false);
+    }
+  }, [user?.profilePicture]);
+
   const updateName = async () => {
     if (!user) return;
 
     setLoading(true);
 
     const { error } = await supabase
-      .from("Users")
+      .from("users") // Changed to lowercase "users"
       .update({ name })
-      .eq("userID", user.id);
+      .eq("id", user.id); // Changed "userID" to "id"
 
     setLoading(false);
 
     if (error) {
-      console.error("Error updating name:", error);
-      alert("Failed to update name.");
+      console.error("Error updating name:", error.message); // Improved error logging
+      alert(`Failed to update name: ${error.message}`); // More specific alert
     } else {
       alert("Name updated successfully!");
+      setUser((prev) => (prev ? { ...prev, name } : prev));
     }
   };
 
+  const handleExit = () => {
+    navigate("/dashboard"); // Adjust the route as needed
+  };
+
+  const renderProfileImage = () => {
+    if (imageError || !user?.profilePicture || isImageLoading) {
+      return (
+        <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center mx-auto mb-4 border-2 border-gray-300">
+          {isImageLoading ? (
+            <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full"></div>
+          ) : (
+            <User className="w-12 h-12 text-gray-600" />
+          )}
+        </div>
+      );
+    }
+
+    return (
+      <img
+        src={user.profilePicture}
+        alt="Profile"
+        className="w-24 h-24 rounded-full mx-auto mb-4 border-2 border-gray-300 object-cover"
+      />
+    );
+  };
+
   return (
-    <div className="min-h-screen w-screen flex items-center justify-center" style={{ backgroundColor: "#A1E3F9" }}>
-      <div className="max-w-lg w-full mx-4 p-6 bg-white rounded-lg shadow-md">
-        <h2 className="text-2xl font-bold mb-4 text-blue-600">Profile</h2>
+    <div className="relative min-h-screen w-screen bg-blue-100 p-6">
+      {/* Header */}
+      <div className="w-full h-[80px] fixed left-0 top-0 bg-gradient-to-b from-[#578FCA] to-[#2B4764] border-b border-black flex items-center justify-between px-6 z-50">
+        <img src={OJTLogo} alt="OJT Link Logo" className="w-[150px] h-auto ml-4" />
+      </div>
 
-        {user?.profilePicture && (
-          <img
-            src={user.profilePicture}
-            alt="Profile"
-            className="w-24 h-24 rounded-full mx-auto mb-4"
+      <div className="max-w-md mx-auto mt-[100px] bg-white shadow-lg rounded-lg p-6">
+        <h2 className="text-3xl font-bold text-center text-black mb-6">PROFILE</h2>
+
+        {renderProfileImage()}
+
+        <div className="mb-4">
+          <label htmlFor="name" className="block text-gray-700 text-sm font-semibold mb-2">
+            Name:
+          </label>
+          <input
+            id="name"
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Enter your name"
+            aria-label="Name"
           />
-        )}
+        </div>
 
-        <label className="block text-gray-700 text-sm font-bold mb-2">
-          Name:
-        </label>
-        <input
-          type="text"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          className="w-full px-4 py-2 border rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
+        <div className="flex flex-col gap-3">
+          <button
+            onClick={updateName}
+            className="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors disabled:bg-blue-300 flex items-center justify-center"
+            disabled={loading}
+          >
+            {loading ? (
+              <>
+                <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full mr-2"></div>
+                Updating...
+              </>
+            ) : (
+              "Update Name"
+            )}
+          </button>
 
-        <button
-          onClick={updateName}
-          className="mt-4 w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-700 transition disabled:bg-blue-300"
-          disabled={loading}
-        >
-          {loading ? "Updating..." : "Update Name"}
-        </button>
+          <button
+            onClick={handleExit}
+            className="w-full bg-gray-500 text-white py-2 rounded-md hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 transition-colors"
+          >
+            Exit
+          </button>
+        </div>
       </div>
     </div>
-
   );
-  
 };
 
 export default StudentProfile;
