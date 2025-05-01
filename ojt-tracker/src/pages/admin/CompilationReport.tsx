@@ -28,6 +28,7 @@ const CompilationReport = () => {
       const bucketFolderMap: { [bucket: string]: string } = {
         "weekly_reports": "weekly_reports",
         "monthly-reports": "monthly_reports",
+        "journals": "weekly_journals",
       };
     
       const results: GroupedFilesByBucket = {};

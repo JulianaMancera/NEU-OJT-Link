@@ -24,6 +24,9 @@ const WeeklyJournalReport = ({ isOpen, onClose }: WeeklyJournalReportProps) => {
 
   // Handle file upload
   const handleUpload = async () => {
+
+    const user = await supabase.auth.getUser();
+    const userID = user.data.user?.id;
     if (files.length === 0) {
       setMessage("❌ Please select a file.");
       return;
@@ -35,7 +38,7 @@ const WeeklyJournalReport = ({ isOpen, onClose }: WeeklyJournalReportProps) => {
 
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
-      const fileName = `${Date.now()}_${file.name}`;
+      const fileName = `${userID}_${Date.now()}_${file.name}`;
       const filePath = `weekly_journals/${fileName}`;
 
       // Upload to Supabase Storage
