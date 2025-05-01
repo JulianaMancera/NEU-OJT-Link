@@ -1,5 +1,7 @@
-# 🏢 NEU OJT-Link
-**Software Engineering 2 - Application Project** <br> 
+<h1 align="center"> NEU OJT-Link</h1>
+<h3 align="center">Software Engineering 2 - Application Project</h3>
+
+
 ## 🔍 Overview 
 &emsp;&emsp;**NEU-OJT-Link** is a **digital platform** designed for students undergoing **On-the-Job Training (OJT)** at **New Era University**. This application simplifies the OJT process by allowing students to **search for companies**, **apply for specific jobs**, **submit required documents**, and **track their progress** through weekly and monthly reports. **Administrators** can oversee student progress and access submitted reports, making OJT management more efficient.  
 
