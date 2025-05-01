@@ -7,7 +7,7 @@
 
 ## ✨Features  
 ✅ **Select Companies:** Browse and choose from available internship providers  
-✅ **Job Search:** Find specific roles tailored to your skills and interests.
+✅ **Job Search:** Find specific roles tailored to your skills and interests. <br>
 ✅ **Submit Requirements:** Upload essential documents, including: 
    - Resume
    - Cover Letter
