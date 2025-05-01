@@ -14,33 +14,30 @@ export const useUserData = () => {
       const { data: { user }, error } = await supabase.auth.getUser();
 
       if (error || !user || !user.email?.endsWith("@neu.edu.ph")) {
-        navigate("/");
+        navigate("/"); // Redirect if there's an error or invalid email
         return;
       }
 
       const fullname = user.user_metadata?.full_name || "User";
       setUserName(fullname);
 
-      // First check user metadata for role
       const metadataRole = user.user_metadata?.role;
-      
-      // Then check the user table
+
       const { data: existingUser } = await supabase
         .from("user")
         .select("user_id, role, profilePicture")
         .eq("user_id", user.id)
         .single();
 
-      // Set role based on priority: user table role > metadata role > default "student"
       setUserRole(existingUser?.role || metadataRole || "student");
 
-      // Get profile picture from user table
       if (existingUser?.profilePicture) {
         setProfilePicture(existingUser.profilePicture);
       } else {
         setProfilePicture(null);
       }
 
+      // Insert user into DB if doesn't exist
       if (!existingUser) {
         const { error: insertError } = await supabase.from("user").insert({
           user_id: user.id,
@@ -48,7 +45,7 @@ export const useUserData = () => {
           email: user.email,
           date_registered: new Date().toISOString(),
           course: null,
-          role: metadataRole || "student" // Set initial role when creating user
+          role: metadataRole || "student"
         });
 
         if (insertError) {
@@ -63,4 +60,4 @@ export const useUserData = () => {
   }, [navigate]);
 
   return { loading, userName, userRole, profilePicture };
-}; 
+};
