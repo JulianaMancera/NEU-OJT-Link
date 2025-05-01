@@ -13,11 +13,24 @@ export const useApplicationData = () => {
   const [approvedCompany, setApprovedCompany] = useState<Company | null>(null);
   const [approvedJob, setApprovedJob] = useState<Job | null>(null);
   const [showApprovalModal, setShowApprovalModal] = useState(false);
+  const [showEndorsementSuccessModal, setShowEndorsementSuccessModal] = useState(false);
+  const [userName, setUserName] = useState("");
 
   useEffect(() => {
     const fetchApplicationData = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
+      
+      // Get user profile to display name in modal
+      const { data: profile } = await supabase
+        .from("profile")
+        .select("full_name, first_name")
+        .eq("id", user.id)
+        .single();
+        
+      if (profile) {
+        setUserName(profile.first_name || profile.full_name || "")
+      }
 
       // Get all applications for the user
       const { data: applications, error } = await supabase
@@ -48,18 +61,22 @@ export const useApplicationData = () => {
           .select("*")
           .eq("application_id", applicationData.application_id);
         
-        const { data: endorsementData } = await supabase
-          .from("endorsement")
+        // Get requirements data instead of endorsement data
+        const { data: requirementsData } = await supabase
+          .from("requirements")
           .select("*")
-          .eq("application_id", applicationData.application_id);
+          .eq("student_id", user.id)
+          .eq("job_id", applicationData.job_id);
         
         let currentStatus: ApplicationStatus = 'submitted';
         let initialStep: string | null = null;
         
         if (applicationData.status === "approved") {
-          if (endorsementData?.length) {
+          // Check if endorsement_url exists in requirements
+          if (requirementsData?.length && requirementsData[0].endorsement_url) {
             currentStatus = 'endorsement_submitted';
             initialStep = "dashboard";
+            setShowEndorsementSuccessModal(true);
           } else if (availabilityData?.length) {
             currentStatus = 'availability_submitted';
             initialStep = "requirement";
@@ -106,86 +123,108 @@ export const useApplicationData = () => {
   useEffect(() => {
     if (!applicationId) return;
 
-    const subscription = supabase
-      .channel("application_changes")
-      .on(
-        "postgres_changes",
-        {
-          event: "UPDATE",
-          schema: "public",
-          table: "application",
-          filter: `application_id=eq.${applicationId}`,
-        },
-        async (payload) => {
-          if (payload.new.status === "approved" && applicationStatus === 'submitted') {
-            setHasApprovedApplication(true);
-            setApplicationStatus('approved');
-            
-            const { data: companyData } = await supabase
-              .from("company")
-              .select("*")
-              .eq("company_id", payload.new.company_id)
-              .single();
+    const setupSubscriptions = async () => {
+      const subscription = supabase
+        .channel("application_changes")
+        .on(
+          "postgres_changes",
+          {
+            event: "UPDATE",
+            schema: "public",
+            table: "application",
+            filter: `application_id=eq.${applicationId}`,
+          },
+          async (payload) => {
+            if (payload.new.status === "approved" && applicationStatus === 'submitted') {
+              setHasApprovedApplication(true);
+              setApplicationStatus('approved');
               
-            if (companyData) {
-              setApprovedCompany(companyData);
-              setShowApprovalModal(true);
-              setInitialApplicationStep("availability");
-              
-              const { data: jobData } = await supabase
-                .from("job")
-                .select("job_id, position, company_id, created_at, description, responsibility, qualifications, work_hrs, schedule, isAvailable")
-                .eq("job_id", payload.new.job_id)
+              const { data: companyData } = await supabase
+                .from("company")
+                .select("*")
+                .eq("company_id", payload.new.company_id)
                 .single();
+                
+              if (companyData) {
+                setApprovedCompany(companyData);
+                setShowApprovalModal(true);
+                setInitialApplicationStep("availability");
+                
+                const { data: jobData } = await supabase
+                  .from("job")
+                  .select("job_id, position, company_id, created_at, description, responsibility, qualifications, work_hrs, schedule, isAvailable")
+                  .eq("job_id", payload.new.job_id)
+                  .single();
 
-              if (jobData) {
-                setApprovedJob(jobData as Job);
+                if (jobData) {
+                  setApprovedJob(jobData as Job);
+                }
               }
             }
           }
-        }
-      )
-      .subscribe();
+        )
+        .subscribe();
 
-    const availabilitySubscription = supabase
-      .channel("availability_changes")
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "availability",
-          filter: `application_id=eq.${applicationId}`,
-        },
-        () => {
-          setApplicationStatus('availability_submitted');
-          setInitialApplicationStep("requirement");
-        }
-      )
-      .subscribe();
+      const availabilitySubscription = supabase
+        .channel("availability_changes")
+        .on(
+          "postgres_changes",
+          {
+            event: "INSERT",
+            schema: "public",
+            table: "availability",
+            filter: `application_id=eq.${applicationId}`,
+          },
+          () => {
+            setApplicationStatus('availability_submitted');
+            setInitialApplicationStep("requirement");
+          }
+        )
+        .subscribe();
 
-    const endorsementSubscription = supabase
-      .channel("endorsement_changes")
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "endorsement",
-          filter: `application_id=eq.${applicationId}`,
-        },
-        () => {
-          setApplicationStatus('endorsement_submitted');
-          setInitialApplicationStep("dashboard");
-        }
-      )
-      .subscribe();
+      // Listen for changes to the requirements table instead of endorsement
+      const { data: { user } } = await supabase.auth.getUser();
+      const { data: application } = await supabase
+        .from("application")
+        .select("job_id")
+        .eq("application_id", applicationId)
+        .single();
 
-    return () => {
-      subscription.unsubscribe();
-      availabilitySubscription.unsubscribe();
-      endorsementSubscription.unsubscribe();
+      if (user && application) {
+        const requirementsSubscription = supabase
+          .channel("requirements_changes")
+          .on(
+            "postgres_changes",
+            {
+              event: "UPDATE",
+              schema: "public",
+              table: "requirements",
+              filter: `student_id=eq.${user.id} AND job_id=eq.${application.job_id}`,
+            },
+            (payload) => {
+              if (payload.new.endorsement_url) {
+                setApplicationStatus('endorsement_submitted');
+                setInitialApplicationStep("dashboard");
+                setShowEndorsementSuccessModal(true);
+              }
+            }
+          )
+          .subscribe();
+          
+        return () => {
+          subscription.unsubscribe();
+          availabilitySubscription.unsubscribe();
+          requirementsSubscription.unsubscribe();
+        };
+      }
+
+      return () => {
+        subscription.unsubscribe();
+        availabilitySubscription.unsubscribe();
+      };
     };
+
+    setupSubscriptions();
   }, [applicationId, applicationStatus]);
 
   const updateApplicationStatus = (status: ApplicationStatus) => {
@@ -210,6 +249,9 @@ export const useApplicationData = () => {
     approvedJob,
     showApprovalModal,
     setShowApprovalModal,
+    showEndorsementSuccessModal,
+    setShowEndorsementSuccessModal,
+    userName,
     updateApplicationStatus
   };
-}; 
+};
