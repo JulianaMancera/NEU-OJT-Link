@@ -72,7 +72,7 @@ const StudentDashboard: React.FC = () => {
           </button>
           <img src={logo} alt="OJT Link Logo" className="w-52 h-52" />
           <button
-            onClick={() => navigate("/student-dashboard")} 
+            onClick={() => setActiveView("schedule")} 
             className={`text-white px-5 py-2 rounded-full transition-all duration-300 shadow-md hover:shadow-lg ${
               isHomePage ? "bg-blue-700 hover:brightness-110" : "bg-transparent hover:bg-blue-700"
             }`}
