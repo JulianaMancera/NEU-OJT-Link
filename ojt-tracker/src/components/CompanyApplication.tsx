@@ -241,75 +241,57 @@ const CompanyApplication: React.FC<CompanyApplicationProps> = ({
     ? userApplications.some((app) => app.job_id === selectedJob.job_id && app.status !== 'rejected')
     : false;
 
-  return (
-    <div className="flex items-center justify-center">
-      {loading && <Loading />}
-      {step === 'selectJob' && (
-        <div className="text-black">
-          <br />
-          <h3 className="text-lg font-semibold text-gray-800 mb-4 text-center">Possible Jobs</h3>
-          {company.jobs && company.jobs.filter(job => job.isAvailable).length > 0 ? (
-            <div className="space-y-5">
-              {company.jobs
-                .filter(job => job.isAvailable)
-                .map((job, index) => {
-                  const isDisabled = job.slots !== undefined && job.slots <= 0;
-                  return (
-                    <div
-                      key={index}
-                      onClick={() => !isDisabled && handleJobSelect(job)}
-                      className={`p-4 border rounded-lg transition ${
-                        !isDisabled
-                          ? 'cursor-pointer hover:bg-gray-100' 
-                          : 'cursor-not-allowed bg-gray-50 opacity-70'
-                      }`}
-                      title={isDisabled ? "This position is currently not hiring" : ""}
-                    >
-                      <h5 className="text-md font-medium text-gray-700">{job.position}</h5>
-                      {isDisabled && (
-                        <div className="flex items-center mt-1">
-                          <svg className="w-4 h-4 mr-1 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                          </svg>
-                          <span className="text-sm text-red-500">Position filled</span>
-                        </div>
-                      )}
-                      {!isDisabled && job.slots !== undefined && (
-                        <span className="text-sm text-green-500 mt-1">
-                          {job.slots} slot{job.slots !== 1 ? 's' : ''} available
-                        </span>
-                      )}
-                    </div>
-                  );
-                })}
-            </div>
-          ) : (
-            <p>No Jobs Available in this company</p>
-          )}
-        </div>
-      )}
+    return (
+      <div className="flex items-center justify-center">
+        {loading && <Loading />}
         {step === 'selectJob' && (
           <div className="text-black max-w-md mx-auto px-4">
             <div className="py-6">
               <h3 className="text-2xl font-bold text-center text-gray-800 mb-8">Possible Jobs</h3>
               
-              {company.jobs && company.jobs.length > 0 ? (
+              {company.jobs && company.jobs.filter(job => job.isAvailable).length > 0 ? (
                 <div className="space-y-4">
-                  {company.jobs.map((job, index) => (
-                    <div
-                      key={index}
-                      onClick={() => handleJobSelect(job)}
-                      className="w-120 -ml-5 mt-8 p-5 border-l-4 border-blue-500 rounded-lg shadow-md hover:shadow-lg cursor-pointer bg-white transition-all duration-300 transform hover:-translate-y-2"
-                    >
-                      <h5 className="text-lg font-medium text-gray-800">{job.position}</h5>
-                      <div className="flex items-center mt-2 text-sm text-gray-500">
-                        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
-                        </svg>
-                        <span>Apply Now</span>
-                      </div>
-                    </div>
-                  ))}
+                  {company.jobs
+                    .filter(job => job.isAvailable)
+                    .map((job, index) => {
+                      const isDisabled = job.slots !== undefined && job.slots <= 0;
+                      return (
+                        <div
+                          key={index}
+                          onClick={() => !isDisabled && handleJobSelect(job)}
+                          className={`w-120 -ml-5 mt-8 p-5 border-l-4 rounded-lg bg-white ${
+                            !isDisabled
+                              ? 'border-blue-500 shadow-md hover:shadow-lg cursor-pointer transition-all duration-300 transform hover:-translate-y-2'
+                              : 'border-red-500 cursor-not-allowed bg-gray-50 opacity-80'
+                          }`}
+                          title={isDisabled ? "This position is currently not hiring" : ""}
+                        >
+                          <h5 className="text-lg font-medium text-gray-800">{job.position}</h5>
+                          <div className="flex items-center mt-2 text-sm">
+                            {!isDisabled ? (
+                              <>
+                                <svg className="w-4 h-4 mr-1 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                                </svg>
+                                <span className="text-gray-500">Apply Now</span>
+                                {job.slots !== undefined && (
+                                  <span className="ml-2 text-green-500">
+                                    - {job.slots} slot{job.slots !== 1 ? 's' : ''} available
+                                  </span>
+                                )}
+                              </>
+                            ) : (
+                              <>
+                                <svg className="w-4 h-4 mr-1 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                                <span className="text-red-500">Position filled</span>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
                 </div>
               ) : (
                 <div className="text-center py-10 bg-gray-50 rounded-lg">
@@ -319,43 +301,43 @@ const CompanyApplication: React.FC<CompanyApplicationProps> = ({
             </div>
           </div>
         )}
-
-      {step === 'apply' && selectedJob && (
-        <CompanyApplicationApply
-          job={selectedJob}
-          company={company}
-          setStep={setStep}
-          setSelectedJob={setSelectedJob}
-          hasApplied={hasApplied}
-        />
-      )}
-
-      {step === 'requirement' && selectedJob && (
-        <div className="text-black">
-          <p className="text-[1.1rem] font-semibold text-center mt-4">Position: {selectedJob.position}</p>
-          <br />
-          <RequirementForm
-            company={company}
+    
+        {step === 'apply' && selectedJob && (
+          <CompanyApplicationApply
             job={selectedJob}
-            onSubmit={handleRequirementSubmit}
-            onClose={() => setStep('apply')}
+            company={company}
+            setStep={setStep}
+            setSelectedJob={setSelectedJob}
+            hasApplied={hasApplied}
           />
-        </div>
-      )}
-
-      <ApplicationStatusModal
-        isOpen={showStatusModal}
-        onClose={handleModalClose}
-        status={applicationStatus}
-        company={company}
-        applicationId={selectedJob?.job_id || ''}
-        job={selectedJob || { job_id: '', position: '', company_id: company.company_id }}
-        onUpdateStatus={handleStatusUpdate}
-      />
-
-      <ApplicationInProgressModal isOpen={showInProgressModal} onClose={handleModalClose} />
-    </div>
-  );
+        )}
+    
+        {step === 'requirement' && selectedJob && (
+          <div className="text-black">
+            <p className="text-[1.1rem] font-semibold text-center mt-4">Position: {selectedJob.position}</p>
+            <br />
+            <RequirementForm
+              company={company}
+              job={selectedJob}
+              onSubmit={handleRequirementSubmit}
+              onClose={() => setStep('apply')}
+            />
+          </div>
+        )}
+    
+        <ApplicationStatusModal
+          isOpen={showStatusModal}
+          onClose={handleModalClose}
+          status={applicationStatus}
+          company={company}
+          applicationId={selectedJob?.job_id || ''}
+          job={selectedJob || { job_id: '', position: '', company_id: company.company_id }}
+          onUpdateStatus={handleStatusUpdate}
+        />
+    
+        <ApplicationInProgressModal isOpen={showInProgressModal} onClose={handleModalClose} />
+      </div>
+    );
 };
 
 export default CompanyApplication;
