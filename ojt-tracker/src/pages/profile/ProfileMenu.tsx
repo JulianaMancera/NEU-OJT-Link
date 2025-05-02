@@ -1,4 +1,4 @@
-import { User, Settings, CircleHelp, LogOut } from "lucide-react";
+import { User, Settings, CircleHelp, LogOut, Info } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../../supabase";
@@ -59,6 +59,7 @@ export const ProfileMenu = ({ userName: initialName, userRole, profilePicture, o
   const renderProfileImage = (size: 'small' | 'large') => {
     if (imageError || !profilePicture || isImageLoading) {
       return (
+
         <div className={
           size === 'small'
             ? "w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center"
@@ -69,6 +70,7 @@ export const ProfileMenu = ({ userName: initialName, userRole, profilePicture, o
               ? "w-6 h-6 text-blue-800"
               : "w-12 h-12 text-white"
           } />
+
         </div>
       );
     }
@@ -134,7 +136,24 @@ export const ProfileMenu = ({ userName: initialName, userRole, profilePicture, o
             )}
             <li>
               <button
-                onClick={() => { onLogout(); setIsProfileOpen(false); }}
+        onClick={() => { onLogout(); setIsProfileOpen(false); }}
+
+                onClick={() => {
+                  navigate("/about");
+                  setIsProfileOpen(false);
+                }}
+                className="w-full text-left px-6 py-4 hover:bg-gray-100 flex items-center transition-all duration-200"
+              >
+                <Info className="w-6 h-6 mr-3" /> About Us
+              </button>
+            </li>
+            <li>
+              <button
+                onClick={() => {
+                  onLogout();
+                  setIsProfileOpen(false);
+                }}
+
                 className="w-full text-left px-6 py-4 hover:bg-red-50 text-red-600 flex items-center transition-all duration-200"
               >
                 <LogOut className="w-6 h-6 mr-3" /> Log out

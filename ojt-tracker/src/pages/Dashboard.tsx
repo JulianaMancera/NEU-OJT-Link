@@ -26,7 +26,8 @@ const Dashboard = () => {
     showEndorsementSuccessModal,
     setShowEndorsementSuccessModal,
     userName: applicationUserName,
-    updateApplicationStatus
+    updateApplicationStatus,
+    rejectedCompanies
   } = useApplicationData();
   const {
     companies,
@@ -57,7 +58,7 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <div className="w-full h-[80px] absolute left-0 top-0 bg-gradient-to-b from-[#578FCA] to-[#2B4764] border-1 border-black flex items-center justify-between px-6">
+      <div className="w-full h-[80px] absolute left-0 top-0 bg-gradient-to-b from-[#578FCA] to-[#2B4764] border border-black flex items-center justify-between px-6">
         <img src={OJTLogo} alt="Ojt Logo" className="w-[220px] h-[220px] ml-4" />
         <div className="flex space-x-4">
           <ProfileMenu
@@ -85,6 +86,7 @@ const Dashboard = () => {
           }}
           onUpdateStatus={updateApplicationStatus}
           userName={applicationUserName || userName}
+          rejectedCompanies={rejectedCompanies}
         />
       )}
 
@@ -141,6 +143,11 @@ const Dashboard = () => {
 
               {selectedCompany === company && (
                 <div className="fixed inset-0 flex items-center justify-center z-50">
+                  {/* Background Blur Overlay */}
+                  <div
+                    onClick={() => setSelectedCompany(null)}
+                    className="fixed inset-0 backdrop-blur-sm bg-black/50 z-40"
+                  />
                   <div className="bg-[#FDFBF6] p-6 rounded-lg shadow-lg w-full max-w-[100vh] h-[60vh] overflow-y-auto overflow-x-hidden relative z-50">
                     <div className="flex justify-center items-center">
                       <h3 className="text-[1.8rem] font-bold text-black sticky top-0 flex">{company.name}</h3>
