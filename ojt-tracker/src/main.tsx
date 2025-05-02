@@ -15,16 +15,27 @@ import Monitoring from "./pages/admin/Monitoring";
 import CompilationReport from "./pages/admin/CompilationReport";
 import UserRole from "./pages/admin/UserRole";
 import ViewDashboard from "./components/ViewDashboard";
+import AboutUs from "../src/pages/AboutUs";
+import { supabase } from '../supabase'; 
 
-
+// Define the handleLogout function
+const handleLogout = async () => {
+  try {
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
+    window.location.href = '/'; // Redirect to login page after logout
+  } catch (error) {
+    console.error('Error logging out:', error);
+  }
+};
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <BrowserRouter>
     <Routes>
-     <Route path="/" element={<Login />} />
-      <Route path="/landing-page" element={<LandingPage />} /> {/*  Landing Route */}
+      <Route path="/" element={<Login />} />
+      <Route path="/landing-page" element={<LandingPage />} />
       <Route path="/dashboard" element={<Dashboard />} />
-      <Route path="/application-approval" element={<ApplicationApproval />} /> {/* ApplicationApproval */}
+      <Route path="/application-approval" element={<ApplicationApproval />} />
       <Route path="/student-dashboard" element={<StudentDashboard />} />
       <Route path="/profile" element={<StudentProfile />} />
       <Route path="/admin" element={<Admin />} />
@@ -34,7 +45,8 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
       <Route path="/reports" element={<Reports />} />
       <Route path="/monitoring" element={<Monitoring />} />
       <Route path="/user-role" element={<UserRole />} />
-      <Route path="/view-dashboard" element={<ViewDashboard />} /> {/* View DashBoard Route */}
+      <Route path="/view-dashboard" element={<ViewDashboard />} />
+      <Route path="/about" element={<AboutUs handleLogout={handleLogout} />} />
     </Routes>
   </BrowserRouter>
 );
