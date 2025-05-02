@@ -21,7 +21,25 @@ const Auth = () => {
       
       const { data: { user } } = await supabase.auth.getUser();
       if (user?.email?.endsWith("@neu.edu.ph")) {
-        navigate("/landing-page");
+        // Check user role from user table
+        const { data: userData, error } = await supabase
+          .from('user')
+          .select('role')
+          .eq('user_id', user.id)
+          .single();
+        
+        if (error) {
+          console.error('Error fetching user role:', error);
+          await supabase.auth.signOut();
+          setLoading(false);
+          return;
+        }
+
+        if (userData?.role === 'student') {
+          navigate("/landing-page");
+        } else if (userData?.role) {
+          navigate("/admin");
+        }
       } else {
         await supabase.auth.signOut();
         setLoading(false);
@@ -34,7 +52,7 @@ const Auth = () => {
   const signInWithGoogle = async () => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: window.location.origin + "/landing-page" },
+      options: { redirectTo: window.location.origin},
     });
 
     if (error) console.error("Google Sign-In Error:", error);
