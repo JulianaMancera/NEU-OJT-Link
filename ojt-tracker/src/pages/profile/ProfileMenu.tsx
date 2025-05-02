@@ -1,4 +1,4 @@
-import { User, Settings, CircleHelp, LogOut } from "lucide-react";
+import { User, Settings, CircleHelp, LogOut, Info } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -48,8 +48,18 @@ export const ProfileMenu = ({ userName, userRole, profilePicture, onLogout }: Pr
   const renderProfileImage = (size: 'small' | 'large') => {
     if (imageError || !profilePicture || isImageLoading) {
       return (
-        <div className={size === 'small' ? "w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center" : "w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center mx-auto"}>
-          <User className={size === 'small' ? "w-6 h-6 text-blue-800" : "w-12 h-12 text-white"} />
+        <div
+          className={
+            size === 'small'
+              ? "w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center"
+              : "w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center mx-auto"
+          }
+        >
+          <User
+            className={
+              size === 'small' ? "w-6 h-6 text-blue-800" : "w-12 h-12 text-blue-800"
+            }
+          />
         </div>
       );
     }
@@ -58,7 +68,11 @@ export const ProfileMenu = ({ userName, userRole, profilePicture, onLogout }: Pr
       <img
         src={profilePicture}
         alt="Profile"
-        className={size === 'small' ? "w-8 h-8 rounded-full object-cover border-2 border-blue-300" : "w-24 h-24 rounded-full object-cover border-4 border-blue-300"}
+        className={
+          size === 'small'
+            ? "w-8 h-8 rounded-full object-cover border-2 border-blue-300"
+            : "w-24 h-24 rounded-full object-cover border-4 border-blue-300"
+        }
       />
     );
   };
@@ -120,6 +134,17 @@ export const ProfileMenu = ({ userName, userRole, profilePicture, onLogout }: Pr
                 </button>
               </li>
             )}
+            <li>
+              <button
+                onClick={() => {
+                  navigate("/about");
+                  setIsProfileOpen(false);
+                }}
+                className="w-full text-left px-6 py-4 hover:bg-gray-100 flex items-center transition-all duration-200"
+              >
+                <Info className="w-6 h-6 mr-3" /> About Us
+              </button>
+            </li>
             <li>
               <button
                 onClick={() => {
