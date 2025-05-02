@@ -140,7 +140,7 @@ const Dashboard = () => {
               </div>
 
               {selectedCompany === company && (
-                <div className="fixed inset-0 flex items-center justify-center z-50">
+                <div className="fixed inset-0 flex backdrop-blur-sm bg-black/50 items-center justify-center z-50">
                   <div className="bg-[#FDFBF6] p-6 rounded-lg shadow-lg w-full max-w-[100vh] h-[60vh] overflow-y-auto overflow-x-hidden relative z-50">
                     <div className="flex justify-center items-center">
                       <h3 className="text-[1.8rem] font-bold text-black sticky top-0 flex">{company.name}</h3>
