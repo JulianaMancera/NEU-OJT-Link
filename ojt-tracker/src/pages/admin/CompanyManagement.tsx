@@ -103,18 +103,12 @@ const CompanyManagement = () => {
 
   const handleFileUpload = async (): Promise<string> => {
     if (!logoFile) return newCompany.logo_url || "";
-
     try {
       const fileName = `${Date.now()}_${logoFile.name}`;
       const { error } = await supabase.storage
         .from("logos")
-        .upload(fileName, logoFile, {
-          contentType: logoFile.type,
-          upsert: true,
-        });
-
+        .upload(fileName, logoFile, { contentType: logoFile.type, upsert: true });
       if (error) throw new Error(error.message);
-
       const { data } = supabase.storage.from("logos").getPublicUrl(fileName);
       return data.publicUrl;
     } catch (err) {
@@ -127,30 +121,29 @@ const CompanyManagement = () => {
   const handleAddOrUpdateCompany = async () => {
     try {
       const logo_url = await handleFileUpload();
-
-      const companyData = {
-        ...newCompany,
-        logo_url,
-        companyRestrict: newCompany.companyRestrict || 'Active',
-      };
-
+      const companyData = { ...newCompany, logo_url, companyRestrict: newCompany.companyRestrict || 'Active' };
       if (editingCompanyId) {
         const { error } = await supabase
           .from("company")
           .update(companyData)
           .eq("company_id", editingCompanyId);
         if (error) throw new Error(error.message);
+        // update local state to preserve order
+        setCompanies((prev) => prev.map(c => c.company_id === editingCompanyId ? { ...c, ...companyData } as Company : c));
+        setFilteredCompanies((prev) => prev.map(c => c.company_id === editingCompanyId ? { ...c, ...companyData } as Company : c));
       } else {
-        const { error } = await supabase.from("company").insert([companyData]);
-        if (error) throw new Error(error.message);
+        const { data: inserted, error } = await supabase.from("company").insert([companyData]).select();
+        if (error || !inserted) throw new Error(error?.message);
+        // append to end to preserve existing order
+        setCompanies((prev) => [...prev, inserted[0] as Company]);
+        setFilteredCompanies((prev) => [...prev, inserted[0] as Company]);
       }
-
+      // reset form
       setNewCompany({ name: '', address: '', email: '', contact_no: '', start_time: null, end_time: null, companyRestrict: 'Active' });
       setLogoFile(null);
       setEditingCompanyId(null);
       setIsModalOpen(false);
       setError(null);
-      fetchCompanies();
     } catch (err) {
       console.error("Company operation error:", err);
       setError("Failed to save company");
@@ -169,6 +162,7 @@ const CompanyManagement = () => {
     setIsModalOpen(true);
   };
 
+  // Restrict without re-fetching to keep original order
   const handleRestrictCompany = async (company_id: string, status: 'Active' | 'Restricted') => {
     try {
       const { error } = await supabase
@@ -176,7 +170,8 @@ const CompanyManagement = () => {
         .update({ companyRestrict: status })
         .eq("company_id", company_id);
       if (error) throw new Error(error.message);
-      fetchCompanies();
+      setCompanies((prev) => prev.map(c => c.company_id === company_id ? { ...c, companyRestrict: status } : c));
+      setFilteredCompanies((prev) => prev.map(c => c.company_id === company_id ? { ...c, companyRestrict: status } : c));
     } catch (err) {
       console.error(`Error updating restriction to ${status}:`, err);
       setError(`Failed to update company status`);
@@ -189,21 +184,13 @@ const CompanyManagement = () => {
       <div className="w-screen h-[80px] fixed left-0 top-0 bg-gradient-to-b from-[#578FCA] to-[#2B4764] border-b border-black flex items-center justify-between px-6 z-10">
         <img src={OJTLogo} alt="OJT Link Logo" className="w-[220px] h-[220px] ml-15" />
         <div className="flex items-center">
-          <button
-            onClick={() => setProfileOpen(!isProfileOpen)}
-            className="relative p-3 hover:bg-blue-800 rounded-full transition-all duration-300"
-          >
+          <button onClick={() => setProfileOpen(!isProfileOpen)} className="relative p-3 hover:bg-blue-800 rounded-full transition-all duration-300">
             {profilePicture ? (
-              <img
-                src={profilePicture}
-                alt="Profile"
-                className="w-12 h-12 rounded-full object-cover border-2 border-blue-300"
-              />
+              <img src={profilePicture} alt="Profile" className="w-12 h-12 rounded-full object-cover border-2 border-blue-300" />
             ) : (
               <User className="w-8 h-8 text-white" />
             )}
           </button>
-
           {isProfileOpen && (
             <div className="absolute right-6 top-[4.5rem] bg-white text-gray-800 shadow-lg rounded-md overflow-hidden z-50 w-64 min-w-[16rem] animate-slide-in-down">
               <div className="bg-blue-800 text-white p-4 text-center">
@@ -219,13 +206,7 @@ const CompanyManagement = () => {
               </div>
               <ul className="text-sm">
                 <li>
-                  <button
-                    onClick={() => {
-                      navigate("/profile");
-                      setProfileOpen(false);
-                    }}
-                    className="w-full text-left px-6 py-4 hover:bg-gray-100 flex items-center transition-all duration-200"
-                  >
+                  <button onClick={() => { navigate("/profile"); setProfileOpen(false); }} className="w-full text-left px-6 py-4 hover:bg-gray-100 flex items-center transition-all duration-200">
                     <User className="w-6 h-6 mr-3" /> Profile
                   </button>
                 </li>
@@ -241,19 +222,13 @@ const CompanyManagement = () => {
                 </li>
                 {userRole === "admin" && (
                   <li>
-                    <button
-                    onClick={() => navigate("/admin")}
-                    className="w-full text-left px-6 py-4 hover:bg-gray-100 flex items-center transition-all duration-200"
-                  >
-                    <UserCog className="w-6 h-6 mr-3" /> Admin
-                  </button>
+                    <button onClick={() => navigate("/admin")} className="w-full text-left px-6 py-4 hover:bg-gray-100 flex items-center transition-all duration-200">
+                      <UserCog className="w-6 h-6 mr-3" /> Admin
+                    </button>
                   </li>
                 )}
                 <li>
-                  <button
-                    onClick={handleLogout}
-                    className="w-full text-left px-6 py-4 hover:bg-red-50 text-red-600 flex items-center transition-all duration-200"
-                  >
+                  <button onClick={handleLogout} className="w-full text-left px-6 py-4 hover:bg-red-50 text-red-600 flex items-center transition-all duration-200">
                     <LogOut className="w-6 h-6 mr-3" /> Log out
                   </button>
                 </li>
@@ -268,25 +243,12 @@ const CompanyManagement = () => {
         <h2 className="text-center justify-center py-4 font-bold text-5xl mb-6">Company Management</h2>
 
         {error && (
-          <div className="bg-red-100 text-red-700 p-3 rounded mb-4 text-center">
-            {error}
-          </div>
+          <div className="bg-red-100 text-red-700 p-3 rounded mb-4 text-center">{error}</div>
         )}
 
         <div className="flex justify-center items-center gap-4 mb-6">
-          <input
-            type="text"
-            placeholder="Search by company name..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="border p-2 w-64 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          <button
-            onClick={handleNewCompany}
-            className="bg-[#90D5FF] hover:bg-blue-300 text-black font-bold py-2 px-6 rounded transition-colors"
-          >
-            New Company
-          </button>
+          <input type="text" placeholder="Search by company name..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="border p-2 w-64 rounded focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          <button onClick={handleNewCompany} className="bg-[#90D5FF] hover:bg-blue-300 text-black font-bold py-2 px-6 rounded transition-colors">New Company</button>
         </div>
 
         <div className="overflow-x-auto">
@@ -304,10 +266,7 @@ const CompanyManagement = () => {
             </thead>
             <tbody>
               {filteredCompanies.map((company, index) => (
-                <tr
-                  key={company.company_id}
-                  className={`text-center ${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'}`}
-                >
+                <tr key={company.company_id} className={`text-center ${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'}`}>
                   <td className="p-3 border border-gray-300">
                     {company.logo_url && (
                       <img src={company.logo_url} alt="Logo" className="h-10 mx-auto" />

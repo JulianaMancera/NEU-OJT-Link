@@ -20,11 +20,12 @@ const Admin = () => {
         setUserName(user.user_metadata?.full_name || "User");
         const { data: roleData } = await supabase
           .from("user")
-          .select("role, profilePicture")
+          .select("name, role, profilePicture")
           .eq("user_id", user.id)
           .single();
 
         if (roleData) {
+          setUserName(roleData.name || "Unknown");
           setUserRole(roleData.role);
           setProfilePicture(roleData.profilePicture);
         }
