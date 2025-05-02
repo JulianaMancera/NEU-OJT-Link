@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { supabase } from "../../supabase";
+import { supabase } from "../../../supabase";
 import { FaCloudUploadAlt, FaTrash } from "react-icons/fa";
-import { handleFileChange } from "../services/uploadHandle/handleFileChange";
-import { handleDrop } from "../services/uploadHandle/handleDrop";
+import { handleFileChange } from "../../services/uploadHandle/handleFileChange";
+import { handleDrop } from "../../services/uploadHandle/handleDrop";
 
 interface WeeklyJournalReportProps {
   isOpen: boolean;

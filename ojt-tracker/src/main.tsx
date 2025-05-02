@@ -4,7 +4,7 @@ import Login from "./pages/Login";
 import './index.css'
 import Dashboard from "./pages/Dashboard";
 import LandingPage from "./pages/LandingPage";
-import ApplicationApproval from "./pages/ApplicationApproval";
+import ApplicationApproval from "./pages/admin/ApplicationApproval";
 import StudentDashboard from "./pages/StudentDashboard";
 import StudentProfile from "./pages/profile/StudentProfile";
 import Admin from "./pages/admin/Admin";

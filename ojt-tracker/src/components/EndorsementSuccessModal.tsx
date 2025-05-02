@@ -28,7 +28,7 @@ const EndorsementSuccessModal: React.FC<EndorsementSuccessModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-gradient-to-b from-[#3657DB] from-24% to-[#8D95B5] to-98% bg-opacity-75 flex items-center justify-center z-50">
       <div ref={modalRef} className="bg-white rounded-xl p-6 max-w-md w-full mx-4 shadow-2xl">
         <div className="text-center">
           <div className="mb-4">

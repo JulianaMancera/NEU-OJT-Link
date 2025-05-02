@@ -3,7 +3,7 @@ import { fetchCompanies, fetchJobs, updateJob, Job, Company } from "../../servic
 import { JobRow } from "../../components/JobRow";
 import AddJobForm from "../../components/AddJobsForm";
 import { MessageNotification } from "../../components/MessageNotification";
-import Sidebar from "../../components/SideBar";
+import Sidebar from "./SideBar";
 import OJTLogo from "/src/assets/ojt-white.png";
 
 const AddJobs = () => {
@@ -45,12 +45,30 @@ const AddJobs = () => {
   };
 
   const handleSlotChange = (jobId: number, delta: number) => {
-    setJobs(jobs.map(j => j.job_id === jobId ? { ...j, slots: Math.max(0, (j.slots ?? 0) + delta) } : j));
+    setJobs(jobs.map(j => {
+      if (j.job_id === jobId) {
+        const newTotalSlots = (j.total_slots || 0) + delta;
+        if (newTotalSlots < 0) return j;
+        const approvedCount = j.approved_application_count || 0;
+        const newAvailableSlots = Math.max(0, newTotalSlots - approvedCount);
+        
+        return {
+          ...j,
+          total_slots: newTotalSlots,
+          slots: newAvailableSlots
+        };
+      }
+      return j;
+    }));
   };
 
   const handleSave = async (job: Job) => {
     try {
-      await updateJob(job);
+      await updateJob({
+        ...job,
+        slots: job.total_slots - (job.approved_application_count || 0)
+      });
+      
       setMessage("✅ Job updated successfully!");
       setEditMode(null);
       setJobs(await fetchJobs());
@@ -68,9 +86,17 @@ const AddJobs = () => {
     const newStatus = !job.isAvailable;
     
     try {
-      await updateJob({ job_id: jobId, isAvailable: newStatus });
+      await updateJob({ 
+        job_id: jobId, 
+        isAvailable: newStatus 
+      });
       setMessage(`✅ Job ${newStatus ? "unrestricted" : "restricted"} successfully!`);
-      setJobs(await fetchJobs());
+
+      setJobs(jobs.map(j => 
+        j.job_id === jobId 
+          ? { ...j, isAvailable: newStatus } 
+          : j
+      ));
     } catch (error) {
       console.error("Error toggling job status:", error);
       setMessage(`❌ Failed to ${newStatus ? "unrestrict" : "restrict"} job`);
