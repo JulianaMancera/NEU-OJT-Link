@@ -30,7 +30,7 @@ const UserRole: React.FC = () => {
   const [userRole, setUserRole] = useState<string>("admin");
   const [profilePicture, setProfilePicture] = useState<string | null>(null);
 
-  // Fetch current user data (optional, depends on your auth setup)
+  // Fetch current user data
   useEffect(() => {
     const fetchCurrentUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -53,7 +53,7 @@ const UserRole: React.FC = () => {
   const handleLogout = async () => {
     try {
       await supabase.auth.signOut();
-      navigate("/login");
+      navigate("/"); // Updated to navigate to root path, consistent with Admin
     } catch (error) {
       console.error("Logout failed:", error);
       setMessage("Failed to log out");
@@ -189,12 +189,12 @@ const UserRole: React.FC = () => {
                 </li>
                 {userRole === "admin" && (
                   <li>
-                   <button
-                    onClick={() => navigate("/admin")}
-                    className="w-full text-left px-6 py-4 hover:bg-gray-100 flex items-center transition-all duration-200"
-                  >
-                    <UserCog className="w-6 h-6 mr-3" /> Admin
-                  </button>
+                    <button
+                      onClick={() => navigate("/admin")}
+                      className="w-full text-left px-6 py-4 hover:bg-gray-100 flex items-center transition-all duration-200"
+                    >
+                      <UserCog className="w-6 h-6 mr-3" /> Admin
+                    </button>
                   </li>
                 )}
                 <li>

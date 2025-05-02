@@ -18,6 +18,8 @@ const styles = StyleSheet.create({
     position: "absolute",
     width: "100%",
     height: "100%",
+    top: 0,
+    left: 0,
   },
   sideBorder: {
     position: "absolute",
@@ -33,24 +35,27 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     position: "relative",
-    paddingLeft: 80, // push content in from left border
-    paddingRight: 80, // push content in from right border
-    paddingTop: 60,
+    paddingLeft: 80, // Push content in from left border
+    paddingRight: 80, // Push content in from right border
     paddingBottom: 60,
     alignItems: "center",
     textAlign: "center",
     height: "100%",
     justifyContent: "center",
-    zIndex: 1,
+    zIndex: 1, // Content should be above borders and shadow
   },
   header: {
     fontSize: 18,
     fontWeight: "bold",
     marginBottom: 10,
   },
+  job: {
+    fontSize: 20,
+    fontWeight: "bold",
+  },
   subHeader: {
     fontSize: 20,
-    marginBottom: 30,
+    marginBottom: 15,
   },
   title: {
     fontSize: 30,
@@ -60,17 +65,16 @@ const styles = StyleSheet.create({
   },
   bodyText: {
     fontSize: 20,
-    marginBottom: 30,
+    marginBottom:10,
   },
   name: {
-    fontSize: 30,
+    fontSize: 50,
     fontWeight: "bold",
     marginVertical: 10,
   },
   signatures: {
     flexDirection: "row",
     justifyContent: "space-around",
-    marginTop: 50,
     width: "100%",
   },
   sigBlock: {
@@ -84,6 +88,15 @@ const styles = StyleSheet.create({
     fontSize: 10,
     marginTop: 5,
   },
+  shadowImage: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    width: PAGE_WIDTH,
+    height: PAGE_HEIGHT,
+    opacity: 0.1, // Adjust shadow opacity as required
+    zIndex: 0, // Ensure shadow is behind content
+  },
 });
 
 interface CertificateProps {
@@ -91,6 +104,7 @@ interface CertificateProps {
   job: string;
   companyName: string;
   companyLogo: string;
+  supervisor: string;
   supervisorSig: string;
   coordinatorSig: string;
   leftSide: string;
@@ -102,6 +116,7 @@ const CertificatePDF: React.FC<CertificateProps> = ({
   companyLogo,
   name,
   job,
+  supervisor,
   supervisorSig,
   coordinatorSig,
   leftSide,
@@ -110,11 +125,18 @@ const CertificatePDF: React.FC<CertificateProps> = ({
   return (
     <Document>
       <Page size={[PAGE_WIDTH, PAGE_HEIGHT]} style={styles.page}>
-        {/* Background borders */}
+        {/* Shadow / watermark logo */}
+               {/* Background borders */}
         <View style={styles.fullPageWrapper}>
           {leftSide && (
             <Image src={leftSide} style={[styles.sideBorder, styles.leftBorder]} />
           )}
+           {companyLogo && (
+          <Image
+            src={companyLogo}
+            style={styles.shadowImage}
+          />
+        )}
           {rightSide && (
             <Image src={rightSide} style={[styles.sideBorder, styles.rightBorder]} />
           )}
@@ -135,19 +157,19 @@ const CertificatePDF: React.FC<CertificateProps> = ({
           <Text style={styles.name}>{name}</Text>
 
           <Text style={styles.bodyText}>
-            for successfully completing 300 hours of {job} for On-the-Job Training (OJT)
+            for successfully completing 300 hours of <Text style={styles.job}>{job}</Text> for On-the-Job Training (OJT)
             through NEU OJT-LINK with demonstrated dedication and skill.
           </Text>
 
           <View style={styles.signatures}>
             <View style={styles.sigBlock}>
               {supervisorSig && <Image src={supervisorSig} style={styles.sigImage} />}
-              <Text>Jamie Chastain</Text>
+              <Text>{supervisor}</Text>
               <Text style={styles.sigLabel}>Supervisor</Text>
             </View>
             <View style={styles.sigBlock}>
               {coordinatorSig && <Image src={coordinatorSig} style={styles.sigImage} />}
-              <Text>Jamie Chastain</Text>
+              <Text>Prof. Jeremias C. Esperanza</Text>
               <Text style={styles.sigLabel}>OJT Coordinator</Text>
             </View>
           </View>

@@ -56,7 +56,7 @@ const ApplicationApproval = () => {
   const handleLogout = async () => {
     try {
       await supabase.auth.signOut();
-      navigate("/login");
+      navigate("/"); // Updated to navigate to root path, consistent with Admin
     } catch (error) {
       console.error("Logout failed:", error);
     }
