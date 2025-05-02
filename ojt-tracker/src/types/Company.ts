@@ -13,7 +13,6 @@ export interface Company {
         end_time:   string | null;
         companyRestrict: 'Active' | 'Restricted';
         jobs: Job[],
-        supervisor: string,
 }
 
 export default Company;

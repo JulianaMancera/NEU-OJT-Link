@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { FaFileAlt } from "react-icons/fa";
 import OJTLogo2 from "/src/assets/ojt-link-logo FINAL.png";
-import { Menu, LayoutDashboardIcon, ChevronDown, ChevronRight } from "lucide-react";
+import { Menu, LayoutDashboardIcon, ChevronDown, ChevronRight, Building2, Monitor, Pencil } from "lucide-react";
 
 const Sidebar = ({ sidebarOpen, setSidebarOpen }: {
   sidebarOpen: boolean;
@@ -11,6 +11,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: {
   const navigate = useNavigate();
   const [active, setActive] = useState("");
   const [monitoringExpanded, setMonitoringExpanded] = useState(false);
+  const [companyExpanded, setCompanyExpanded] = useState(false);
 
   const handleNavigation = (route: string, label: string) => {
     setActive(label);
@@ -57,17 +58,28 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: {
             <span className="text-sm font-medium">Dashboard</span>
           </button>
 
+          {/* User Role */}
+          <button
+            onClick={() => handleNavigation("/user-role", "User Role")}
+            className={`flex items-center gap-2 bg-[#B3E5FC] px-4 py-2 rounded-lg hover:bg-[#81D4FA] text-black ${
+              active === "User Role" ? "ring-2 ring-[#0288D1]" : ""
+            }`}
+          >
+            <Pencil />
+            <span className="text-sm font-medium">User Role</span>
+          </button>
+
           {/* Collapsible: Student Monitoring */}
           <button
             onClick={() => setMonitoringExpanded(!monitoringExpanded)}
             className="flex items-center justify-between bg-[#B3E5FC] px-4 py-4 rounded-lg hover:bg-[#81D4FA] text-black"
           >
             <span className="flex items-center gap-2">
-              <FaFileAlt className="text-sm" />
+              <Monitor className="text-sm" />
               <span className="text-sm font-medium text-left">Student Monitoring</span>
             </span>
             <span className="translate-x-2">
-            {monitoringExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16}/>}
+              {monitoringExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16}/>}
             </span>
           </button>
 
@@ -77,8 +89,10 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: {
               {[
                 { label: "Application", route: "/application-approval" },
                 { label: "Monitoring", route: "/monitoring" },
-                { label: "Company Management", route: "/company" },
                 { label: "Reports", route: "/reports" },
+                { label: "Compilation of Reports", route: "/compilation-report" },
+
+
               ].map((item) => (
                 <button
                   key={item.label}
@@ -94,16 +108,40 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: {
             </div>
           )}
 
-          {/* Jobs */}
+          {/* Collapsible: Company & Jobs */}
           <button
-            onClick={() => handleNavigation("/jobs", "Jobs")}
-            className={`flex items-center gap-2 bg-[#B3E5FC] px-4 py-2 rounded-lg hover:bg-[#81D4FA] text-black ${
-              active === "Jobs" ? "ring-2 ring-[#0288D1]" : ""
-            }`}
+            onClick={() => setCompanyExpanded(!companyExpanded)}
+            className="flex items-center justify-between bg-[#B3E5FC] px-4 py-4 rounded-lg hover:bg-[#81D4FA] text-black"
           >
-            <FaFileAlt />
-            <span className="text-sm font-medium">Jobs</span>
+            <span className="flex items-center gap-2">
+              <Building2 className="text-sm" />
+              <span className="text-sm font-medium text-left">Company Management</span>
+            </span>
+            <span className="translate-x-2">
+              {companyExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+            </span>
           </button>
+
+          {/* Collapsed Submenu */}
+          {companyExpanded && (
+            <div className="ml-6 flex flex-col gap-2">
+              {[
+                { label: "Company", route: "/company" },
+                { label: "Jobs", route: "/jobs" },
+              ].map((item) => (
+                <button
+                  key={item.label}
+                  onClick={() => handleNavigation(item.route, item.label)}
+                  className={`flex items-center gap-2 px-2 py-1 rounded bg-gray-200 hover:bg-[#E1F5FE] text-black animate-dropdown-expand ${
+                    active === item.label ? "font-semibold underline" : ""
+                  }`}
+                >
+                  <FaFileAlt className="text-sm" />
+                  <span className="text-sm text-left">{item.label}</span>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </>

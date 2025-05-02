@@ -6,6 +6,7 @@ import WeeklyJournal from "../components/WeeklyJournal";
 import MonthlyReport from "../components/MonthlyReport";
 import ReportsSubmitted from "../components/ReportsSubmitted";
 import GenerateMonthlyReport from "./GenerateMonthlyReport";
+import GenerateCertButton from "./GenerateCertButton";
 
 interface Report {
   weekly_report_id: number;
@@ -20,6 +21,7 @@ const ReportSide: React.FC = () => {
   const [isMonthlyReportModalOpen, setIsMonthlyReportModalOpen] = useState(false);
   const [editingReport, setEditingReport] = useState<Report | null>(null);
   const [companyName, setCompanyName] = useState<string | null>(null);
+  const [companyLogo, setCompanyLogo] = useState<string | null>(null)
   const [jobPosition, setJobPosition] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
 
@@ -61,7 +63,7 @@ const ReportSide: React.FC = () => {
 
         const { data: company, error: companyError } = await supabase
           .from("company")
-          .select("name")
+          .select("name,logo_url")
           .eq("company_id", company_id)
           .single();
 
@@ -82,7 +84,7 @@ const ReportSide: React.FC = () => {
           setError("Job position not found.");
           return;
         }
-
+        setCompanyLogo(company.logo_url)
         setCompanyName(company.name);
         setJobPosition(job.position);
       } catch (err) {
@@ -202,6 +204,13 @@ const ReportSide: React.FC = () => {
           </div>
           {companyName && jobPosition ? (
             <GenerateMonthlyReport companyName={companyName} job={jobPosition} />
+          ) : (
+            <p className="text-gray-500 text-sm text-center mt-4">
+              Company or job details not available
+            </p>
+          )}
+          {companyName && jobPosition && companyLogo ? (
+            <GenerateCertButton companyName={companyName} companyLogo={companyLogo}job={jobPosition} />
           ) : (
             <p className="text-gray-500 text-sm text-center mt-4">
               Company or job details not available
