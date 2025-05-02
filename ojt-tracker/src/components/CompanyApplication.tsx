@@ -34,7 +34,7 @@ const CompanyApplication: React.FC<CompanyApplicationProps> = ({
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [showInProgressModal, setShowInProgressModal] = useState(false);
   const [applicationStatus, setApplicationStatus] = useState<
-    'submitted' | 'approved' | 'availability_submitted' | 'endorsement_submitted'
+    'submitted' | 'approved' | 'availability_submitted' | 'endorsement_submitted' | 'rejected'
   >('submitted');
   const [loading, setLoading] = useState(false);
   const [userApplications, setUserApplications] = useState<UserApplication[]>([]);
@@ -232,7 +232,7 @@ const CompanyApplication: React.FC<CompanyApplicationProps> = ({
   };
 
   const handleStatusUpdate = (
-    status: 'submitted' | 'approved' | 'availability_submitted' | 'endorsement_submitted'
+    status: 'submitted' | 'approved' | 'availability_submitted' | 'endorsement_submitted' | 'rejected'
   ) => {
     setApplicationStatus(status);
   };

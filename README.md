@@ -91,7 +91,7 @@ We welcome contributions to enhance **NEU-OJT-Link**! to contribute:
 ## 🔔 **Acknowledgment**
 &emsp;&emsp;This project was developed as a requirement for the **Software Engineering 2** course at New Era University. We appreciate the opportunity to apply our skills in building a practical solution for the OJT process.
 
-## 👾 Team
+## 👾 Team - Chronosaurus
 **Programmers**           | **Role**         | **Github Profile** |
 :---------:               | :-----------:    |:-----------------: |
 Juliana R. Mancera        |  Scrum Master    | [https://github.com/JulianaMancera]  |                      
