@@ -39,10 +39,10 @@ const CertificateUpload = ({ isOpen, onClose }: CertificateUploadProps) => {
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       const fileName = `${userID}_${Date.now()}_${file.name}`;
-      const filePath = `certs/${fileName}`;
+      const filePath = `cert/${fileName}`;
 
       // Upload to Supabase Storage
-      const { error } = await supabase.storage.from("certificates").upload(filePath, file);
+      const { error } = await supabase.storage.from("certificate").upload(filePath, file);
       if (error) {
         setMessage(`❌ Error uploading: ${error.message}`);
         setUploading(false);
@@ -50,7 +50,7 @@ const CertificateUpload = ({ isOpen, onClose }: CertificateUploadProps) => {
       }
 
       // Get public URL
-      const { data: fileData } = supabase.storage.from("certificates").getPublicUrl(filePath);
+      const { data: fileData } = supabase.storage.from("certificate").getPublicUrl(filePath);
 
       // Get logged-in user
       const { data: { user } } = await supabase.auth.getUser();

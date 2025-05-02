@@ -33,6 +33,7 @@ const CompilationReport = () => {
         "weekly_reports": "weekly_reports",
         "monthly-reports": "monthly_reports",
         "journals": "weekly_journals",
+        "certificate": "cert"
       };
 
       const results: GroupedFilesByBucket = {};
@@ -79,6 +80,7 @@ const CompilationReport = () => {
   }, []);
 
   const parseFileName = (filename: string) => {
+    console.log(filename.split("_")[0])
     return filename.split("_")[0];
   };
 
@@ -88,6 +90,7 @@ const CompilationReport = () => {
       console.error(`Error fetching from ${bucketName}:`, error);
       return [];
     }
+    console.log(data)
     return (data || []).filter((file) => file.name !== ".emptyFolderPlaceholder");
   };
 
