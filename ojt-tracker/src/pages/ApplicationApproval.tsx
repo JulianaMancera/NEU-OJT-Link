@@ -3,12 +3,13 @@ import { supabase } from "../../supabase";
 import { User } from "@supabase/supabase-js";
 import Sidebar from "../components/SideBar";
 import OJTLogo from "/src/assets/ojt-white.png";
-import { Loading } from "../components/Loading";
+import { updateAllJobSlots } from "../services/JobService";
 
 interface Application {
   application_id: string;
   user_id: string;
   company_id: string;
+  job_id: string;
   email: string;
   status: 'approved' | 'pending' | 'rejected';
 }
@@ -16,7 +17,11 @@ interface Application {
 const ApplicationApproval = () => {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
-  const [applications, setApplications] = useState<(Application & { user_name?: string; company_name?: string })[]>([]);
+  const [applications, setApplications] = useState<(Application & { 
+    user_name?: string; 
+    company_name?: string;
+    job_position?: string;
+  })[]>([]);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
@@ -31,7 +36,10 @@ const ApplicationApproval = () => {
 
       setUser(user);
 
-      const { data, error } = await supabase.from("application").select("*");
+      const { data, error } = await supabase.from("application").select(`
+        *,
+        job:job_id (position)
+      `);
 
       if (error) {
         console.error("Error fetching applications:", error.message);
@@ -55,7 +63,8 @@ const ApplicationApproval = () => {
         return {
           ...app,
           user_name: userData?.name || 'Unknown',
-          company_name: companyData?.name || 'Unknown'
+          company_name: companyData?.name || 'Unknown',
+          job_position: (app.job as { position: string })?.position || 'Unknown'
         };
       }));
 
@@ -72,23 +81,65 @@ const ApplicationApproval = () => {
       return;
     }
 
-    const { error } = await supabase
-      .from("application")
-      .update({ status: newStatus })
-      .eq('application_id', applicationId);
+    try {
+      setLoading(true);
+      const application = applications.find(app => app.application_id === applicationId);
+      if (!application) return;
+      
+      // Update application status in Supabase
+      const { error: statusError } = await supabase
+        .from("application")
+        .update({ status: newStatus })
+        .eq('application_id', applicationId);
 
-    if (error) {
-      console.error("Error updating application status:", error.message);
-    } else {
-      setApplications(applications.map(app => 
-        app.application_id === applicationId 
-          ? { ...app, status: newStatus } 
-          : app
-      ));
+      if (statusError) throw statusError;
+
+      // Force update all job slots in Supabase
+      console.log("Updating all job slots in Supabase...");
+      await updateAllJobSlots();
+      console.log("Job slots updated in Supabase");
+
+      // Refresh local applications data
+      const { data: updatedApps, error: fetchError } = await supabase
+        .from("application")
+        .select(`
+          *,
+          job:job_id (position)
+        `);
+
+      if (fetchError) throw fetchError;
+
+      // Update user and company names
+      const updatedWithNames = await Promise.all(updatedApps.map(async (app) => {
+        const { data: userData } = await supabase
+          .from("user")
+          .select("name")
+          .eq("user_id", app.user_id)
+          .single();
+
+        const { data: companyData } = await supabase
+          .from("company")
+          .select("name")
+          .eq("company_id", app.company_id)
+          .single();
+
+        return {
+          ...app,
+          user_name: userData?.name || 'Unknown',
+          company_name: companyData?.name || 'Unknown',
+          job_position: (app.job as { position: string })?.position || 'Unknown'
+        };
+      }));
+
+      setApplications(updatedWithNames);
+    } catch (error) {
+      console.error("Error updating application:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  if (loading) return <Loading />;
+  if (loading) return <p className="text-center mt-10">Loading...</p>;
 
   if (!user) {
     return <p className="text-center mt-10">Please log in to view applications</p>;
@@ -97,10 +148,10 @@ const ApplicationApproval = () => {
   return (
     <div>
       <div className="bg-blue-200 w-screen h-screen p-20">
-      <div className="w-full h-[80px] absolute left-0 top-0 bg-gradient-to-b from-[#578FCA] to-[#2B4764] border-1 border-black flex items-center justify-between px-6">
-      <img src={OJTLogo} alt="OJT Link Logo" className="w-[220px] h-[220px] ml-15" />
-      </div>
-      <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}/>
+        <div className="w-full h-[80px] absolute left-0 top-0 bg-gradient-to-b from-[#578FCA] to-[#2B4764] border-1 border-black flex items-center justify-between px-6">
+          <img src={OJTLogo} alt="OJT Link Logo" className="w-[220px] h-[220px] ml-15" />
+        </div>
+        <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}/>
         <h2 className="text-[2.3rem] font-bold text-center mb-10 mt-12 text-black">
           Application Approvals
         </h2>
@@ -111,6 +162,7 @@ const ApplicationApproval = () => {
               <th className="border p-2">Application ID</th>
               <th className="border p-2">Username</th>
               <th className="border p-2">Company Name</th>
+              <th className="border p-2">Job Position</th>
               <th className="border p-2">Email</th>
               <th className="border p-2">Status</th>
             </tr>
@@ -121,6 +173,7 @@ const ApplicationApproval = () => {
                 <td className="border p-2">{application.application_id}</td>
                 <td className="border p-2">{application.user_name}</td>
                 <td className="border p-2">{application.company_name}</td>
+                <td className="border p-2">{application.job_position}</td>
                 <td className="border p-2">{application.email}</td>
                 <td className="border p-2">
                   <select
@@ -130,6 +183,7 @@ const ApplicationApproval = () => {
                       e.target.value as Application['status']
                     )}
                     className="w-full p-1 font-semibold"
+                    disabled={loading}
                   >
                     <option value="pending">Pending</option>
                     <option value="approved">Approved</option>

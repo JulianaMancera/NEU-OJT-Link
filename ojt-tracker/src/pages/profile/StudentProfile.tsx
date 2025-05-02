@@ -26,9 +26,9 @@ const StudentProfile = () => {
       if (!user) return;
 
       const { data, error } = await supabase
-        .from("users") // Changed to lowercase "users"
+        .from("users")
         .select("name, profilePicture")
-        .eq("id", user.id) // Changed "userID" to "id"
+        .eq("id", user.id)
         .single();
 
       if (error) {
@@ -66,23 +66,24 @@ const StudentProfile = () => {
     setLoading(true);
 
     const { error } = await supabase
-      .from("users") // Changed to lowercase "users"
+      .from("users")
       .update({ name })
-      .eq("id", user.id); // Changed "userID" to "id"
+      .eq("id", user.id);
 
     setLoading(false);
 
     if (error) {
-      console.error("Error updating name:", error.message); // Improved error logging
-      alert(`Failed to update name: ${error.message}`); // More specific alert
+      console.error("Error updating name:", error.message);
+      alert(`Failed to update name: ${error.message}`);
     } else {
       alert("Name updated successfully!");
       setUser((prev) => (prev ? { ...prev, name } : prev));
+      navigate(-1); // Go back to the previous page
     }
   };
 
   const handleExit = () => {
-    navigate("/dashboard"); // Adjust the route as needed
+    navigate(-1); // Go back to the previous page
   };
 
   const renderProfileImage = () => {
@@ -111,7 +112,7 @@ const StudentProfile = () => {
     <div className="relative min-h-screen w-screen bg-blue-100 p-6">
       {/* Header */}
       <div className="w-full h-[80px] fixed left-0 top-0 bg-gradient-to-b from-[#578FCA] to-[#2B4764] border-b border-black flex items-center justify-between px-6 z-50">
-        <img src={OJTLogo} alt="OJT Link Logo" className="w-[150px] h-auto ml-4" />
+        <img src={OJTLogo} alt="OJT Link Logo" className="w-[220px] h-[220px] ml-3" />
       </div>
 
       <div className="max-w-md mx-auto mt-[100px] bg-white shadow-lg rounded-lg p-6">

@@ -64,6 +64,8 @@ const MonthlyReport = ({ isOpen, onClose }: MonthlyReportProps) => {
   };
 
   const handleUpload = async () => {
+    const user = await supabase.auth.getUser();
+    const userID = user.data.user?.id;
     if (files.length === 0) {
       setMessage("❌ Please select a file.");
       return;
@@ -75,7 +77,7 @@ const MonthlyReport = ({ isOpen, onClose }: MonthlyReportProps) => {
 
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
-      const fileName = `${Date.now()}_${file.name}`;
+      const fileName = `${userID}_${Date.now()}_${file.name}`;
       const filePath = `monthly_reports/${fileName}`;
 
       const { error } = await supabase.storage.from("monthly-reports").upload(filePath, file);

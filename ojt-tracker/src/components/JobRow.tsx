@@ -25,6 +25,8 @@ export const JobRow = ({
   onSave,
   onRestrictToggle
 }: JobRowProps) => {
+  const availableSlots = job.slots !== null ? job.slots : (job.total_slots - (job.approved_application_count || 0));
+
   return (
     <div 
       key={job.job_id} 
@@ -49,26 +51,28 @@ export const JobRow = ({
         )}
       </div>
 
-      {/* Slots column */}
+      {/* Slots column - now showing available slots */}
       <div className="col-span-2 flex justify-center items-center gap-2 mr-3">
         {editMode === job.job_id ? (
           <>
             <button
               onClick={() => onSlotChange(job.job_id, -1)}
               className="p-1 rounded border border-black bg-white text-black"
+              disabled={availableSlots <= 0}
             >
               <Minus size={16} />
             </button>
-            <span>{job.slots ?? 0}</span>
+            <span>{availableSlots}</span>
             <button
               onClick={() => onSlotChange(job.job_id, 1)}
               className="p-1 rounded border border-black bg-white text-black"
+              disabled={availableSlots >= job.total_slots}
             >
               <Plus size={16} />
             </button>
           </>
         ) : (
-          <span>{job.slots ?? 0}</span>
+          <span>{availableSlots}</span>
         )}
       </div>
 

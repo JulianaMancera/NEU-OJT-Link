@@ -4,18 +4,16 @@ import AvailabilitySection from './AvailabilitySection';
 import EndorsementSection from './EndorsementSection';
 import EndorsementSuccessModal from './EndorsementSuccessModal';
 import { useClickOutside } from '../hooks/useClickOutside';
+import Company from '../types/Company';
+import Job from '../types/Job';
 
 interface ApplicationStatusModalProps {
   isOpen: boolean;
   onClose: () => void;
   status: 'submitted' | 'approved' | 'availability_submitted' | 'endorsement_submitted';
-  companyName: string;
-  companyId: string;
+  company: Company;
   applicationId: string;
-  job: {
-    job_id: string;
-    position: string;
-  };
+  job: Job;
   onUpdateStatus?: (status: 'submitted' | 'approved' | 'availability_submitted' | 'endorsement_submitted') => void;
   userName?: string;
 }
@@ -24,8 +22,7 @@ const ApplicationStatusModal: React.FC<ApplicationStatusModalProps> = ({
   isOpen,
   onClose,
   status,
-  companyName,
-  companyId,
+  company,
   applicationId,
   job,
   onUpdateStatus,
@@ -51,7 +48,7 @@ const ApplicationStatusModal: React.FC<ApplicationStatusModalProps> = ({
       case 'submitted':
         return {
           title: 'Application Submitted',
-          message: `Your application to ${companyName} has been submitted successfully. Please wait for the company's response.`,
+          message: `Your application to ${company.name} has been submitted successfully. Please wait for the company's response.`,
           buttonText: 'Close',
           buttonAction: () => {
             onClose();
@@ -61,7 +58,7 @@ const ApplicationStatusModal: React.FC<ApplicationStatusModalProps> = ({
       case 'approved':
         return {
           title: 'Application Approved!',
-          message: `Congratulations! Your application to ${companyName} has been approved. Please proceed with the next step.`,
+          message: `Congratulations! Your application to ${company.name} has been approved. Please proceed with the next step.`,
           buttonText: 'Proceed',
           buttonAction: () => {
             setShowAvailability(true);
@@ -137,24 +134,8 @@ const ApplicationStatusModal: React.FC<ApplicationStatusModalProps> = ({
       <div className="fixed inset-0 bg-gradient-to-b from-[#3657DB] from-24% to-[#8D95B5] to-98% flex items-center justify-center z-50">
         <div ref={modalRef} className="bg-white rounded-lg p-8 max-w-3xl w-full mx-4">
           <EndorsementSection 
-            company={{
-              company_id: companyId,
-              name: companyName,
-              address: '',
-              email: '',
-              contact_no: ''
-            }}
-            job={{
-              job_id: job.job_id,
-              company_id: companyId,
-              created_at: new Date().toISOString(),
-              position: job.position,
-              description: '',
-              responsibility: [],
-              qualifications: [],
-              work_hrs: '',
-              schedule: ''
-            }}
+            company={company}
+            job={job}
             onClose={handleEndorsementCompletion}
           />
         </div>
@@ -168,13 +149,7 @@ const ApplicationStatusModal: React.FC<ApplicationStatusModalProps> = ({
         <div ref={modalRef} className="bg-white rounded-lg p-8 max-w-4xl w-full mx-4 overflow-y-auto max-h-[90vh]">
           <AvailabilitySection
             applicationId={applicationId}
-            company={{
-              company_id: companyId,
-              name: companyName,
-              address: '',
-              email: '',
-              contact_no: ''
-            }}
+            company={company}
             job={job}
             onClose={handleAvailabilityCompletion}
           />
