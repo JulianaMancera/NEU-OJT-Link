@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import Sidebar from "../../components/SideBar";
+import Sidebar from "./SideBar";
 import OJTLogo from "/src/assets/ojt-white.png";
 import { supabase } from "../../../supabase";
 import { Folder, User, Settings, CircleHelp, LogOut, UserCog } from "lucide-react";

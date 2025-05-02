@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { supabase } from "../../supabase";
+import { supabase } from "../../../supabase";
 import { UserSquare2 } from "lucide-react";
 import { Calendar, momentLocalizer, ToolbarProps } from 'react-big-calendar';
 import moment from 'moment';

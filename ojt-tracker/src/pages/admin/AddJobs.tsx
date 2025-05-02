@@ -3,7 +3,7 @@ import { fetchCompanies, fetchJobs, updateJob, Job, Company } from "../../servic
 import { JobRow } from "../../components/JobRow";
 import AddJobForm from "../../components/AddJobsForm";
 import { MessageNotification } from "../../components/MessageNotification";
-import Sidebar from "../../components/SideBar";
+import Sidebar from "./SideBar";
 import OJTLogo from "/src/assets/ojt-white.png";
 
 const AddJobs = () => {
