@@ -26,9 +26,9 @@ const StudentProfile = () => {
       if (!user) return;
 
       const { data, error } = await supabase
-        .from("users")
+        .from("user")
         .select("name, profilePicture")
-        .eq("id", user.id)
+        .eq("user_id", user.id)
         .single();
 
       if (error) {
@@ -66,9 +66,9 @@ const StudentProfile = () => {
     setLoading(true);
 
     const { error } = await supabase
-      .from("users")
+      .from("user")
       .update({ name })
-      .eq("id", user.id);
+      .eq("user_id", user.id);
 
     setLoading(false);
 
