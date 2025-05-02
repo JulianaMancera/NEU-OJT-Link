@@ -2,9 +2,9 @@ import React, { useState, useEffect } from "react";
 import { User, Settings, LogOut, CircleHelp, Menu, UserCog } from "lucide-react";
 import { supabase } from "../../supabase";
 import logo from "../assets/ojt-white.png";
-import StudentSide from "../components/StudentSide";
-import ScheduleSide from "../components/ScheduleSide";
-import ReportsSide from "../components/ReportSide";
+import StudentSide from "./student/StudentSide";
+import ScheduleSide from "./student/ScheduleSide";
+import ReportsSide from "./student/ReportSide";
 import { useNavigate, useLocation } from "react-router-dom";
 
 const StudentDashboard: React.FC = () => {

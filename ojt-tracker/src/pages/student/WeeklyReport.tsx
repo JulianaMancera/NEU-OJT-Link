@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { supabase } from "../../supabase";
+import { supabase } from "../../../supabase";
 import { FaCloudUploadAlt, FaTrash } from "react-icons/fa";
 import * as pdfjs from 'pdfjs-dist';
 // Set worker path explicitly to version 2.10.377

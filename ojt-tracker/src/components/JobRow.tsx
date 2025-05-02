@@ -25,7 +25,9 @@ export const JobRow = ({
   onSave,
   onRestrictToggle
 }: JobRowProps) => {
-  const availableSlots = job.slots !== null ? job.slots : (job.total_slots - (job.approved_application_count || 0));
+  const availableSlots = job.slots !== null && job.slots !== undefined ? 
+  job.slots : 
+  (job.total_slots || 0) - (job.approved_application_count || 0);
 
   return (
     <div 
@@ -66,7 +68,7 @@ export const JobRow = ({
             <button
               onClick={() => onSlotChange(job.job_id, 1)}
               className="p-1 rounded border border-black bg-white text-black"
-              disabled={availableSlots >= job.total_slots}
+              disabled={availableSlots >= (job.total_slots || 0) + 1}
             >
               <Plus size={16} />
             </button>

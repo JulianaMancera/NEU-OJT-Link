@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { File } from "lucide-react";
-import { supabase } from "../../supabase";
-import WeeklyReport from "../components/WeeklyReport";
-import WeeklyJournal from "../components/WeeklyJournal";
-import MonthlyReport from "../components/MonthlyReport";
-import ReportsSubmitted from "../components/ReportsSubmitted";
-import GenerateMonthlyReport from "./GenerateMonthlyReport";
-import GenerateCertButton from "./GenerateCertButton";
+import { supabase } from "../../../supabase";
+import WeeklyReport from "./WeeklyReport";
+import WeeklyJournal from "./WeeklyJournal";
+import MonthlyReport from "./MonthlyReport";
+import ReportsSubmitted from "./ReportsSubmitted";
+import GenerateMonthlyReport from "../../components/GenerateMonthlyReport";
+import GenerateCertButton from "../../components/GenerateCertButton";
 
 interface Report {
   weekly_report_id: number;
@@ -26,9 +26,14 @@ const ReportSide: React.FC = () => {
   const [userId, setUserId] = useState<string | null>(null);
 
   const templates = [
-    { name: "Weekly Report", file: "WeeklyReport_Surname.pdf" },
-    { name: "Weekly Journal", file: "WeeklyJournal_Surname.pdf" },
-    { name: "Monthly Report", file: "MonthlyReport_Surname.pdf" },
+    { name: "Weekly Report", file: "WeeklyReport_Surname.docx" },
+    { name: "Weekly Journal", file: "WeeklyJournal_Surname.docx" },
+  ];
+
+  const submissionTypes = [
+    { name: "Weekly Report" },
+    { name: "Weekly Journal" },
+    { name: "Monthly Report" }
   ];
 
   // Fetch company and job details
@@ -191,14 +196,14 @@ const ReportSide: React.FC = () => {
         <div className="bg-white shadow-lg rounded-2xl p-10 border border-gray-100 transform hover:scale-101 transition-all duration-300">
           <h3 className="text-xl font-bold mb-6 text-gray-900 text-center bg-blue-50 p-4 rounded-xl">Submissions</h3>
           <div className="space-y-5">
-            {templates.map((template) => (
+            {submissionTypes.map((submission) => (
               <button
-                key={template.file}
-                onClick={() => handleOpenSubmissionModal(template.name)}
+                key={submission.name}
+                onClick={() => handleOpenSubmissionModal(submission.name)}
                 className="w-full bg-blue-50 text-blue-700 p-4 rounded-xl hover:bg-blue-100 flex items-center justify-start transition-all duration-200 font-semibold"
               >
                 <File className="mr-3" />
-                {template.name}
+                {submission.name}
               </button>
             ))}
           </div>
@@ -210,7 +215,7 @@ const ReportSide: React.FC = () => {
             </p>
           )}
           {companyName && jobPosition && companyLogo ? (
-            <GenerateCertButton companyName={companyName} companyLogo={companyLogo}job={jobPosition} />
+            <GenerateCertButton companyName={companyName} companyLogo={companyLogo} job={jobPosition} />
           ) : (
             <p className="text-gray-500 text-sm text-center mt-4">
               Company or job details not available

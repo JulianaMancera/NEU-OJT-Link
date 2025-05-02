@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../../../supabase";
-import Sidebar from "../../components/SideBar";
+import Sidebar from "./SideBar";
 import OJTLogo from "/src/assets/ojt-white.png";
 import { User, Settings, CircleHelp, LogOut, UserCog } from "lucide-react";
 import { useNavigate } from "react-router-dom";

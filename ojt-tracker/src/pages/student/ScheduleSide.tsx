@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { supabase } from "../../supabase";
+import { supabase } from "../../../supabase";
 import { UserSquare2 } from "lucide-react";
 import { Calendar, momentLocalizer, ToolbarProps } from 'react-big-calendar';
 import moment from 'moment';
@@ -72,10 +72,10 @@ const ScheduleSide: React.FC = () => {
         const { company_id, job_id, application_id } = application;
 
         const { data: company, error: companyError } = await supabase
-        .from("company")
-        .select("name, logo_url, supervisor")
-        .eq("company_id", company_id)
-        .single();
+          .from("company")
+          .select("name, logo_url, supervisor")
+          .eq("company_id", company_id)
+          .single();
 
         if (companyError || !company) {
           console.error("Company not found:", companyError?.message);
@@ -99,7 +99,28 @@ const ScheduleSide: React.FC = () => {
         setCompanyName(company.name);
         setSupervisor(company.supervisor || null);
         setJobPosition(job.position);
-        await fetchWorkDays(application_id);
+
+        // Fetch work days within the same useEffect
+        const { data: workDaysData, error: workDaysError } = await supabase
+          .from("availability")
+          .select("day_of_week, start_time, end_time")
+          .eq("application_id", application_id)
+          .order("day_of_week");
+
+        if (workDaysError) {
+          console.error("Error fetching work days:", workDaysError.message);
+          setError("Failed to load work schedule.");
+          return;
+        }
+
+        if (workDaysData && workDaysData.length > 0) {
+          const formattedWorkDays = workDaysData.map(day => ({
+            day_of_week: day.day_of_week,
+            start_time: formatTime(day.start_time),
+            end_time: formatTime(day.end_time)
+          }));
+          setWorkDays(formattedWorkDays);
+        }
 
         // Fetch total hours with explicit reset logic
         const { data: hoursData, error: hoursError } = await supabase
@@ -208,29 +229,6 @@ const ScheduleSide: React.FC = () => {
     fetchData();
   }, [userId]); // Re-run if userId changes (e.g., after logout/login)
 
-  const fetchWorkDays = async (applicationId: string) => {
-    const { data, error } = await supabase
-      .from("availability")
-      .select("day_of_week, start_time, end_time")
-      .eq("application_id", applicationId)
-      .order("day_of_week");
-
-    if (error) {
-      console.error("Error fetching work days:", error.message);
-      setError("Failed to load work schedule.");
-      return;
-    }
-
-    if (data && data.length > 0) {
-      const formattedWorkDays = data.map(day => ({
-        day_of_week: day.day_of_week,
-        start_time: formatTime(day.start_time),
-        end_time: formatTime(day.end_time)
-      }));
-      setWorkDays(formattedWorkDays);
-    }
-  };
-
   const formatTime = (time24: string): string => {
     const timeParts = time24.split(':');
     const hours = parseInt(timeParts[0], 10);
@@ -290,6 +288,31 @@ const ScheduleSide: React.FC = () => {
       setHoursInput("");
       setError(null);
     }
+  };
+
+  // Function to reset total hours to 300
+  const handleResetHours = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      setError("User not authenticated.");
+      return;
+    }
+
+    // Update total hours to 300 in Supabase
+    const { error: hoursError } = await supabase
+      .from("user_hours")
+      .update({ total_hours: 300 })
+      .eq("user_id", user.id);
+
+    if (hoursError) {
+      console.error("Error resetting total hours:", hoursError.message);
+      setError("Failed to reset total hours.");
+      return;
+    }
+
+    // Update state
+    setTotalHours(300);
+    setError(null);
   };
 
   // Function to determine if a day should be highlighted
@@ -436,7 +459,7 @@ const ScheduleSide: React.FC = () => {
             )}
             <div className="flex items-center gap-2">
               <UserSquare2 size={24} color="#1e40af"/>
-              <span className="font-semibold text-gray-900 text-sm">OJT Coordinator: Marc Laureta</span>
+              <span className="font-semibold text-gray-900 text-sm">OJT Coordinator: Prof. Jeremias C. Esperanza</span>
             </div>           
           </div>
         </div>
@@ -486,6 +509,12 @@ const ScheduleSide: React.FC = () => {
                   {totalHours !== null ? `${Math.round(progressPercentage)}% remaining` : "Calculating..."}
                 </p>
               </div>
+              <button
+                onClick={handleResetHours}
+                className="mt-2 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-all duration-300 font-medium text-sm"
+              >
+                Reset Hours to 300
+              </button>
             </div>
             <div className="flex items-center space-x-2">
               <input

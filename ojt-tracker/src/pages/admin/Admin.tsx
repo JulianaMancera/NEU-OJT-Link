@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { User, Settings, LogOut, CircleHelp } from "lucide-react";
 import { supabase } from "../../../supabase";
 import OJTLogo from "/src/assets/ojt-white.png";
-import Sidebar from "../../components/SideBar";
+import Sidebar from "./SideBar";
 
 const Admin = () => {
   const navigate = useNavigate();

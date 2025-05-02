@@ -1,16 +1,18 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../../../supabase";
 import { User as SupabaseUser } from "@supabase/supabase-js";
-import Sidebar from "../../components/SideBar";
+import Sidebar from "./SideBar";
 import OJTLogo from "/src/assets/ojt-white.png";
 import { Loading } from "../../components/Loading";
 import { User, Settings, CircleHelp, LogOut, UserCog } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { updateAllJobSlots } from "../../services/JobService";
 
 interface Application {
   application_id: string;
   user_id: string;
   company_id: string;
+  job_id: string;
   email: string;
   status: 'approved' | 'pending' | 'rejected';
 }
@@ -18,12 +20,15 @@ interface Application {
 const ApplicationApproval = () => {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<SupabaseUser | null>(null);
-  const [applications, setApplications] = useState<(Application & { user_name?: string; company_name?: string })[]>([]);
+  const [applications, setApplications] = useState<(Application & { 
+    user_name?: string; 
+    company_name?: string;
+  })[]>([]);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isProfileOpen, setProfileOpen] = useState(false);
   const navigate = useNavigate();
 
-  // Placeholder user data (replace with actual auth data from Supabase)
+  // User profile data
   const [userName, setUserName] = useState<string>("Admin User");
   const [userRole, setUserRole] = useState<string>("admin");
   const [profilePicture, setProfilePicture] = useState<string | null>(null);
@@ -110,19 +115,55 @@ const ApplicationApproval = () => {
       return;
     }
 
-    const { error } = await supabase
-      .from("application")
-      .update({ status: newStatus })
-      .eq('application_id', applicationId);
+    try {
+      setLoading(true);
+      const application = applications.find(app => app.application_id === applicationId);
+      if (!application) return;
+      
+      // Update application status in Supabase
+      const { error: statusError } = await supabase
+        .from("application")
+        .update({ status: newStatus })
+        .eq('application_id', applicationId);
 
-    if (error) {
-      console.error("Error updating application status:", error.message);
-    } else {
-      setApplications(applications.map(app => 
-        app.application_id === applicationId 
-          ? { ...app, status: newStatus } 
-          : app
-      ));
+      if (statusError) throw statusError;
+
+      // Update job slots in Supabase
+      await updateAllJobSlots();
+
+      // Refresh local applications data
+      const { data: updatedApps, error: fetchError } = await supabase
+        .from("application")
+        .select("*");
+
+      if (fetchError) throw fetchError;
+
+      // Update user and company names
+      const updatedWithNames = await Promise.all(updatedApps.map(async (app) => {
+        const { data: userData } = await supabase
+          .from("user")
+          .select("name")
+          .eq("user_id", app.user_id)
+          .single();
+
+        const { data: companyData } = await supabase
+          .from("company")
+          .select("name")
+          .eq("company_id", app.company_id)
+          .single();
+
+        return {
+          ...app,
+          user_name: userData?.name || 'Unknown',
+          company_name: companyData?.name || 'Unknown'
+        };
+      }));
+
+      setApplications(updatedWithNames);
+    } catch (error) {
+      console.error("Error updating application:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -241,6 +282,7 @@ const ApplicationApproval = () => {
                       e.target.value as Application['status']
                     )}
                     className="w-full p-1 font-semibold"
+                    disabled={loading}
                   >
                     <option value="pending">Pending</option>
                     <option value="approved">Approved</option>
