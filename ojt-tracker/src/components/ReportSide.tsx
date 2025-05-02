@@ -7,10 +7,18 @@ import MonthlyReport from "../components/MonthlyReport";
 import ReportsSubmitted from "../components/ReportsSubmitted";
 import GenerateMonthlyReport from "./GenerateMonthlyReport";
 import GenerateCertButton from "./GenerateCertButton";
+import { ValidateUserForCertificate } from "../services/ValidateUserForCertificate";
 
 interface Report {
   weekly_report_id: number;
   week_number: number;
+}
+
+interface CompanyInfo{
+  name: string;
+  logo_url: string;
+  supervisor: string;
+  signature: string;
 }
 
 const ReportSide: React.FC = () => {
@@ -20,10 +28,10 @@ const ReportSide: React.FC = () => {
   const [isWeeklyJournalModalOpen, setIsWeeklyJournalModalOpen] = useState(false);
   const [isMonthlyReportModalOpen, setIsMonthlyReportModalOpen] = useState(false);
   const [editingReport, setEditingReport] = useState<Report | null>(null);
-  const [companyName, setCompanyName] = useState<string | null>(null);
-  const [companyLogo, setCompanyLogo] = useState<string | null>(null)
+  const [companyInfo, setCompanyInfo] = useState<CompanyInfo | null>(null)
   const [jobPosition, setJobPosition] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
+  const [isAllowToGetCertificate, setCertifcationAllowed] = useState<boolean>(false)
 
   const templates = [
     { name: "Weekly Report", file: "WeeklyReport_Surname.pdf" },
@@ -37,6 +45,7 @@ const ReportSide: React.FC = () => {
       try {
         setError(null);
 
+
         const { data: { user }, error: userError } = await supabase.auth.getUser();
         if (userError || !user) {
           console.error("User fetch error:", userError?.message);
@@ -45,6 +54,12 @@ const ReportSide: React.FC = () => {
         }
 
         setUserId(user.id);
+        if(userId){
+
+        const isValidCert = await ValidateUserForCertificate(userId);
+
+        setCertifcationAllowed(isValidCert);
+        }
 
         const { data: application, error: applicationError } = await supabase
           .from("application")
@@ -63,7 +78,7 @@ const ReportSide: React.FC = () => {
 
         const { data: company, error: companyError } = await supabase
           .from("company")
-          .select("name,logo_url")
+          .select("name,logo_url, supervisor, signature")
           .eq("company_id", company_id)
           .single();
 
@@ -84,8 +99,7 @@ const ReportSide: React.FC = () => {
           setError("Job position not found.");
           return;
         }
-        setCompanyLogo(company.logo_url)
-        setCompanyName(company.name);
+        setCompanyInfo(company);
         setJobPosition(job.position);
       } catch (err) {
         console.error("Unexpected error in fetchCompanyAndJob:", err);
@@ -202,15 +216,15 @@ const ReportSide: React.FC = () => {
               </button>
             ))}
           </div>
-          {companyName && jobPosition ? (
-            <GenerateMonthlyReport companyName={companyName} job={jobPosition} />
+          {companyInfo && jobPosition ? (
+            <GenerateMonthlyReport companyName={companyInfo.name} job={jobPosition} />
           ) : (
             <p className="text-gray-500 text-sm text-center mt-4">
               Company or job details not available
             </p>
           )}
-          {companyName && jobPosition && companyLogo ? (
-            <GenerateCertButton companyName={companyName} companyLogo={companyLogo}job={jobPosition} />
+          {companyInfo && jobPosition  ? (
+            <GenerateCertButton companyInfo={companyInfo} job={jobPosition} isAllowed={isAllowToGetCertificate} />
           ) : (
             <p className="text-gray-500 text-sm text-center mt-4">
               Company or job details not available
