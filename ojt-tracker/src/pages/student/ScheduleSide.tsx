@@ -459,7 +459,7 @@ const ScheduleSide: React.FC = () => {
             )}
             <div className="flex items-center gap-2">
               <UserSquare2 size={24} color="#1e40af"/>
-              <span className="font-semibold text-gray-900 text-sm">OJT Coordinator: Marc Laureta</span>
+              <span className="font-semibold text-gray-900 text-sm">OJT Coordinator: Prof. Jeremias C. Esperanza</span>
             </div>           
           </div>
         </div>

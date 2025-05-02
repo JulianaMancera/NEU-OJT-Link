@@ -1,32 +1,48 @@
-# 🏢 NEU OJT-Link
-**Software Engineering 2 - Application Project** <br> 
-## 🔍Overview 
-&emsp;&emsp;**NEU-OJT-Link** is a **digital platform** designed for students undergoing **On-the-Job Training (OJT)** at **New Era University**. This platform simplifies the OJT process by allowing students to **search for companies**, **apply for specific roles**, **submit required documents**, and **track their progress** through weekly and monthly reports. **Administrators** can oversee student progress and access submitted reports, making OJT management more efficient.  
+<h1 align="center"> NEU OJT-Link</h1>
+<h3 align="center">Software Engineering 2 - Application Project</h3>
+
+
+## 🔍 Overview 
+&emsp;&emsp;**NEU-OJT-Link** is a **digital platform** designed for students undergoing **On-the-Job Training (OJT)** at **New Era University**. This application simplifies the OJT process by allowing students to **search for companies**, **apply for specific jobs**, **submit required documents**, and **track their progress** through weekly and monthly reports. **Administrators** can oversee student progress and access submitted reports, making OJT management more efficient.  
 
 ## ✨Features  
-✅ **Select Companies** – Browse and choose from available internship providers  
-✅ **Job Search** – Look for specific roles and opportunities  
-✅ **Submit Requirements** – Upload mandatory documents, including:  
-   - Certificate of Matriculation (COM)  
-   - Notarized Parental Consent  
-   - Medical Certificate  
-   - Psychological Test Certification  
-   - Proof of Insurance  
+✅ **Select Companies:** Browse and choose from available internship providers  
+✅ **Job Search:** Find specific roles tailored to your skills and interests. <br>
+✅ **Submit Requirements:** Upload essential documents, including: 
+   - Resume
+   - Cover Letter
+   - Certificate of Matriculation (COM)
    - Curriculum Vitae (CV)
+   - Medical Certificate
+   - Notarized Parental Consent   
+   - Psychological Test Certification
+   - Endorsement Letter (auto-generated)
 
-✅ **Student Progress Monitoring** – Track internship progress with:  
-  - Weekly Reports  
-  - Monthly Reports  
-  - Weekly Journals
+✅ **Progress Tracking:**
+ - **Scheduling** - Use a calendar interface to manage work schedules, track remaining OJT hours (e.g., out of 300 hours), and log work hours.
+ - **Weekly Reports** - Submit regular updates on tasks and activities.
+ - **Weekly Journals** - Reflect on experiences and learning.
+ - **Monthly Reports** - Generate comprehensive progress summaries.
 
-✅ **Admin Dashboard** – Oversee student progress, access reports, and monitor compliance  
+✅ **Admin Dashboard** – Oversee student progress, access reports, and monitor compliance 
+  - **Student Monitoring**
+     -  Application
+     -  Monitoring
+     -  Reports
+     -  Compilation of Reports
+  - **Company Management**
+     - Company
+     - Jobs
+    
+✅ **Certificate of Completion:** Receive a certificate upon fulfilling all OJT requirements.
 
-## ⚙️Technical Requirements  
-- **Node.js** (Latest LTS version recommended)  
-- **NPM or Yarn** for package management  
-- **Vercel CLI** (if deploying locally)  
+## ⚙️ Technical Requirements  
+- **Node.js:** Latest LTS version recommended) 
+- **NPM or Yarn:** for package management  
+- **Vercel CLI:** Required for local deployment
+- **Browser:** Modern browsers (Chrome, Firefox, Edge)
 
-## 🛠️Installation  
+## 🛠️ Installation  
 1. Clone the repository <br> <br>
    ```
    git clone https://github.com/YOUR-USERNAME/NEU-OJT-Link.git
@@ -42,19 +58,19 @@
    ```
 4. Open localhost:5173 in your browser
    
-## 📝Usage
-- **Students** can:  
-  - Select an **OJT company**  
-  - Search for **specific job roles**  
-  - Submit required **internship documents**  
-  - Track their **weekly and monthly progress**  
+## 📝 Usage
+- **Students** can:
+   - Browse and select an OJT company.
+   - Search for and apply to specific job roles.
+   - Upload required internship documents.
+   - Track progress through schedules, weekly reports, and monthly summaries.
 
 - **Admins** can:  
-  - **Monitor student progress**  
-  - **Access reports and documents**  
-  - Ensure compliance with **OJT requirements**  
-
-## 👍🏼Contributing  
+  - Monitor student applications and progress via the dashboard.
+  - Review and manage submitted reports and documents.
+  - Ensure compliance with OJT requirements.
+ 
+## 👍🏼 Contributing  
 We welcome contributions to enhance **NEU-OJT-Link**! to contribute:
 
 1. **Fork the repository** 
@@ -72,7 +88,10 @@ We welcome contributions to enhance **NEU-OJT-Link**! to contribute:
 ## 📃 License
 &emsp;&emsp;This project is licensed under the MIT License.
 
-## 👾Team
+## 🔔 **Acknowledgment**
+&emsp;&emsp;This project was developed as a requirement for the **Software Engineering 2** course at New Era University. We appreciate the opportunity to apply our skills in building a practical solution for the OJT process.
+
+## 👾 Team
 **Programmers**           | **Role**         | **Github Profile** |
 :---------:               | :-----------:    |:-----------------: |
 Juliana R. Mancera        |  Scrum Master    | [https://github.com/JulianaMancera]  |                      
@@ -81,5 +100,5 @@ Dan Lloyd A. Cabanilla    |   Developer 2    | [https://github.com/DLAyatoCabani
 Vince D. Campos           |   Analyst        | [https://github.com/VinceCampos]     |                      
 Alyssa Mae D. San Pedro   |   Tester         |[https://github.com/AlyssaMaeSanPedro] |
 
-## 📞Contact
-&emsp;&emsp;For questions or concerns, please contact: [Juliana Mancera](mailto:real.julianamancera@gmail.com)
+## 📞 Contact
+&emsp;&emsp;For questions or inquiries, please contact: [Juliana Mancera](mailto:real.julianamancera@gmail.com)
