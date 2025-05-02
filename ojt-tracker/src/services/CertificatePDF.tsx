@@ -12,7 +12,7 @@ const styles = StyleSheet.create({
     width: PAGE_WIDTH,
     height: PAGE_HEIGHT,
     backgroundColor: "white",
-    fontFamily: "Helvetica",
+    fontFamily: "Times-Roman",
   },
   fullPageWrapper: {
     position: "absolute",
@@ -49,21 +49,21 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   subHeader: {
-    fontSize: 12,
+    fontSize: 20,
     marginBottom: 30,
   },
   title: {
-    fontSize: 24,
+    fontSize: 30,
     fontWeight: "bold",
     letterSpacing: 2,
     marginBottom: 20,
   },
   bodyText: {
-    fontSize: 12,
+    fontSize: 20,
     marginBottom: 30,
   },
   name: {
-    fontSize: 16,
+    fontSize: 30,
     fontWeight: "bold",
     marginVertical: 10,
   },
