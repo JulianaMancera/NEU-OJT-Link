@@ -14,6 +14,7 @@ import Reports from "./pages/admin/Reports";
 import Monitoring from "./pages/admin/Monitoring";
 import CompilationReport from "./pages/admin/CompilationReport";
 import UserRole from "./pages/admin/UserRole";
+import ViewDashboard from "./components/ViewDashboard";
 
 
 
@@ -33,6 +34,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
       <Route path="/reports" element={<Reports />} />
       <Route path="/monitoring" element={<Monitoring />} />
       <Route path="/user-role" element={<UserRole />} />
+      <Route path="/view-dashboard" element={<ViewDashboard />} /> {/* View DashBoard Route */}
     </Routes>
   </BrowserRouter>
 );
