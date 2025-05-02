@@ -47,11 +47,11 @@ const AddJobs = () => {
   const handleSlotChange = (jobId: number, delta: number) => {
     setJobs(jobs.map(j => {
       if (j.job_id === jobId) {
-        const newSlots = Math.max(j.approved_application_count, (j.slots ?? 0) + delta);
-        return { 
-          ...j, 
-          slots: newSlots,
-          available_slots: newSlots - j.approved_application_count
+        const newTotalSlots = Math.max(0, (j.total_slots || 0) + delta);
+        return {
+          ...j,
+          total_slots: newTotalSlots,
+          slots: newTotalSlots - (j.approved_application_count || 0)
         };
       }
       return j;
@@ -60,7 +60,11 @@ const AddJobs = () => {
 
   const handleSave = async (job: Job) => {
     try {
-      await updateJob(job);
+      await updateJob({
+        ...job,
+        slots: job.total_slots - (job.approved_application_count || 0)
+      });
+      
       setMessage("✅ Job updated successfully!");
       setEditMode(null);
       setJobs(await fetchJobs());
@@ -78,9 +82,17 @@ const AddJobs = () => {
     const newStatus = !job.isAvailable;
     
     try {
-      await updateJob({ job_id: jobId, isAvailable: newStatus });
+      await updateJob({ 
+        job_id: jobId, 
+        isAvailable: newStatus 
+      });
       setMessage(`✅ Job ${newStatus ? "unrestricted" : "restricted"} successfully!`);
-      setJobs(await fetchJobs());
+
+      setJobs(jobs.map(j => 
+        j.job_id === jobId 
+          ? { ...j, isAvailable: newStatus } 
+          : j
+      ));
     } catch (error) {
       console.error("Error toggling job status:", error);
       setMessage(`❌ Failed to ${newStatus ? "unrestrict" : "restrict"} job`);

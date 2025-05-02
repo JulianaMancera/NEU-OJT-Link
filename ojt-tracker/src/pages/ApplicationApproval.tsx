@@ -3,7 +3,7 @@ import { supabase } from "../../supabase";
 import { User } from "@supabase/supabase-js";
 import Sidebar from "../components/SideBar";
 import OJTLogo from "/src/assets/ojt-white.png";
-import { updateApprovedApplicationCount } from "../services/JobService";
+import { updateAllJobSlots } from "../services/JobService";
 
 interface Application {
   application_id: string;
@@ -84,31 +84,56 @@ const ApplicationApproval = () => {
     try {
       setLoading(true);
       const application = applications.find(app => app.application_id === applicationId);
+      if (!application) return;
       
-      const { error } = await supabase
+      // Update application status in Supabase
+      const { error: statusError } = await supabase
         .from("application")
         .update({ status: newStatus })
         .eq('application_id', applicationId);
 
-      if (error) {
-        console.error("Error updating application status:", error.message);
-        return;
-      }
+      if (statusError) throw statusError;
 
-      if (newStatus === 'approved' && application?.job_id) {
-        try {
-          await updateApprovedApplicationCount(application.job_id);
-          console.log('Successfully updated approved application count for job', application.job_id);
-        } catch (countError) {
-          console.error('Error updating approved application count:', countError);
-        }
-      }
+      // Force update all job slots in Supabase
+      console.log("Updating all job slots in Supabase...");
+      await updateAllJobSlots();
+      console.log("Job slots updated in Supabase");
 
-      setApplications(applications.map(app => 
-        app.application_id === applicationId 
-          ? { ...app, status: newStatus } 
-          : app
-      ));
+      // Refresh local applications data
+      const { data: updatedApps, error: fetchError } = await supabase
+        .from("application")
+        .select(`
+          *,
+          job:job_id (position)
+        `);
+
+      if (fetchError) throw fetchError;
+
+      // Update user and company names
+      const updatedWithNames = await Promise.all(updatedApps.map(async (app) => {
+        const { data: userData } = await supabase
+          .from("user")
+          .select("name")
+          .eq("user_id", app.user_id)
+          .single();
+
+        const { data: companyData } = await supabase
+          .from("company")
+          .select("name")
+          .eq("company_id", app.company_id)
+          .single();
+
+        return {
+          ...app,
+          user_name: userData?.name || 'Unknown',
+          company_name: companyData?.name || 'Unknown',
+          job_position: (app.job as { position: string })?.position || 'Unknown'
+        };
+      }));
+
+      setApplications(updatedWithNames);
+    } catch (error) {
+      console.error("Error updating application:", error);
     } finally {
       setLoading(false);
     }
@@ -123,10 +148,10 @@ const ApplicationApproval = () => {
   return (
     <div>
       <div className="bg-blue-200 w-screen h-screen p-20">
-      <div className="w-full h-[80px] absolute left-0 top-0 bg-gradient-to-b from-[#578FCA] to-[#2B4764] border-1 border-black flex items-center justify-between px-6">
-      <img src={OJTLogo} alt="OJT Link Logo" className="w-[220px] h-[220px] ml-15" />
-      </div>
-      <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}/>
+        <div className="w-full h-[80px] absolute left-0 top-0 bg-gradient-to-b from-[#578FCA] to-[#2B4764] border-1 border-black flex items-center justify-between px-6">
+          <img src={OJTLogo} alt="OJT Link Logo" className="w-[220px] h-[220px] ml-15" />
+        </div>
+        <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}/>
         <h2 className="text-[2.3rem] font-bold text-center mb-10 mt-12 text-black">
           Application Approvals
         </h2>
