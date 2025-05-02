@@ -1,16 +1,15 @@
 import React from "react";
 import { ArrowLeft } from "lucide-react";
-import Job from "../types/Job";
-import Company from "../types/Company";
-
-type StepType = "selectJob" | "apply" | "requirement" | "dashboard";
+import { Job } from "../types/Job";
+import { Company } from "../types/Company";
 
 interface CompanyApplicationApplyProps {
   job: Job;
   company: Company;
-  setStep: React.Dispatch<React.SetStateAction<StepType>>;
+  setStep: React.Dispatch<React.SetStateAction<"selectJob" | "apply" | "requirement" | "dashboard">>;
   setSelectedJob: React.Dispatch<React.SetStateAction<Job | null>>;
   hasApplied: boolean;
+  hideApply?: boolean; // New optional prop to hide the apply button
 }
 
 const CompanyApplicationApply: React.FC<CompanyApplicationApplyProps> = ({
@@ -19,6 +18,7 @@ const CompanyApplicationApply: React.FC<CompanyApplicationApplyProps> = ({
   setStep,
   setSelectedJob,
   hasApplied,
+  hideApply = false, // Default to false
 }) => {
   const handleBack = () => {
     setSelectedJob(null);
@@ -50,18 +50,20 @@ const CompanyApplicationApply: React.FC<CompanyApplicationApplyProps> = ({
           <ArrowLeft size={20} />
           Back to Job List
         </button>
-        <button
-          onClick={handleApply}
-          className={`px-6 py-2 rounded-lg transition-colors ${
-            hasApplied
-              ? "bg-gray-400 text-gray-600 cursor-not-allowed"
-              : "bg-blue-600 text-white hover:bg-blue-700"
-          }`}
-          aria-label={`Apply for ${job.position}`}
-          disabled={hasApplied}
-        >
-          {hasApplied ? "Application in Progress" : "Apply Now"}
-        </button>
+        {!hideApply && (
+          <button
+            onClick={handleApply}
+            className={`px-6 py-2 rounded-lg transition-colors ${
+              hasApplied
+                ? "bg-gray-400 text-gray-600 cursor-not-allowed"
+                : "bg-blue-600 text-white hover:bg-blue-700"
+            }`}
+            aria-label={`Apply for ${job.position}`}
+            disabled={hasApplied}
+          >
+            {hasApplied ? "Application in Progress" : "Apply Now"}
+          </button>
+        )}
       </div>
 
       {/* Job Details */}
@@ -90,7 +92,7 @@ const CompanyApplicationApply: React.FC<CompanyApplicationApplyProps> = ({
         <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
           <h2 className="text-xl font-semibold mb-3">Competencies</h2>
           {job.qualifications?.length ? (
-            <ul className="list-discigian pl-5 text-gray-600 leading-relaxed space-y-2">
+            <ul className="list-disc pl-5 text-gray-600 leading-relaxed space-y-2">
               {job.qualifications.map((compe, index) => (
                 <li key={index}>{compe}</li>
               ))}

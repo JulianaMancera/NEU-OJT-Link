@@ -51,12 +51,12 @@ const Admin = () => {
           <img src={OJTLogo} alt="OJT Link Logo" className="w-[220px] h-[220px] ml-15" />
           <span className="text-lg font-semibold ml-5">Admin Dashboard</span>
           <button
-            onClick={() => navigate("/dashboard", { state: { isAdminView: true } })}              // Navigate to Explore Jobs (company selection dashboard) page
+            onClick={() => navigate("/view-dashboard", { state: { isAdminView: true } })}              // Navigate to Explore Jobs (company selection dashboard) page
             className={`text-white px-5 py-2 rounded-full transition-all duration-300 shadow-md hover:shadow-lg ml-5 ${
               isExploreJobsPage ? "bg-blue-700 hover:brightness-110" : "bg-transparent hover:bg-blue-700"
             }`}
           >
-            Explore Jobs
+            EXPLORE JOBS
         </button>
         </div>
         
