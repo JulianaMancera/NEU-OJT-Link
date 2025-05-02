@@ -2,12 +2,12 @@ import { pdf } from "@react-pdf/renderer";
 import { supabase } from "../../supabase";
 import MonthlyReportPDF from "../services/MonthlyReportPDF";
 
-interface EndorsmentProps {
+interface GenMonthlyProps {
   companyName: string;
   job: string;
 }
 
-const GenerateMonthlyReport: React.FC<EndorsmentProps> = ({ companyName, job }) => {
+const GenerateMonthlyReport: React.FC<GenMonthlyProps> = ({ companyName, job }) => {
   const handleDownload = async () => {
     if (!companyName || !job) {
       console.error("Missing companyName or job");

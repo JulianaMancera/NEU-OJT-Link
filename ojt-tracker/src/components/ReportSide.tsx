@@ -6,6 +6,7 @@ import WeeklyJournal from "../components/WeeklyJournal";
 import MonthlyReport from "../components/MonthlyReport";
 import ReportsSubmitted from "../components/ReportsSubmitted";
 import GenerateMonthlyReport from "./GenerateMonthlyReport";
+import GenerateCertButton from "./GenerateCertButton";
 
 interface Report {
   weekly_report_id: number;
@@ -202,6 +203,13 @@ const ReportSide: React.FC = () => {
           </div>
           {companyName && jobPosition ? (
             <GenerateMonthlyReport companyName={companyName} job={jobPosition} />
+          ) : (
+            <p className="text-gray-500 text-sm text-center mt-4">
+              Company or job details not available
+            </p>
+          )}
+          {companyName && jobPosition ? (
+            <GenerateCertButton companyName={companyName} job={jobPosition} />
           ) : (
             <p className="text-gray-500 text-sm text-center mt-4">
               Company or job details not available
