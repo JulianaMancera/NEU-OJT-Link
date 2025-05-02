@@ -118,7 +118,7 @@ const MonthlyReport = ({ isOpen, onClose }: MonthlyReportProps) => {
 
   if (!isOpen) return null;
 
-  const weeklyLimit = 3; // Change to 4 if needed
+  const weeklyLimit = 4; // Change to 4 if needed
   const isEligible = weeklyReportCount !== null && weeklyReportCount >= weeklyLimit;
 
   return (
