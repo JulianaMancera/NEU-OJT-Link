@@ -58,16 +58,17 @@ const styles = StyleSheet.create({
 
 interface CertificateProps {
   name: string;
+  job: string;
   companyName: string;
   supervisorSig: string; // URL to signature image
   coordinatorSig: string; // URL to signature image
 }
 
 // Component
-const CertificatePDF: React.FC<CertificateProps> = ({ companyName,name, supervisorSig, coordinatorSig }) => {
+const CertificatePDF: React.FC<CertificateProps> = ({ companyName,name,job, supervisorSig, coordinatorSig }) => {
   return (
     <Document>
-      <Page size="A4" style={styles.page}>
+      <Page size={[849.89,595.28]}style={styles.page}>
         <Text style={styles.header}>{companyName} Philippines</Text>
         <Text style={styles.title}>CERTIFICATE OF COMPLETION</Text>
 
@@ -75,7 +76,7 @@ const CertificatePDF: React.FC<CertificateProps> = ({ companyName,name, supervis
         <Text style={styles.name}>{name}</Text>
 
         <Text style={styles.bodyText}>
-          for successfully completing 300 hours of On-the-Job Training (OJT)
+          for successfully completing 300 hours of {job} for On-the-Job Training (OJT)
           through NEU OJT-LINK with demonstrated dedication and skill.
         </Text>
 
