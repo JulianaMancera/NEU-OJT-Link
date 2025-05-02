@@ -6,9 +6,10 @@ import CertificatePDF from "../services/CertificatePDF";
 
 interface CertifacteProps{
     companyName: string;
+    companyLogo: string;
     job: string;
 }
-const GenerateCertButton: React.FC<CertifacteProps> = ({companyName, job}) =>  {
+const GenerateCertButton: React.FC<CertifacteProps> = ({companyName, job ,companyLogo}) =>  {
     const handleDowload = async() =>{
         if(!companyName && !job) return
 
@@ -19,7 +20,10 @@ const GenerateCertButton: React.FC<CertifacteProps> = ({companyName, job}) =>  {
                 name: user.data.user?.user_metadata?.full_name,
                 job: job,
                 supervisorSig:"https://ecearoibslwhyaxuhato.supabase.co/storage/v1/object/public/signatures//img.png",
-                coordinatorSig:"https://ecearoibslwhyaxuhato.supabase.co/storage/v1/object/public/signatures//img.png"
+                coordinatorSig:"https://ecearoibslwhyaxuhato.supabase.co/storage/v1/object/public/signatures//img.png",
+                leftSide:"https://ecearoibslwhyaxuhato.supabase.co/storage/v1/object/public/template//Left.png",
+                rightSide:"https://ecearoibslwhyaxuhato.supabase.co/storage/v1/object/public/template//Right.png",
+                companyLogo: companyLogo
 
             }
             const blob = await pdf(<CertificatePDF {...userInfo}/>).toBlob();
