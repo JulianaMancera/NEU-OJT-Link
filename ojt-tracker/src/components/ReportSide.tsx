@@ -8,6 +8,7 @@ import ReportsSubmitted from "../components/ReportsSubmitted";
 import GenerateMonthlyReport from "./GenerateMonthlyReport";
 import GenerateCertButton from "./GenerateCertButton";
 import { ValidateUserForCertificate } from "../services/ValidateUserForCertificate";
+import CertficateUpload from "./CertficateUpload";
 
 interface Report {
   weekly_report_id: number;
@@ -27,6 +28,7 @@ const ReportSide: React.FC = () => {
   const [isWeeklyReportModalOpen, setIsWeeklyReportModalOpen] = useState(false);
   const [isWeeklyJournalModalOpen, setIsWeeklyJournalModalOpen] = useState(false);
   const [isMonthlyReportModalOpen, setIsMonthlyReportModalOpen] = useState(false);
+  const [isCertModalOpen, setIsCertModalOpen] = useState(false);
   const [editingReport, setEditingReport] = useState<Report | null>(null);
   const [companyInfo, setCompanyInfo] = useState<CompanyInfo | null>(null)
   const [jobPosition, setJobPosition] = useState<string | null>(null);
@@ -145,6 +147,9 @@ const ReportSide: React.FC = () => {
       case "Monthly Report":
         setIsMonthlyReportModalOpen(true);
         break;
+      case "Certificate":
+        setIsCertModalOpen(true);
+        break;
       default:
         break;
     }
@@ -223,12 +228,28 @@ const ReportSide: React.FC = () => {
               Company or job details not available
             </p>
           )}
-          {companyInfo && jobPosition  ? (
-            <GenerateCertButton companyInfo={companyInfo} job={jobPosition} isAllowed={isAllowToGetCertificate} />
+          {companyInfo && jobPosition ? (
+          <>
+            <GenerateCertButton
+              companyInfo={companyInfo}
+              job={jobPosition}
+              isAllowed={isAllowToGetCertificate}
+               />
+
+              {isAllowToGetCertificate && (
+                <button
+                  onClick={() => handleOpenSubmissionModal("Certificate")}
+                  className="w-full bg-blue-50 text-blue-700 p-4 rounded-xl hover:bg-blue-100 flex items-center justify-start transition-all duration-200 font-semibold"
+                >
+                   <File className="mr-3" />
+                  Upload Certificate
+               </button>
+              )}
+        </>
           ) : (
-            <p className="text-gray-500 text-sm text-center mt-4">
-              Company or job details not available
-            </p>
+              <p className="text-gray-500 text-sm text-center mt-4">
+                Company or job details not available
+              </p>
           )}
         </div>
       </div>
@@ -252,6 +273,7 @@ const ReportSide: React.FC = () => {
       />
       <WeeklyJournal isOpen={isWeeklyJournalModalOpen} onClose={() => setIsWeeklyJournalModalOpen(false)} />
       <MonthlyReport isOpen={isMonthlyReportModalOpen} onClose={() => setIsMonthlyReportModalOpen(false)} />
+      <CertficateUpload isOpen={isCertModalOpen} onClose={() => setIsCertModalOpen(false)} />
     </div>
   );
 };
