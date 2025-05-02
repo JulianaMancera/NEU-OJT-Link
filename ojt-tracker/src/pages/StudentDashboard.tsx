@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { User, Settings, LogOut, CircleHelp, Menu } from "lucide-react";
+import { User, Settings, LogOut, CircleHelp, Menu, UserCog } from "lucide-react";
 import { supabase } from "../../supabase";
 import logo from "../assets/ojt-white.png";
 import StudentSide from "../components/StudentSide";
@@ -9,7 +9,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 
 const StudentDashboard: React.FC = () => {
   const navigate = useNavigate();
-  const location = useLocation(); // Hook to get the current route
+  const location = useLocation();
   const [isProfileOpen, setProfileOpen] = useState(false);
   const [userName, setUserName] = useState("");
   const [userRole, setUserRole] = useState<string | null>(null);
@@ -17,7 +17,6 @@ const StudentDashboard: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [activeView, setActiveView] = useState<"schedule" | "reports">("schedule");
 
-  // Fetch user data
   useEffect(() => {
     const fetchUserData = async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -54,13 +53,11 @@ const StudentDashboard: React.FC = () => {
     console.log("activeView updated to:", view);
   };
 
-  // Determine the active page based on the current route
-  const isHomePage = location.pathname === "/dashboard"; // StudentDashboard (Home) page
-  const isExploreJobsPage = location.pathname === "/explore-jobs"; // Explore Jobs (company selection dashboard) page
+  const isHomePage = location.pathname === "/student-dashboard";
+  const isExploreJobsPage = location.pathname === "/explore-jobs";
 
   return (
     <div className="relative min-h-screen w-screen bg-gradient-to-br from-blue-50 to-blue-200">
-      {/* Header */}
       <header className="fixed top-0 h-[80px] left-0 w-full bg-gradient-to-b from-[#578FCA] to-[#2B4764] text-white px-6 py-4 flex items-center justify-between shadow-md z-50 border-b border-black">
         <div className="flex items-center space-x-4">
           <button
@@ -70,9 +67,11 @@ const StudentDashboard: React.FC = () => {
           >
             <Menu className="w-8 h-8 text-white" />
           </button>
-          <img src={logo} alt="OJT Link Logo" className="w-52 h-52" />
+          <img src={logo} alt="OJT Link Logo" className="w-32 h-auto" />
           <button
+
             onClick={() => setActiveView("schedule")} 
+
             className={`text-white px-5 py-2 rounded-full transition-all duration-300 shadow-md hover:shadow-lg ${
               isHomePage ? "bg-blue-700 hover:brightness-110" : "bg-transparent hover:bg-blue-700"
             }`}
@@ -80,12 +79,12 @@ const StudentDashboard: React.FC = () => {
             HOME
           </button>
           <button
-            onClick={() => navigate("/dashboard")} // Navigate to Explore Jobs (company selection dashboard) page
+            onClick={() => navigate("/explore-jobs")}
             className={`text-white px-5 py-2 rounded-full transition-all duration-300 shadow-md hover:shadow-lg ${
               isExploreJobsPage ? "bg-blue-700 hover:brightness-110" : "bg-transparent hover:bg-blue-700"
             }`}
           >
-            Explore Jobs
+            EXPLORE JOBS
           </button>
         </div>
         <button
@@ -104,7 +103,7 @@ const StudentDashboard: React.FC = () => {
         </button>
 
         {isProfileOpen && (
-          <div className="absolute right-6 top-[4.5rem] bg-white text-gray-800 shadow-lg rounded-md overflow-hidden z-50 w-64 min-w-[16rem] animate-slide-in-down">
+          <div className="absolute right-6 top-[5rem] bg-white text-gray-800 shadow-lg rounded-md overflow-hidden z-50 w-64 min-w-[16rem] animate-slide-in-down">
             <div className="bg-blue-800 text-white p-4 text-center">
               <div className="w-24 h-24 rounded-full mx-auto overflow-hidden mb-3 border-4 border-blue-300">
                 {profilePicture ? (
@@ -135,7 +134,7 @@ const StudentDashboard: React.FC = () => {
               </li>
               <li>
                 <button className="w-full text-left px-6 py-4 hover:bg-gray-100 flex items-center transition-all duration-200">
-                  <CircleHelp className="w-6 h-6 mr-3 " /> Help & Support
+                  <CircleHelp className="w-6 h-6 mr-3" /> Help & Support
                 </button>
               </li>
               {userRole === "admin" && (
@@ -144,7 +143,7 @@ const StudentDashboard: React.FC = () => {
                     onClick={() => navigate("/admin")}
                     className="w-full text-left px-6 py-4 hover:bg-gray-100 flex items-center transition-all duration-200"
                   >
-                    🛠️ Admin
+                    <UserCog className="w-6 h-6 mr-3" /> Admin
                   </button>
                 </li>
               )}
@@ -161,9 +160,7 @@ const StudentDashboard: React.FC = () => {
         )}
       </header>
 
-      {/* Main Layout with Toggleable Sidebar on the Left */}
       <div className="flex h-screen pt-[80px]">
-        {/* Sidebar with StudentSide (Buttons Only) */}
         <div
           className={`fixed top-[80px] left-0 h-[calc(100vh-80px)] w-64 bg-gray-100 shadow-inner z-40 transition-transform duration-300 ${
             isSidebarOpen ? "translate-x-0" : "-translate-x-full"
@@ -172,7 +169,6 @@ const StudentDashboard: React.FC = () => {
           <StudentSide onViewChange={handleViewChange} activeView={activeView} />
         </div>
 
-        {/* Main Content Area */}
         <div className="flex-1 overflow-y-auto p-11 relative z-0">
           {activeView === "schedule" && <ScheduleSide />}
           {activeView === "reports" && <ReportsSide />}

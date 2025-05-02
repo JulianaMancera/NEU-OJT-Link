@@ -90,7 +90,9 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: {
                 { label: "Application", route: "/application-approval" },
                 { label: "Monitoring", route: "/monitoring" },
                 { label: "Reports", route: "/reports" },
-                { label: "Compilation of Reports", route: "/company" },
+                { label: "Compilation of Reports", route: "/compilation-report" },
+
+
               ].map((item) => (
                 <button
                   key={item.label}
