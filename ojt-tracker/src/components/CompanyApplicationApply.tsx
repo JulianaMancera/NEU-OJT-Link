@@ -10,7 +10,7 @@ interface CompanyApplicationApplyProps {
   company: Company;
   setStep: React.Dispatch<React.SetStateAction<StepType>>;
   setSelectedJob: React.Dispatch<React.SetStateAction<Job | null>>;
-  hasApplied: boolean; // New prop to track application status
+  hasApplied: boolean;
 }
 
 const CompanyApplicationApply: React.FC<CompanyApplicationApplyProps> = ({
@@ -32,16 +32,16 @@ const CompanyApplicationApply: React.FC<CompanyApplicationApplyProps> = ({
   };
 
   return (
-    <div className="text-gray-800 max-w-4xl mx-auto p-6">
+    <div className="text-gray-800 max-w-6xl mx-auto p-8">
       {/* Header Section */}
-      <div className="mb-7">
-        <h1 className="text-2xl font-bold text-center">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-center">
           {job.position} at {company.name}
         </h1>
       </div>
 
       {/* Buttons */}
-      <div className="flex flex-col sm:flex-row justify-center gap-4 mb-8">
+      <div className="flex flex-col sm:flex-row justify-center gap-4 mb-10">
         <button
           onClick={handleBack}
           className="flex items-center gap-2 bg-gray-300 text-gray-800 px-6 py-2 rounded-lg hover:bg-gray-400 transition-colors"
@@ -90,7 +90,7 @@ const CompanyApplicationApply: React.FC<CompanyApplicationApplyProps> = ({
         <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
           <h2 className="text-xl font-semibold mb-3">Competencies</h2>
           {job.qualifications?.length ? (
-            <ul className="list-disc pl-5 text-gray-600 leading-relaxed space-y-2">
+            <ul className="list-discigian pl-5 text-gray-600 leading-relaxed space-y-2">
               {job.qualifications.map((compe, index) => (
                 <li key={index}>{compe}</li>
               ))}
