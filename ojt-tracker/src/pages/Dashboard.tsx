@@ -4,7 +4,7 @@ import CompanyApplication from "../components/CompanyApplication";
 import ApplicationStatusModal from "../components/ApplicationStatusModal";
 import EndorsementSuccessModal from "../components/EndorsementSuccessModal";
 import OJTLogo from "/src/assets/ojt-white.png";
-import { ProfileMenu } from "../components/ProfileMenu";
+import { ProfileMenu } from "./profile/ProfileMenu";
 import { Search, X } from "lucide-react";
 import { Loading } from "../components/Loading";
 import { useUserData } from "../hooks/useUserData";

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../../../supabase";
 import { User as SupabaseUser } from "@supabase/supabase-js";
-import Sidebar from "../../components/SideBar";
+import Sidebar from "./SideBar";
 import OJTLogo from "/src/assets/ojt-white.png";
 import { Loading } from "../../components/Loading";
 import { User, Settings, CircleHelp, LogOut, UserCog } from "lucide-react";

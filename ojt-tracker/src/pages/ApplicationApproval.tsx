@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../../supabase";
 import { User } from "@supabase/supabase-js";
-import Sidebar from "../components/SideBar";
+import Sidebar from "./admin/SideBar";
 import OJTLogo from "/src/assets/ojt-white.png";
 import { updateAllJobSlots } from "../services/JobService";
 

@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { File } from "lucide-react";
-import { supabase } from "../../supabase";
-import WeeklyReport from "../components/WeeklyReport";
-import WeeklyJournal from "../components/WeeklyJournal";
-import MonthlyReport from "../components/MonthlyReport";
-import ReportsSubmitted from "../components/ReportsSubmitted";
-import GenerateMonthlyReport from "./GenerateMonthlyReport";
-import GenerateCertButton from "./GenerateCertButton";
+import { supabase } from "../../../supabase";
+import WeeklyReport from "./WeeklyReport";
+import WeeklyJournal from "./WeeklyJournal";
+import MonthlyReport from "./MonthlyReport";
+import ReportsSubmitted from "./ReportsSubmitted";
+import GenerateMonthlyReport from "../../components/GenerateMonthlyReport";
+import GenerateCertButton from "../../components/GenerateCertButton";
 
 interface Report {
   weekly_report_id: number;
