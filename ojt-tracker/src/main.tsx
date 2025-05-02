@@ -18,6 +18,7 @@ import ViewDashboard from "./components/ViewDashboard";
 import AboutUs from "../src/pages/AboutUs";
 import { supabase } from '../supabase'; 
 
+
 // Define the handleLogout function
 const handleLogout = async () => {
   try {
