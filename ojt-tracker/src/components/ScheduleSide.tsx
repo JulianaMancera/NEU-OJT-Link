@@ -36,6 +36,7 @@ const ScheduleSide: React.FC = () => {
   const [holidays, setHolidays] = useState<Holiday[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
+  const [supervisor, setSupervisor] = useState<string | null>(null);
 
   // Fetch company info, work days, total hours, logs, and holidays
   useEffect(() => {
@@ -71,10 +72,10 @@ const ScheduleSide: React.FC = () => {
         const { company_id, job_id, application_id } = application;
 
         const { data: company, error: companyError } = await supabase
-          .from("company")
-          .select("name, logo_url")
-          .eq("company_id", company_id)
-          .single();
+        .from("company")
+        .select("name, logo_url, supervisor")
+        .eq("company_id", company_id)
+        .single();
 
         if (companyError || !company) {
           console.error("Company not found:", companyError?.message);
@@ -96,6 +97,7 @@ const ScheduleSide: React.FC = () => {
 
         setCompanyLogo(company.logo_url);
         setCompanyName(company.name);
+        setSupervisor(company.supervisor || null);
         setJobPosition(job.position);
         await fetchWorkDays(application_id);
 
@@ -422,13 +424,19 @@ const ScheduleSide: React.FC = () => {
         <div className="bg-white shadow-md rounded-lg p-6">
           <h3 className="text-lg font-bold mb-4 text-gray-900 text-center">Supervisors</h3>
           <div className="space-y-4">
+            {supervisor ? (
+              <div className="flex items-center gap-2">
+                <UserSquare2 size={24} color="#1e40af"/>
+                <span className="font-semibold text-gray-900 text-sm">
+                  Supervisor: {supervisor}
+                </span>
+              </div>
+            ) : (
+              <p className="text-gray-500 text-sm text-center">T.B.A</p>
+            )}
             <div className="flex items-center gap-2">
               <UserSquare2 size={24} color="#1e40af"/>
-              <span className="font-semibold text-gray-900 text-sm">Supervisor: Vincent Smith</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <UserSquare2 size={24} color="#1e40af"/>
-              <span className="font-semibold text-gray-900 text-sm">OJT Coordinator: John Doe</span>
+              <span className="font-semibold text-gray-900 text-sm">OJT Coordinator: Marc Laureta</span>
             </div>           
           </div>
         </div>
