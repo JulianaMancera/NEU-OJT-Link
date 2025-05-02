@@ -45,54 +45,13 @@ export const useApplicationData = () => {
       if (applications && applications.length > 0) {
         const rejectedApplications = applications.filter(app => app.status === "rejected");
         const approvedApplications = applications.filter(app => app.status === "approved");
-
-        if (rejectedApplications.length > 0) {
-          const uniqueCompanyIds = [...new Set(rejectedApplications.map(app => app.company_id))];
-          const rejectedCompanyPromises = uniqueCompanyIds.map(companyId => 
-            supabase
-              .from("company")
-              .select("*")
-              .eq("company_id", companyId)
-              .single()
-          );
-          
-          const rejectedCompanyResults = await Promise.all(rejectedCompanyPromises);
-          const fetchedRejectedCompanies = rejectedCompanyResults
-            .filter(result => !result.error && result.data)
-            .map(result => result.data);
-          
-          setRejectedCompanies(fetchedRejectedCompanies);
-          
-          const applicationData = rejectedApplications[0];
-          setApplicationId(applicationData.application_id);
-          setApplicationStatus('rejected');
-          setInitialApplicationStep(null);
-          
-          const { data: companyData } = await supabase
-            .from("company")
-            .select("*")
-            .eq("company_id", applicationData.company_id)
-            .single();
-
-          if (companyData) {
-            setApprovedCompany(companyData);
-
-            const { data: jobData } = await supabase
-              .from("job")
-              .select("job_id, position, company_id, created_at, description, responsibility, qualifications, work_hrs, schedule, isAvailable")
-              .eq("job_id", applicationData.job_id)
-              .single();
-
-            if (jobData) {
-              setApprovedJob(jobData as Job);
-            }
-
-            setShowApprovalModal(true);
-          }
-          return;
-        }
         
         if (approvedApplications.length > 0) {
+          if (approvedApplications.length > 1) {
+            console.error('Error: Multiple approved applications found');
+            return;
+          }
+         
           const applicationData = approvedApplications[0];
           setApplicationId(applicationData.application_id);
 
@@ -152,7 +111,117 @@ export const useApplicationData = () => {
               setShowApprovalModal(true);
             }
           }
-        } else if (applications.length > 0) {
+          return;
+        }
+        
+        if (rejectedApplications.length > 0) {
+          const uniqueCompanyIds = [...new Set(rejectedApplications.map(app => app.company_id))];
+          
+          const rejectedCompanyPromises = uniqueCompanyIds.map(companyId => 
+            supabase
+              .from("company")
+              .select("*")
+              .eq("company_id", companyId)
+              .single()
+          );
+          
+          const rejectedCompanyResults = await Promise.all(rejectedCompanyPromises);
+          const fetchedRejectedCompanies = rejectedCompanyResults
+            .filter(result => !result.error && result.data)
+            .map(result => result.data);
+          
+          setRejectedCompanies(fetchedRejectedCompanies);
+          
+          const applicationData = rejectedApplications[0];
+          setApplicationId(applicationData.application_id);
+          setApplicationStatus('rejected');
+          setInitialApplicationStep(null);
+          
+          const { data: companyData } = await supabase
+            .from("company")
+            .select("*")
+            .eq("company_id", applicationData.company_id)
+            .single();
+
+          if (companyData) {
+            setApprovedCompany(companyData);
+
+            const { data: jobData } = await supabase
+              .from("job")
+              .select("job_id, position, company_id, created_at, description, responsibility, qualifications, work_hrs, schedule, isAvailable")
+              .eq("job_id", applicationData.job_id)
+              .single();
+
+            if (jobData) {
+              setApprovedJob(jobData as Job);
+            }
+
+            setShowApprovalModal(true);
+          }
+          return;
+        }
+        
+        if (applications.length > 0) {
+          const applicationData = approvedApplications[0];
+          setApplicationId(applicationData.application_id);
+
+          const { data: availabilityData } = await supabase
+            .from("availability")
+            .select("*")
+            .eq("application_id", applicationData.application_id);
+
+          const { data: requirementsData } = await supabase
+            .from("requirements")
+            .select("*")
+            .eq("student_id", user.id)
+            .eq("job_id", applicationData.job_id);
+
+          let currentStatus: ApplicationStatus = 'submitted';
+          let initialStep: string | null = null;
+
+          if (applicationData.status === "approved") {
+            if (requirementsData?.length && requirementsData[0].endorsement_url) {
+              currentStatus = 'endorsement_submitted';
+              initialStep = "dashboard";
+              setShowEndorsementSuccessModal(true);
+            } else if (availabilityData?.length) {
+              currentStatus = 'availability_submitted';
+              initialStep = "requirement";
+            } else {
+              currentStatus = 'approved';
+              initialStep = "availability";
+            }
+          }
+
+          setApplicationStatus(currentStatus);
+          setInitialApplicationStep(initialStep);
+
+          if (applicationData.status === "approved") {
+            setHasApprovedApplication(true);
+
+            const { data: companyData } = await supabase
+              .from("company")
+              .select("*")
+              .eq("company_id", applicationData.company_id)
+              .single();
+
+            if (companyData) {
+              setApprovedCompany(companyData);
+
+              const { data: jobData } = await supabase
+                .from("job")
+                .select("job_id, position, company_id, created_at, description, responsibility, qualifications, work_hrs, schedule, isAvailable")
+                .eq("job_id", applicationData.job_id)
+                .single();
+
+              if (jobData) {
+                setApprovedJob(jobData as Job);
+              }
+
+              setShowApprovalModal(true);
+            }
+          }
+        } else {
           const applicationData = applications[0];
           setApplicationId(applicationData.application_id);
         }
@@ -177,7 +246,21 @@ export const useApplicationData = () => {
             filter: `application_id=eq.${applicationId}`,
           },
           async (payload) => {
-            if (payload.new.status === "approved" && applicationStatus === 'submitted') {
+            if (payload.new.status === "approved") {
+              const { data: { user } } = await supabase.auth.getUser();
+              if (user) {
+                const { data: approvedApps } = await supabase
+                  .from("application")
+                  .select("application_id")
+                  .eq("user_id", user.id)
+                  .eq("status", "approved");
+                
+                if (approvedApps && approvedApps.length > 1) {
+                  console.error('Error: Multiple approved applications found');
+                  return;
+                }
+              }
+              
               setHasApprovedApplication(true);
               setApplicationStatus('approved');
 
@@ -203,6 +286,18 @@ export const useApplicationData = () => {
                 }
               }
             } else if (payload.new.status === "rejected") {
+              const { data: { user } } = await supabase.auth.getUser();
+              if (user) {
+                const { data: approvedApps } = await supabase
+                  .from("application")
+                  .select("application_id")
+                  .eq("user_id", user.id)
+                  .eq("status", "approved");
+                
+                if (approvedApps && approvedApps.length > 0) {
+                  return;
+                }
+              }
               setApplicationStatus("rejected");
               setInitialApplicationStep(null);
               
