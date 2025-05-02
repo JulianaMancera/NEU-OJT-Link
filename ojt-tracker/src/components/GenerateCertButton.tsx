@@ -5,25 +5,33 @@ import CertificatePDF from "../services/CertificatePDF";
 
 
 interface CertifacteProps{
-    companyName: string;
-    companyLogo: string;
-    job: string;
+    companyInfo: CompanyInfo,
+   job: string;
+   isAllowed: boolean
 }
-const GenerateCertButton: React.FC<CertifacteProps> = ({companyName, job ,companyLogo}) =>  {
+
+interface CompanyInfo{
+  name: string;
+  logo_url: string;
+  supervisor: string;
+  signature: string;
+}
+const GenerateCertButton: React.FC<CertifacteProps> = ({companyInfo, job, isAllowed }) =>  {
     const handleDowload = async() =>{
-        if(!companyName && !job) return
+        if(!companyInfo && !job) return
 
         try{
             const user = await supabase.auth.getUser()
             const userInfo = {
-                companyName: companyName,
+                companyName: companyInfo.name,
                 name: user.data.user?.user_metadata?.full_name,
                 job: job,
-                supervisorSig:"https://ecearoibslwhyaxuhato.supabase.co/storage/v1/object/public/signatures//img.png",
-                coordinatorSig:"https://ecearoibslwhyaxuhato.supabase.co/storage/v1/object/public/signatures//img.png",
-                leftSide:"https://ecearoibslwhyaxuhato.supabase.co/storage/v1/object/public/template//Left.png",
-                rightSide:"https://ecearoibslwhyaxuhato.supabase.co/storage/v1/object/public/template//Right.png",
-                companyLogo: companyLogo
+                supervisor: companyInfo.supervisor,
+                supervisorSig:companyInfo.signature,
+                coordinatorSig:"https://ecearoibslwhyaxuhato.supabase.co/storage/v1/object/public/signatures//15.png",
+                leftSide:"https://ecearoibslwhyaxuhato.supabase.co/storage/v1/object/public/template//left.png",
+                rightSide:"https://ecearoibslwhyaxuhato.supabase.co/storage/v1/object/public/template//right.png",
+                companyLogo: companyInfo.logo_url
 
             }
             const blob = await pdf(<CertificatePDF {...userInfo}/>).toBlob();
@@ -41,9 +49,22 @@ const GenerateCertButton: React.FC<CertifacteProps> = ({companyName, job ,compan
     }
 
     return(
-        <div> 
-            <button className="text-white mb-3 bg-black"onClick={handleDowload}>Click to Download Certificate of Completion</button>
-        </div>
-    )
+            <div className="relative group inline-block">
+              <button
+                onClick={handleDowload}
+                disabled={!isAllowed}
+                className={`text-white mb-3 px-4 py-2 rounded ${
+                  isAllowed ? 'bg-black hover:bg-gray-800 cursor-pointer' : 'bg-gray-400 cursor-not-allowed'
+                }`}
+              >
+                Click to Download Certificate of Completion
+              </button>
+              {!isAllowed && (
+                <div className="absolute left-1/2 transform -translate-x-1/2 mt-2 w-64 bg-gray-800 text-white text-sm rounded px-3 py-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  You need to complete 300 hours to download the certificate.
+                </div>
+              )}
+            </div>
+          )
 }
 export default GenerateCertButton;

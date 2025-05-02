@@ -7,10 +7,20 @@ import MonthlyReport from "./MonthlyReport";
 import ReportsSubmitted from "./ReportsSubmitted";
 import GenerateMonthlyReport from "../../components/GenerateMonthlyReport";
 import GenerateCertButton from "../../components/GenerateCertButton";
+import { ValidateUserForCertificate } from "../../services/ValidateUserForCertificate";
+import CertficateUpload from "../../components/CertficateUpload";
+
 
 interface Report {
   weekly_report_id: number;
   week_number: number;
+}
+
+interface CompanyInfo{
+  name: string;
+  logo_url: string;
+  supervisor: string;
+  signature: string;
 }
 
 const ReportSide: React.FC = () => {
@@ -19,11 +29,12 @@ const ReportSide: React.FC = () => {
   const [isWeeklyReportModalOpen, setIsWeeklyReportModalOpen] = useState(false);
   const [isWeeklyJournalModalOpen, setIsWeeklyJournalModalOpen] = useState(false);
   const [isMonthlyReportModalOpen, setIsMonthlyReportModalOpen] = useState(false);
+  const [isCertModalOpen, setIsCertModalOpen] = useState(false);
   const [editingReport, setEditingReport] = useState<Report | null>(null);
-  const [companyName, setCompanyName] = useState<string | null>(null);
-  const [companyLogo, setCompanyLogo] = useState<string | null>(null)
+  const [companyInfo, setCompanyInfo] = useState<CompanyInfo | null>(null)
   const [jobPosition, setJobPosition] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
+  const [isAllowToGetCertificate, setCertifcationAllowed] = useState<boolean>(false)
 
   const templates = [
     { name: "Weekly Report", file: "WeeklyReport_Surname.docx" },
@@ -42,6 +53,7 @@ const ReportSide: React.FC = () => {
       try {
         setError(null);
 
+
         const { data: { user }, error: userError } = await supabase.auth.getUser();
         if (userError || !user) {
           console.error("User fetch error:", userError?.message);
@@ -50,6 +62,12 @@ const ReportSide: React.FC = () => {
         }
 
         setUserId(user.id);
+        if(userId){
+
+        const isValidCert = await ValidateUserForCertificate(userId);
+
+        setCertifcationAllowed(isValidCert);
+        }
 
         const { data: application, error: applicationError } = await supabase
           .from("application")
@@ -68,7 +86,7 @@ const ReportSide: React.FC = () => {
 
         const { data: company, error: companyError } = await supabase
           .from("company")
-          .select("name,logo_url")
+          .select("name,logo_url, supervisor, signature")
           .eq("company_id", company_id)
           .single();
 
@@ -89,8 +107,7 @@ const ReportSide: React.FC = () => {
           setError("Job position not found.");
           return;
         }
-        setCompanyLogo(company.logo_url)
-        setCompanyName(company.name);
+        setCompanyInfo(company);
         setJobPosition(job.position);
       } catch (err) {
         console.error("Unexpected error in fetchCompanyAndJob:", err);
@@ -135,6 +152,9 @@ const ReportSide: React.FC = () => {
         break;
       case "Monthly Report":
         setIsMonthlyReportModalOpen(true);
+        break;
+      case "Certificate":
+        setIsCertModalOpen(true);
         break;
       default:
         break;
@@ -207,19 +227,36 @@ const ReportSide: React.FC = () => {
               </button>
             ))}
           </div>
-          {companyName && jobPosition ? (
-            <GenerateMonthlyReport companyName={companyName} job={jobPosition} />
+          {companyInfo && jobPosition ? (
+            <GenerateMonthlyReport companyName={companyInfo.name} job={jobPosition} />
           ) : (
             <p className="text-gray-500 text-sm text-center mt-4">
               Company or job details not available
             </p>
           )}
-          {companyName && jobPosition && companyLogo ? (
-            <GenerateCertButton companyName={companyName} companyLogo={companyLogo} job={jobPosition} />
+          {companyInfo && jobPosition ? (
+          <>
+            <GenerateCertButton
+              companyInfo={companyInfo}
+              job={jobPosition}
+              isAllowed={isAllowToGetCertificate}
+               />
+
+              {isAllowToGetCertificate && (
+                <button
+                  onClick={() => handleOpenSubmissionModal("Certificate")}
+                  className="w-full bg-blue-50 text-blue-700 p-4 rounded-xl hover:bg-blue-100 flex items-center justify-start transition-all duration-200 font-semibold"
+                >
+                   <File className="mr-3" />
+                  Upload Certificate
+               </button>
+              )}
+        </>
+
           ) : (
-            <p className="text-gray-500 text-sm text-center mt-4">
-              Company or job details not available
-            </p>
+              <p className="text-gray-500 text-sm text-center mt-4">
+                Company or job details not available
+              </p>
           )}
         </div>
       </div>
@@ -243,6 +280,7 @@ const ReportSide: React.FC = () => {
       />
       <WeeklyJournal isOpen={isWeeklyJournalModalOpen} onClose={() => setIsWeeklyJournalModalOpen(false)} />
       <MonthlyReport isOpen={isMonthlyReportModalOpen} onClose={() => setIsMonthlyReportModalOpen(false)} />
+      <CertficateUpload isOpen={isCertModalOpen} onClose={() => setIsCertModalOpen(false)} />
     </div>
   );
 };
