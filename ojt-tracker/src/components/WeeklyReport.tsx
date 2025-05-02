@@ -21,6 +21,7 @@ interface TimeEntry {
   hours: number;
   task: string;
   remarks: string;
+  totalHours: number;
 }
 
 const WeeklyReport = ({ isOpen, onClose, editingReport }: WeeklyReportProps) => {
@@ -31,6 +32,9 @@ const WeeklyReport = ({ isOpen, onClose, editingReport }: WeeklyReportProps) => 
   const [extractedEntries, setExtractedEntries] = useState<TimeEntry[]>([]);
   const [isExtracting, setIsExtracting] = useState(false);
   const [totalHours, setTotalHours] = useState<number>(0);
+  const [remainingHours, setRemainingHours] = useState<number>(300);
+  const [previousTotalHours, setPreviousTotalHours] = useState<number>(0);
+
 
   useEffect(() => {
     if (!isOpen) {
@@ -39,6 +43,12 @@ const WeeklyReport = ({ isOpen, onClose, editingReport }: WeeklyReportProps) => 
       setProgress(null);
       setExtractedEntries([]);
       setTotalHours(0);
+    } else {
+      // Fetch the latest total hours when the modal opens
+      fetchTotalLoggedHours().then(hours => {
+        setPreviousTotalHours(hours);
+        setRemainingHours(300 - hours);
+      });
     }
   }, [isOpen]);
 
@@ -79,7 +89,7 @@ const WeeklyReport = ({ isOpen, onClose, editingReport }: WeeklyReportProps) => 
       const pdf = await pdfjs.getDocument({data: new Uint8Array(arrayBuffer)}).promise;
       
       const entries: TimeEntry[] = [];
-      let totalHoursSum = 0;
+      let currentWeekHours = 0;
       
       // Process each page to look for table data
       for (let i = 1; i <= pdf.numPages; i++) {
@@ -129,12 +139,17 @@ const WeeklyReport = ({ isOpen, onClose, editingReport }: WeeklyReportProps) => 
         }
       }
       
-      // Calculate total hours
-      totalHoursSum = entries.reduce((sum, entry) => sum + (entry.hours || 0), 0);
-      setTotalHours(totalHoursSum);
+      // Calculate total for this week's report
+      currentWeekHours = entries.reduce((sum, entry) => sum + (entry.hours || 0), 0);
+
+      // Calculate the new remaining hours after this week
+      const newRemainingHours = remainingHours - currentWeekHours;
+
+      setTotalHours(currentWeekHours);
+      setRemainingHours(newRemainingHours);
       
       setExtractedEntries(entries);
-      setMessage(`✅ Found ${entries.length} time entries in the PDF. Total hours: ${totalHoursSum}`);
+      setMessage(`✅ Found ${entries.length} time entries in the PDF. Total hours: ${currentWeekHours}`);
     } catch (error) {
       console.error("Error extracting table from PDF:", error);
       setMessage("❌ Failed to extract table data from PDF.");
@@ -175,8 +190,6 @@ const WeeklyReport = ({ isOpen, onClose, editingReport }: WeeklyReportProps) => 
       let hours = 0;
       let task = '';
       let remarks = '';
-
-
  
       // Find time in and out
       const timePattern = /\d{1,2}:\d{2}[AP]M/i;
@@ -214,7 +227,8 @@ const WeeklyReport = ({ isOpen, onClose, editingReport }: WeeklyReportProps) => 
           timeOut,
           hours,
           task,
-          remarks
+          remarks,
+          totalHours: 0, // Will be updated later
         });
       }
     }
@@ -225,6 +239,9 @@ const WeeklyReport = ({ isOpen, onClose, editingReport }: WeeklyReportProps) => 
     resetMessage();
     setExtractedEntries([]);
     setTotalHours(0);
+    
+    // Reset remaining hours to what it was before the file was added
+    setRemainingHours(300 - previousTotalHours);
   };
 
   const isValidFileName = (fileName: string): boolean => {
@@ -236,6 +253,33 @@ const WeeklyReport = ({ isOpen, onClose, editingReport }: WeeklyReportProps) => 
     return match ? parseInt(match[1], 10) : null;
   };
 
+  const fetchTotalLoggedHours = async (): Promise<number> => {
+    try {
+      const { data, error } = await supabase
+        .from("time_entries")
+        .select("total_hours")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .single();
+    
+      if (error) {
+        console.error("Error fetching total logged hours:", error);
+        return 0;
+      }
+      
+      // If no data or total_hours is null, return 0
+      if (!data || typeof data.total_hours !== "number") {
+        return 0;
+      }
+    
+      console.log("Fetched previous total hours:", data.total_hours);
+      return data.total_hours;
+    } catch (error) {
+      console.error("Error in fetchTotalLoggedHours:", error);
+      return 0;
+    }
+  };
+  
   const handleUpload = async () => {
     if (files.length === 0) {
       setMessage("❌ Please select at least one file.");
@@ -355,6 +399,10 @@ const WeeklyReport = ({ isOpen, onClose, editingReport }: WeeklyReportProps) => 
           reportId = insertedReport.weekly_report_id;
         }
   
+        // Calculate new total hours (previous total hours + current week hours)
+        const newTotalHours = previousTotalHours + totalHours;
+        const newRemainingHours = 300 - newTotalHours;
+  
         // Insert time entries from the extracted table data
         if (extractedEntries.length > 0) {
           // First, delete any existing time entries for this report if editing
@@ -370,14 +418,17 @@ const WeeklyReport = ({ isOpen, onClose, editingReport }: WeeklyReportProps) => 
             }
           }
           
-          // Insert new time entries
+          // Insert new time entries with the updated total hours
           const timeEntriesToInsert = extractedEntries.map(entry => ({
             user_id: user.id,
             date: entry.date,
             time_in: entry.timeIn,
             time_out: entry.timeOut,
             hours: entry.hours,
-            created_at: new Date().toISOString()
+            task: entry.task,
+            remarks: entry.remarks,
+            created_at: new Date().toISOString(),
+            total_hours: newTotalHours,
           }));
           
           const { error: timeEntryError } = await supabase
@@ -387,6 +438,10 @@ const WeeklyReport = ({ isOpen, onClose, editingReport }: WeeklyReportProps) => 
           if (timeEntryError) {
             errors.push(`Failed to insert time entries: ${timeEntryError.message}`);
             // Continue the upload process despite this error
+          } else {
+            // Update the state to show the new remaining hours
+            setPreviousTotalHours(newTotalHours);
+            setRemainingHours(newRemainingHours);
           }
         }
   
@@ -515,6 +570,20 @@ const WeeklyReport = ({ isOpen, onClose, editingReport }: WeeklyReportProps) => 
           }`}>
             {message}
           </p>
+        )}
+        
+        {totalHours > 0 && (
+          <div className="mt-2">
+            <p className="text-sm text-blue-600">
+              <strong>Current week hours:</strong> {totalHours}
+            </p>
+            <p className="text-sm text-blue-600">
+              <strong>Previously logged hours:</strong> {previousTotalHours}
+            </p>
+            <p className="text-sm text-blue-600 font-medium">
+              🕒 <strong>Remaining hours:</strong> {remainingHours} out of 300
+            </p>
+          </div>
         )}
 
         <button
