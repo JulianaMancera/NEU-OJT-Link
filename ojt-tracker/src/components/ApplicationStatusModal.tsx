@@ -10,12 +10,13 @@ import Job from '../types/Job';
 interface ApplicationStatusModalProps {
   isOpen: boolean;
   onClose: () => void;
-  status: 'submitted' | 'approved' | 'availability_submitted' | 'endorsement_submitted';
-  company: Company;
-  applicationId: string;
-  job: Job;
-  onUpdateStatus?: (status: 'submitted' | 'approved' | 'availability_submitted' | 'endorsement_submitted') => void;
+  status: 'submitted' | 'approved' | 'availability_submitted' | 'endorsement_submitted' | 'rejected';
+  company?: Company;
+  applicationId?: string;
+  job?: Job;
+  onUpdateStatus?: (status: 'submitted' | 'approved' | 'availability_submitted' | 'endorsement_submitted' | 'rejected') => void;
   userName?: string;
+  rejectedCompanies?: Company[];
 }
 
 const ApplicationStatusModal: React.FC<ApplicationStatusModalProps> = ({
@@ -23,10 +24,11 @@ const ApplicationStatusModal: React.FC<ApplicationStatusModalProps> = ({
   onClose,
   status,
   company,
-  applicationId,
+  applicationId = "",
   job,
   onUpdateStatus,
-  userName = ""
+  userName = "",
+  rejectedCompanies = []
 }) => {
   const navigate = useNavigate();
   const [showAvailability, setShowAvailability] = useState(false);
@@ -48,7 +50,7 @@ const ApplicationStatusModal: React.FC<ApplicationStatusModalProps> = ({
       case 'submitted':
         return {
           title: 'Application Submitted',
-          message: `Your application to ${company.name} has been submitted successfully. Please wait for the company's response.`,
+          message: `Your application to ${company?.name || 'the company'} has been submitted successfully. Please wait for the company's response.`,
           buttonText: 'Close',
           buttonAction: () => {
             onClose();
@@ -57,8 +59,8 @@ const ApplicationStatusModal: React.FC<ApplicationStatusModalProps> = ({
         };
       case 'approved':
         return {
-          title: 'Application Approved!',
-          message: `Congratulations! Your application to ${company.name} has been approved. Please proceed with the next step.`,
+          title: `Application Approved!`,
+          message: `Congratulations! Your application to ${company?.name || 'the company'} has been approved. Please proceed with the next step.`,
           buttonText: 'Proceed',
           buttonAction: () => {
             setShowAvailability(true);
@@ -69,7 +71,7 @@ const ApplicationStatusModal: React.FC<ApplicationStatusModalProps> = ({
         };
       case 'availability_submitted':
         return {
-          title: 'Availability Submitted!',
+          title: `Availability Submitted!`,
           message: `Your availability has been submitted successfully. Please proceed with the endorsement letter.`,
           buttonText: 'Proceed',
           buttonAction: () => {
@@ -78,11 +80,35 @@ const ApplicationStatusModal: React.FC<ApplicationStatusModalProps> = ({
         };
       case 'endorsement_submitted':
         return {
-          title: 'Endorsement Submitted!',
+          title: `Endorsement Submitted!`,
           message: `Your endorsement letter has been submitted successfully. You may proceed to student dashboard`,
           buttonText: 'Close',
           buttonAction: () => {
             setShowEndorsementSuccess(true);
+          }
+        };
+      case 'rejected':
+        let displayText = '';
+        
+        if (rejectedCompanies && rejectedCompanies.length > 0) {
+          if (rejectedCompanies.length === 1) {
+            displayText = rejectedCompanies[0].name;
+          } else {
+            const companyNames = rejectedCompanies.map(c => c.name);
+            const lastCompany = companyNames.pop();
+            displayText = `${companyNames.join(', ')} and ${lastCompany}`;
+          }
+        } else {
+          displayText = company?.name || 'the company';
+        }
+          
+        return {
+          title: `Application${rejectedCompanies && rejectedCompanies.length > 1 ? 's' : ''} Rejected`,
+          message: `We regret to inform you that your application${rejectedCompanies && rejectedCompanies.length > 1 ? 's' : ''} to ${displayText} ${rejectedCompanies && rejectedCompanies.length > 1 ? 'have' : 'has'} been rejected. You may apply to other available jobs.`,
+          buttonText: 'Return to Dashboard',
+          buttonAction: () => {
+            onClose();
+            navigate('/dashboard');
           }
         };
       default:
@@ -129,7 +155,7 @@ const ApplicationStatusModal: React.FC<ApplicationStatusModalProps> = ({
     );
   }
 
-  if (showEndorsement) {
+  if (showEndorsement && company && job) {
     return (
       <div className="fixed inset-0 bg-gradient-to-b from-[#3657DB] from-24% to-[#8D95B5] to-98% flex items-center justify-center z-50">
         <div ref={modalRef} className="bg-white rounded-lg p-8 max-w-3xl w-full mx-4">
@@ -143,7 +169,7 @@ const ApplicationStatusModal: React.FC<ApplicationStatusModalProps> = ({
     );
   }
   
-  if (showAvailability) {
+  if (showAvailability && company && job) {
     return (
       <div className="fixed inset-0 bg-gradient-to-b from-[#3657DB] from-24% to-[#8D95B5] to-98% flex items-center justify-center z-50">
         <div ref={modalRef} className="bg-white rounded-lg p-8 max-w-4xl w-full mx-4 overflow-y-auto max-h-[90vh]">
@@ -161,7 +187,7 @@ const ApplicationStatusModal: React.FC<ApplicationStatusModalProps> = ({
   return (
     <div className="fixed inset-0 bg-gradient-to-b from-[#3657DB] from-24% to-[#8D95B5] to-98% flex items-center justify-center z-50">
       <div ref={modalRef} className="bg-white rounded-lg p-8 max-w-xl w-full mx-4">
-        <h2 className="text-2xl font-bold text-center mb-4">{content.title}</h2>
+      <h2 className="text-2xl font-bold text-center mb-4 text-blue-600 !text-black">{content.title}</h2>
         <p className="text-gray-600 text-center mb-6">{content.message}</p>
         <div className="flex justify-center">
           <button

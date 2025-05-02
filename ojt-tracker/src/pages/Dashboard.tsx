@@ -26,7 +26,8 @@ const Dashboard = () => {
     showEndorsementSuccessModal,
     setShowEndorsementSuccessModal,
     userName: applicationUserName,
-    updateApplicationStatus
+    updateApplicationStatus,
+    rejectedCompanies
   } = useApplicationData();
   const {
     companies,
@@ -85,6 +86,7 @@ const Dashboard = () => {
           }}
           onUpdateStatus={updateApplicationStatus}
           userName={applicationUserName || userName}
+          rejectedCompanies={rejectedCompanies}
         />
       )}
 
