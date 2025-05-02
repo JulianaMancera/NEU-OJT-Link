@@ -16,6 +16,7 @@ const StudentDashboard: React.FC = () => {
   const [profilePicture, setProfilePicture] = useState<string | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [activeView, setActiveView] = useState<"schedule" | "reports">("schedule");
+  const [isBlurred, setIsBlurred] = useState(false);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -53,11 +54,31 @@ const StudentDashboard: React.FC = () => {
     console.log("activeView updated to:", view);
   };
 
+  const handleToggleBlur = (isBlurred: boolean) => {
+    setIsBlurred(isBlurred);
+  };
+
+  const handleSidebarClick = () => {
+    // No action needed here
+  };
+
+  const handleCloseSidebar = () => {
+    setIsSidebarOpen(false); // Close the sidebar
+  };
+
+  const handleBackgroundClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    const sidebar = document.querySelector(".sidebar");
+    if (isSidebarOpen && sidebar && !sidebar.contains(e.target as Node)) {
+      setIsSidebarOpen(false);
+      setIsBlurred(false);
+    }
+  };
+
   const isHomePage = location.pathname === "/student-dashboard";
   const isExploreJobsPage = location.pathname === "/explore-jobs";
 
   return (
-    <div className="relative min-h-screen w-screen bg-gradient-to-br from-blue-50 to-blue-200">
+    <div className="relative min-h-screen w-screen bg-gradient-to-br from-blue-50 to-blue-200" onClick={handleBackgroundClick}>
       <header className="fixed top-0 h-[80px] left-0 w-full bg-gradient-to-b from-[#578FCA] to-[#2B4764] text-white px-6 py-4 flex items-center justify-between shadow-md z-50 border-b border-black">
         <div className="flex items-center space-x-4">
           <button
@@ -69,9 +90,7 @@ const StudentDashboard: React.FC = () => {
           </button>
           <img src={logo} alt="OJT Link Logo" className="w-32 h-auto" />
           <button
-
-            onClick={() => setActiveView("schedule")} 
-
+            onClick={() => setActiveView("schedule")}
             className={`text-white px-5 py-2 rounded-full transition-all duration-300 shadow-md hover:shadow-lg ${
               isHomePage ? "bg-blue-700 hover:brightness-110" : "bg-transparent hover:bg-blue-700"
             }`}
@@ -79,7 +98,7 @@ const StudentDashboard: React.FC = () => {
             HOME
           </button>
           <button
-            onClick={() => navigate("/explore-jobs")}
+            onClick={() => navigate("/view-dashboard")}
             className={`text-white px-5 py-2 rounded-full transition-all duration-300 shadow-md hover:shadow-lg ${
               isExploreJobsPage ? "bg-blue-700 hover:brightness-110" : "bg-transparent hover:bg-blue-700"
             }`}
@@ -162,14 +181,25 @@ const StudentDashboard: React.FC = () => {
 
       <div className="flex h-screen pt-[80px]">
         <div
-          className={`fixed top-[80px] left-0 h-[calc(100vh-80px)] w-64 bg-gray-100 shadow-inner z-40 transition-transform duration-300 ${
+          className={`fixed top-[80px] left-0 h-[calc(100vh-80px)] w-64 bg-gray-100 shadow-inner z-40 transition-transform duration-300 sidebar ${
             isSidebarOpen ? "translate-x-0" : "-translate-x-full"
           }`}
         >
-          <StudentSide onViewChange={handleViewChange} activeView={activeView} />
+          <StudentSide
+            onViewChange={handleViewChange}
+            activeView={activeView}
+            onToggleBlur={handleToggleBlur}
+            isSidebarOpen={isSidebarOpen}
+            onSidebarClick={handleSidebarClick}
+            onCloseSidebar={handleCloseSidebar} // Pass the close handler
+          />
         </div>
 
-        <div className="flex-1 overflow-y-auto p-11 relative z-0">
+        <div
+          className={`flex-1 overflow-y-auto p-11 relative z-30 transition-all duration-300 ${
+            isBlurred ? "blur-sm" : ""
+          }`}
+        >
           {activeView === "schedule" && <ScheduleSide />}
           {activeView === "reports" && <ReportsSide />}
         </div>
