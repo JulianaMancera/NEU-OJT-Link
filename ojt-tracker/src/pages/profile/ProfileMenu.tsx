@@ -18,7 +18,7 @@ export const ProfileMenu = ({ userName: initialName, userRole, profilePicture, o
   const [role, setRole] = useState<string>(userRole);
   const navigate = useNavigate();
 
-  // Refresh from database if changed elsewhere
+  // Refresh user data from Supabase
   useEffect(() => {
     const fetchUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -37,21 +37,33 @@ export const ProfileMenu = ({ userName: initialName, userRole, profilePicture, o
       }
     };
     fetchUser();
-  }, [initialName]);
+  }, [initialName, role]);
 
+  // Handle profile picture loading
   useEffect(() => {
+    console.log('ProfileMenu received profilePicture:', profilePicture);
     setImageError(null);
     setIsImageLoading(Boolean(profilePicture));
 
     if (profilePicture) {
       const img = new Image();
       img.src = profilePicture;
-      img.onload = () => setIsImageLoading(false);
-      img.onerror = () => {
+      img.onload = () => {
+        console.log('Profile image loaded successfully:', profilePicture);
+        setIsImageLoading(false);
+        setImageError(null);
+      };
+      img.onerror = (error) => {
+        console.error('Error loading profile image:', {
+          url: profilePicture,
+          error,
+          message: 'Failed to load image',
+        });
         setIsImageLoading(false);
         setImageError('Failed to load image');
       };
     } else {
+      console.log('No profile picture provided');
       setIsImageLoading(false);
     }
   }, [profilePicture]);
@@ -59,18 +71,18 @@ export const ProfileMenu = ({ userName: initialName, userRole, profilePicture, o
   const renderProfileImage = (size: 'small' | 'large') => {
     if (imageError || !profilePicture || isImageLoading) {
       return (
-
-        <div className={
-          size === 'small'
-            ? "w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center"
-            : "w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center mx-auto"
-        }>
-          <User className={
+        <div
+          className={
             size === 'small'
-              ? "w-6 h-6 text-blue-800"
-              : "w-12 h-12 text-white"
-          } />
-
+              ? "w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center"
+              : "w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center mx-auto"
+          }
+        >
+          <User
+            className={
+              size === 'small' ? "w-6 h-6 text-blue-800" : "w-12 h-12 text-blue-800"
+            }
+          />
         </div>
       );
     }
@@ -108,26 +120,36 @@ export const ProfileMenu = ({ userName: initialName, userRole, profilePicture, o
           <ul className="text-sm">
             <li>
               <button
-                onClick={() => { navigate("/profile"); setIsProfileOpen(false); }}
+                onClick={() => {
+                  navigate("/profile");
+                  setIsProfileOpen(false);
+                }}
                 className="w-full text-left px-6 py-4 hover:bg-gray-100 flex items-center transition-all duration-200"
               >
                 <User className="w-6 h-6 mr-3" /> Profile
               </button>
             </li>
             <li>
-              <button className="w-full text-left px-6 py-4 hover:bg-gray-100 flex items-center transition-all duration-200">
+              <button
+                className="w-full text-left px-6 py-4 hover:bg-gray-100 flex items-center transition-all duration-200"
+              >
                 <Settings className="w-6 h-6 mr-3" /> Settings
               </button>
             </li>
             <li>
-              <button className="w-full text-left px-6 py-4 hover:bg-gray-100 flex items-center transition-all duration-200">
+              <button
+                className="w-full text-left px-6 py-4 hover:bg-gray-100 flex items-center transition-all duration-200"
+              >
                 <CircleHelp className="w-6 h-6 mr-3" /> Help & Support
               </button>
             </li>
             {role === "admin" && (
               <li>
                 <button
-                  onClick={() => { navigate("/admin"); setIsProfileOpen(false); }}
+                  onClick={() => {
+                    navigate("/admin");
+                    setIsProfileOpen(false);
+                  }}
                   className="w-full text-left px-6 py-4 hover:bg-gray-100 flex items-center transition-all duration-200"
                 >
                   🛠️ Admin
@@ -136,8 +158,6 @@ export const ProfileMenu = ({ userName: initialName, userRole, profilePicture, o
             )}
             <li>
               <button
-        onClick={() => { onLogout(); setIsProfileOpen(false); }}
-
                 onClick={() => {
                   navigate("/about");
                   setIsProfileOpen(false);
@@ -153,7 +173,6 @@ export const ProfileMenu = ({ userName: initialName, userRole, profilePicture, o
                   onLogout();
                   setIsProfileOpen(false);
                 }}
-
                 className="w-full text-left px-6 py-4 hover:bg-red-50 text-red-600 flex items-center transition-all duration-200"
               >
                 <LogOut className="w-6 h-6 mr-3" /> Log out
