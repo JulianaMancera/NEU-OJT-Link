@@ -15,15 +15,20 @@ interface Application {
   job_id: string;
   email: string;
   status: 'approved' | 'pending' | 'rejected';
+  user_name?: string;
+  company_name?: string;
 }
 
 const ApplicationApproval = () => {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<SupabaseUser | null>(null);
-  const [applications, setApplications] = useState<(Application & { 
-    user_name?: string; 
-    company_name?: string;
-  })[]>([]);
+
+  // ← NEW: modal + docs state
+  const [showModalFor, setShowModalFor] = useState<string|null>(null);
+  const [docsByFolder, setDocsByFolder] = useState<Record<string,string[]>>({});
+  const folders = ['com','coverLetter','cv','medCert','notarized','psyTest','resume'];
+
+  const [applications, setApplications] = useState<Application[]>([]);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isProfileOpen, setProfileOpen] = useState(false);
   const navigate = useNavigate();
@@ -62,20 +67,18 @@ const ApplicationApproval = () => {
     }
   };
 
+  // Fetch applications + enrich with names
   useEffect(() => {
     const fetchApplications = async () => {
       const { data: { user }, error: userError } = await supabase.auth.getUser();
-
       if (userError || !user) {
         console.error("Authentication error:", userError);
         setLoading(false);
         return;
       }
-
       setUser(user);
 
       const { data, error } = await supabase.from("application").select("*");
-
       if (error) {
         console.error("Error fetching applications:", error.message);
         setLoading(false);
@@ -88,13 +91,11 @@ const ApplicationApproval = () => {
           .select("name")
           .eq("user_id", app.user_id)
           .single();
-
         const { data: companyData } = await supabase
           .from("company")
           .select("name")
           .eq("company_id", app.company_id)
           .single();
-
         return {
           ...app,
           user_name: userData?.name || 'Unknown',
@@ -109,6 +110,43 @@ const ApplicationApproval = () => {
     fetchApplications();
   }, []);
 
+  const handleViewDocs = async (user_id: string) => {
+    setShowModalFor(user_id);
+    // clear any previous results
+    const out: Record<string,string[]> = {};
+  
+    await Promise.all(folders.map(async folder => {
+      // list everything in this folder
+      const { data: files, error: listError } =
+        await supabase
+          .storage
+          .from('applicant-documents')
+          .list(folder);
+  
+      if (listError || !files) {
+        out[folder] = [];
+        return;
+      }
+  
+      // only keep the files for this user
+      const userFiles = files
+        .filter(f => f.name.includes(`_${user_id}_`))
+        .map(f => {
+          // getPublicUrl returns { data: { publicUrl } }
+          const { data: { publicUrl } } =
+            supabase
+              .storage
+              .from('applicant-documents')
+              .getPublicUrl(`${folder}/${f.name}`);
+          return publicUrl;
+        });
+  
+      out[folder] = userFiles;
+    }));
+  
+    setDocsByFolder(out);
+  };
+
   const handleStatusChange = async (applicationId: string, newStatus: Application['status']) => {
     if (!user) {
       console.error("User not authenticated");
@@ -117,41 +155,30 @@ const ApplicationApproval = () => {
 
     try {
       setLoading(true);
-      const application = applications.find(app => app.application_id === applicationId);
-      if (!application) return;
-      
-      // Update application status in Supabase
       const { error: statusError } = await supabase
         .from("application")
         .update({ status: newStatus })
         .eq('application_id', applicationId);
-
       if (statusError) throw statusError;
 
-      // Update job slots in Supabase
       await updateAllJobSlots();
 
-      // Refresh local applications data
       const { data: updatedApps, error: fetchError } = await supabase
         .from("application")
         .select("*");
-
       if (fetchError) throw fetchError;
 
-      // Update user and company names
       const updatedWithNames = await Promise.all(updatedApps.map(async (app) => {
         const { data: userData } = await supabase
           .from("user")
           .select("name")
           .eq("user_id", app.user_id)
           .single();
-
         const { data: companyData } = await supabase
           .from("company")
           .select("name")
           .eq("company_id", app.company_id)
           .single();
-
         return {
           ...app,
           user_name: userData?.name || 'Unknown',
@@ -168,10 +195,7 @@ const ApplicationApproval = () => {
   };
 
   if (loading) return <Loading />;
-
-  if (!user) {
-    return <p className="text-center mt-10">Please log in to view applications</p>;
-  }
+  if (!user) return <p className="text-center mt-10">Please log in to view applications</p>;
 
   return (
     <div>
@@ -210,10 +234,7 @@ const ApplicationApproval = () => {
                 <ul className="text-sm">
                   <li>
                     <button
-                      onClick={() => {
-                        navigate("/profile");
-                        setProfileOpen(false);
-                      }}
+                      onClick={() => { navigate("/profile"); setProfileOpen(false); }}
                       className="w-full text-left px-6 py-4 hover:bg-gray-100 flex items-center transition-all duration-200"
                     >
                       <User className="w-6 h-6 mr-3" /> Profile
@@ -252,6 +273,7 @@ const ApplicationApproval = () => {
             )}
           </div>
         </div>
+
         <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}/>
         <h2 className="text-[2.3rem] font-bold text-center mb-10 mt-12 text-black">
           Application Approvals
@@ -265,11 +287,14 @@ const ApplicationApproval = () => {
               <th className="border p-2">Company Name</th>
               <th className="border p-2">Email</th>
               <th className="border p-2">Status</th>
+              {/* ← NEW: Documents col */}
+              <th className="border p-2">Documents</th>
             </tr>
           </thead>
           <tbody>
-            {applications.map((application) => (
-              <tr key={application.application_id} className="hover:bg-gray-300 text-black bg-white">
+            {applications.map(application => (
+              <tr key={application.application_id}
+                  className="hover:bg-gray-300 text-black bg-white">
                 <td className="border p-2">{application.application_id}</td>
                 <td className="border p-2">{application.user_name}</td>
                 <td className="border p-2">{application.company_name}</td>
@@ -277,8 +302,8 @@ const ApplicationApproval = () => {
                 <td className="border p-2">
                   <select
                     value={application.status}
-                    onChange={(e) => handleStatusChange(
-                      application.application_id, 
+                    onChange={e => handleStatusChange(
+                      application.application_id,
                       e.target.value as Application['status']
                     )}
                     className="w-full p-1 font-semibold"
@@ -289,13 +314,72 @@ const ApplicationApproval = () => {
                     <option value="rejected">Rejected</option>
                   </select>
                 </td>
+                {/* ← NEW: View Docs button */}
+                <td className="border p-2 text-center">
+                  <button
+                    onClick={() => handleViewDocs(application.user_id)}
+                    className="px-3 py-1 bg-blue-600 text-white rounded"
+                  >
+                    View Docs
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>
         </table>
-      </div>
+
+        {/* ← NEW: modal showing the 7 folders */}
+      {showModalFor && (
+        <div
+          className="fixed inset-0 bg-gradient-to-b from-[#5F74C9] to-[#0A279C] bg-opacity-50 flex items-center justify-center p-4"
+          onClick={() => setShowModalFor(null)}
+        >
+          <div
+            className="bg-white rounded-lg p-6 w-full max-w-2xl relative overflow-y-auto max-h-[80vh]"
+            onClick={e => e.stopPropagation()}
+          >
+            <h3 className="text-xl font-semibold mb-4">
+              Documents for <span className="font-mono">{showModalFor}</span>
+            </h3>
+            <button
+              className="absolute top-2 right-2 text-gray-600 hover:text-black"
+              onClick={() => setShowModalFor(null)}
+            >
+              ✕
+            </button>
+
+            {folders.map(folder => (
+              <div key={folder} className="mb-6">
+                <h4 className="text-lg font-medium mb-2 capitalize">{folder}</h4>
+                {docsByFolder[folder]?.length ? (
+                  <ul className="list-disc list-inside space-y-1">
+                    {docsByFolder[folder].map((url, i) => {
+                      const fileName = url.split('/').pop() || url;
+                      return (
+                        <li key={i}>
+                          <a
+                            href={url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:underline"
+                          >
+                            {fileName}
+                          </a>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                ) : (
+                  <p className="text-gray-500 italic">No files found</p>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
-  );
+  </div>
+);
 };
 
 export default ApplicationApproval;
