@@ -1,9 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "../../../supabase";
 import { FaCloudUploadAlt, FaTrash } from "react-icons/fa";
-import * as pdfjs from 'pdfjs-dist';
-// Set worker path explicitly to version 2.10.377
-pdfjs.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.worker.min.js';
+import { extractTableFromPdf } from "../../services/pdfExtractor";
 
 interface WeeklyReportProps {
   isOpen: boolean;
@@ -51,7 +49,7 @@ const WeeklyReport = ({ isOpen, onClose, editingReport }: WeeklyReportProps) => 
       
       // Extract table data from the first PDF
       if (selectedFiles.length > 0 && selectedFiles[0].type === "application/pdf") {
-        await extractTableFromPdf(selectedFiles[0]);
+        await extractPDF(selectedFiles[0]);
       }
     }
   };
@@ -63,78 +61,17 @@ const WeeklyReport = ({ isOpen, onClose, editingReport }: WeeklyReportProps) => 
     
     // Extract table data from the first PDF
     if (droppedFiles.length > 0 && droppedFiles[0].type === "application/pdf") {
-      await extractTableFromPdf(droppedFiles[0]);
+      await extractPDF(droppedFiles[0]);
     }
   };
-
-  const extractTableFromPdf = async (file: File) => {
+  const extractPDF = async (file: File) => {
     setIsExtracting(true);
     setMessage("🔍 Extracting table data from PDF...");
-    
     try {
-      // Convert file to ArrayBuffer
-      const arrayBuffer = await file.arrayBuffer();
-
-      // Load PDF document
-      const pdf = await pdfjs.getDocument({data: new Uint8Array(arrayBuffer)}).promise;
-      
-      const entries: TimeEntry[] = [];
-      let totalHoursSum = 0;
-      
-      // Process each page to look for table data
-      for (let i = 1; i <= pdf.numPages; i++) {
-        const page = await pdf.getPage(i);
-        const textContent = await page.getTextContent();
-        
-        // Extract text items with their positions
-        const items = textContent.items.map((item: any) => ({
-          text: item.str,
-          x: item.transform[4], // x position
-          y: item.transform[5], // y position
-          height: item.height
-        }));
-        
-        // Sort items by y-position (top to bottom) and then by x-position (left to right)
-        // This helps us read the table row by row
-        const sortedItems = items.sort((a, b) => {
-          if (Math.abs(a.y - b.y) > 1) {
-            return b.y - a.y; // Top to bottom
-          } else {
-            return a.x - b.x; // Left to right within same row
-          }
-        });
-
-        
-        // Process rows to extract table data
-        let currentRow: any[] = [];
-        let lastY = 0;
-        
-        sortedItems.forEach((item) => {
-          if (currentRow.length === 0 || Math.abs(item.y - lastY) < 10) {
-            // Same row or first item
-            currentRow.push(item);
-          } else {
-            // New row detected
-            // Process completed row if it looks like a data row
-            processTableRow(currentRow, entries);
-            // Start new row
-            currentRow = [item];
-          }
-          lastY = item.y;
-        });
-        
-        // Process the last row
-        if (currentRow.length > 0) {
-          processTableRow(currentRow, entries);
-        }
-      }
-      
-      // Calculate total hours
-      totalHoursSum = entries.reduce((sum, entry) => sum + (entry.hours || 0), 0);
-      setTotalHours(totalHoursSum);
-      
+      const { entries, totalHours } = await extractTableFromPdf(file);
       setExtractedEntries(entries);
-      setMessage(`✅ Found ${entries.length} time entries in the PDF. Total hours: ${totalHoursSum}`);
+      setTotalHours(totalHours);
+      setMessage(`✅ Found ${entries.length} time entries in the PDF. Total hours: ${totalHours}`);
     } catch (error) {
       console.error("Error extracting table from PDF:", error);
       setMessage("❌ Failed to extract table data from PDF.");
@@ -143,84 +80,7 @@ const WeeklyReport = ({ isOpen, onClose, editingReport }: WeeklyReportProps) => 
     }
   };
   
-  const processTableRow = (rowItems: any[], entries: TimeEntry[]) => {
-    // Skip header rows or empty rows
-    if (rowItems.length < 5) return;
-  
-    let rowData = rowItems.map(item => item.text).filter(text => text.trim() != '');
-    rowData = mergeSplitTimes(rowData);
-    if (rowData.length < 5) return;
-  
-    console.log("Parsed Row: ", rowData);
-  
-    // Attempt to reconstruct a date from adjacent pieces
-    let date = '';
-    let dateStartIndex = -1;
-    for (let i = 0; i < rowData.length - 2; i++) {
-      const combined = rowData[i] + rowData[i + 1] + rowData[i + 2];
-      if (/\d{1,2}\/\d{1,2}\/\d{4}/.test(combined)) {
-        date = combined;
-        dateStartIndex = i;
-        break;
-      }
-    }
-    if(dateStartIndex !== -1){
-      rowData.splice(dateStartIndex, 3, date)
-    }
-  
-    if (date) {
-      // Extract values based on the expected table structure
-      let timeIn = '';
-      let timeOut = '';
-      let hours = 0;
-      let task = '';
-      let remarks = '';
-
-
- 
-      // Find time in and out
-      const timePattern = /\d{1,2}:\d{2}[AP]M/i;
-      const timesFound = rowData.filter(text => text.match(timePattern));
-      if (timesFound.length >= 2) {
-        timeIn = timesFound[0];
-        timeOut = timesFound[1];
-      }
-  
-      // Find hours
-      const hoursPattern = /^\d+$/;
-      const hoursText = rowData.find(text => text.match(hoursPattern));
-      if (hoursText) {
-        hours = parseInt(hoursText, 10);
-      }
-  
-      // Extract task and remarks
-      const nonMatchingItems = rowData.filter(text =>
-        !text.match(/\d{1,2}\/\d{1,2}\/\d{4}/) &&
-        !text.match(timePattern) &&
-        !text.match(hoursPattern) &&
-        text.trim().length > 0
-      );
-  
-      if (nonMatchingItems.length > 0) {
-        task = nonMatchingItems[0];
-        remarks = nonMatchingItems.slice(1).join(' ');
-      }
-  
-      // Only add entry if we have a date and hours
-      if (date && hours) {
-        entries.push({
-          date,
-          timeIn,
-          timeOut,
-          hours,
-          task,
-          remarks
-        });
-      }
-    }
-  }; 
-  
-  const removeFile = (index: number) => {
+ const removeFile = (index: number) => {
     setFiles(files.filter((_, i) => i !== index));
     resetMessage();
     setExtractedEntries([]);
@@ -531,20 +391,3 @@ const WeeklyReport = ({ isOpen, onClose, editingReport }: WeeklyReportProps) => 
 
 export default WeeklyReport;
 
-function mergeSplitTimes(data : string[]): string[] {
-  const merged: string[] = [];
-  let i = 0;
-  while (i < data.length) {
-    const current = data[i].trim();
-    const next = data[i + 1]?.trim();
-
-    if (/\d{1,2}:\d{2}/.test(current) && /^(AM|PM)$/i.test(next)) {
-      merged.push(current + next.toUpperCase());
-      i += 2; // Skip next
-    } else {
-      merged.push(current);
-      i += 1;
-    }
-  }
-  return merged;
-}
