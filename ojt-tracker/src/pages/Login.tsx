@@ -36,7 +36,17 @@ const Auth = () => {
         }
 
         if (userData?.role === 'student') {
-          navigate("/landing-page");
+          const { data: requirements } = await supabase
+            .from("requirements")
+            .select("endorsement_url")
+            .eq("student_id", user.id)
+            .not("endorsement_url", "is", null);
+          
+          if (requirements && requirements.length > 0) {
+            navigate("/student-dashboard");
+          } else {
+            navigate("/landing-page");
+          }
         } else if (userData?.role) {
           navigate("/admin");
         }
