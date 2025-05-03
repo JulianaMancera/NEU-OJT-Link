@@ -455,7 +455,12 @@ const ScheduleSide: React.FC = () => {
                 </span>
               </div>
             ) : (
-              <p className="text-gray-500 text-sm text-center">T.B.A</p>
+              <div className="flex items-center gap-2">
+                <UserSquare2 size={24} color="#1e40af"/>
+                <span className="font-semibold text-gray-500 text-sm">
+                  Supervisor: T.B.A.
+                </span>
+              </div>
             )}
             <div className="flex items-center gap-2">
               <UserSquare2 size={24} color="#1e40af"/>
