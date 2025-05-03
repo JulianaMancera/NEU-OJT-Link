@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { supabase } from "../../../supabase";
-import { UserSquare2, Trash2 } from "lucide-react";
+import { UserSquare2 } from "lucide-react";
 import { Calendar, momentLocalizer, ToolbarProps } from 'react-big-calendar';
 import moment from 'moment';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
@@ -281,50 +281,6 @@ const ScheduleSide: React.FC = () => {
     }
   };
 
-  const handleDeleteLog = async (logId: string, hours: number) => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        setError("User not authenticated.");
-        return;
-      }
-
-      // Delete log entry
-      const { error: deleteError } = await supabase
-        .from("hours_logs")
-        .delete()
-        .eq("id", logId)
-        .eq("user_id", user.id);
-
-      if (deleteError) {
-        console.error("Error deleting log:", deleteError.message);
-        setError("Failed to delete hours log.");
-        return;
-      }
-
-      // Update total hours
-      const newTotalHours = totalHours !== null ? Math.min(300, totalHours + hours) : 300;
-      const { error: hoursError } = await supabase
-        .from("user_hours")
-        .update({ total_hours: newTotalHours })
-        .eq("user_id", user.id);
-
-      if (hoursError) {
-        console.error("Error updating total hours:", hoursError.message);
-        setError("Failed to update total hours.");
-        return;
-      }
-
-      // Update state
-      setTotalHours(newTotalHours);
-      setLogs(prev => prev.filter(log => log.id !== logId));
-      setError(null);
-    } catch (err) {
-      console.error("Error in handleDeleteLog:", err);
-      setError("An unexpected error occurred while deleting log.");
-    }
-  };
-
   // Function to determine if a day should be highlighted
   const dayPropGetter = (date: Date) => {
     const dayOfWeek = moment(date).format('dddd');
@@ -552,13 +508,6 @@ const ScheduleSide: React.FC = () => {
                   {logs.map((log) => (
                     <div key={log.id} className="flex justify-between items-center text-xs text-gray-700">
                       <span>{log.hours} hours logged on {log.logged_at}</span>
-                      <button
-                        onClick={() => handleDeleteLog(log.id, log.hours)}
-                        className="text-red-500 hover:text-red-700"
-                        title="Delete log"
-                      >
-                        <Trash2 size={16} />
-                      </button>
                     </div>
                   ))}
                 </div>
