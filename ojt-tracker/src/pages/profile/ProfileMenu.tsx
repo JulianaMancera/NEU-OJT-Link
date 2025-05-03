@@ -18,6 +18,7 @@ export const ProfileMenu = ({ userName: initialName, userRole, profilePicture, o
   const [role, setRole] = useState<string>(userRole);
   const navigate = useNavigate();
 
+  // Refresh from database if changed elsewhere
   useEffect(() => {
     const fetchUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -36,23 +37,24 @@ export const ProfileMenu = ({ userName: initialName, userRole, profilePicture, o
       }
     };
     fetchUser();
-  }, [initialName]);
+  }, [initialName, role]);
 
+  // Handle profile picture loading
   useEffect(() => {
+    console.log('ProfileMenu received profilePicture:', profilePicture);
     setImageError(null);
     setIsImageLoading(Boolean(profilePicture));
 
     if (profilePicture) {
       const img = new Image();
       img.src = profilePicture;
-      img.onload = () => {
-        setIsImageLoading(false);
-      };
+      img.onload = () => setIsImageLoading(false);
       img.onerror = () => {
         setIsImageLoading(false);
         setImageError('Failed to load image');
       };
     } else {
+      console.log('No profile picture provided');
       setIsImageLoading(false);
     }
   }, [profilePicture]);
@@ -60,6 +62,7 @@ export const ProfileMenu = ({ userName: initialName, userRole, profilePicture, o
   const renderProfileImage = (size: 'small' | 'large') => {
     if (imageError || !profilePicture || isImageLoading) {
       return (
+
         <div className={
           size === 'small'
             ? "w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center"
@@ -70,6 +73,7 @@ export const ProfileMenu = ({ userName: initialName, userRole, profilePicture, o
               ? "w-6 h-6 text-blue-800"
               : "w-12 h-12 text-white"
           } />
+
         </div>
       );
     }
@@ -107,7 +111,10 @@ export const ProfileMenu = ({ userName: initialName, userRole, profilePicture, o
           <ul className="text-sm">
             <li>
               <button
-                onClick={() => { navigate("/profile"); setIsProfileOpen(false); }}
+                onClick={() => {
+                  navigate("/profile");
+                  setIsProfileOpen(false);
+                }}
                 className="w-full text-left px-6 py-4 hover:bg-gray-100 flex items-center transition-all duration-200"
               >
                 <User className="w-6 h-6 mr-3" /> Profile
@@ -130,7 +137,10 @@ export const ProfileMenu = ({ userName: initialName, userRole, profilePicture, o
             {role === "admin" && (
               <li>
                 <button
-                  onClick={() => { navigate("/admin"); setIsProfileOpen(false); }}
+                  onClick={() => {
+                    navigate("/admin");
+                    setIsProfileOpen(false);
+                  }}
                   className="w-full text-left px-6 py-4 hover:bg-gray-100 flex items-center transition-all duration-200"
                 >
                   <UserCog className="w-6 h-6 mr-3" /> Admin
@@ -139,7 +149,12 @@ export const ProfileMenu = ({ userName: initialName, userRole, profilePicture, o
             )}
             <li>
               <button
-                onClick={() => { navigate("/about"); setIsProfileOpen(false); }}
+        onClick={() => { onLogout(); setIsProfileOpen(false); }}
+
+                onClick={() => {
+                  navigate("/about");
+                  setIsProfileOpen(false);
+                }}
                 className="w-full text-left px-6 py-4 hover:bg-gray-100 flex items-center transition-all duration-200"
               >
                 <Info className="w-6 h-6 mr-3" /> About Us
@@ -147,7 +162,11 @@ export const ProfileMenu = ({ userName: initialName, userRole, profilePicture, o
             </li>
             <li>
               <button
-                onClick={() => { onLogout(); setIsProfileOpen(false); }}
+                onClick={() => {
+                  onLogout();
+                  setIsProfileOpen(false);
+                }}
+
                 className="w-full text-left px-6 py-4 hover:bg-red-50 text-red-600 flex items-center transition-all duration-200"
               >
                 <LogOut className="w-6 h-6 mr-3" /> Log out

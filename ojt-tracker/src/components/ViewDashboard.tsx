@@ -34,12 +34,28 @@ const ViewDashboard = () => {
     setStep("selectJob");
   };
 
+  const handleHomeClick = () => {
+    if (userRole === "admin" || userRole === "dean") {
+      navigate("/admin");
+    } else {
+      navigate("/student-dashboard");
+    }
+  };
+
   if (loading) return <Loading />;
 
   return (
     <div className="min-h-screen flex flex-col">
       <div className="w-full h-[80px] absolute left-0 top-0 bg-gradient-to-b from-[#578FCA] to-[#2B4764] border-1 border-black flex items-center justify-between px-6">
-        <img src={OJTLogo} alt="OJT Logo" className="w-[220px] h-[220px] ml-4" />
+        <div className="flex items-center space-x-4">
+          <img src={OJTLogo} alt="OJT Logo" className="w-[220px] h-[220px] ml-4" />
+          <button
+            onClick={handleHomeClick}
+            className="text-white px-5 py-2 rounded-full transition-all duration-300 shadow-md hover:shadow-lg bg-transparent hover:bg-blue-700"
+          >
+            HOME
+          </button>
+        </div>
         <div className="flex space-x-4">
           <ProfileMenu
             userName={userName}
