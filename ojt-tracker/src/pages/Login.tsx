@@ -19,41 +19,70 @@ const Auth = () => {
         setUsername(savedUsername);
       }
       
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user?.email?.endsWith("@neu.edu.ph")) {
-        // Check user role from user table
-        const { data: userData, error } = await supabase
-          .from('user')
-          .select('role')
-          .eq('user_id', user.id)
-          .single();
-        
-        if (error) {
-          console.error('Error fetching user role:', error);
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      
+      if (authError || !user || !user.email?.endsWith("@neu.edu.ph")) {
+        await supabase.auth.signOut();
+        setLoading(false);
+        return;
+      }
+      
+      const { data: existingUser } = await supabase
+        .from('user')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      if (!existingUser) {
+        const fullname = user.user_metadata?.full_name || "User";
+        const { error: insertError } = await supabase.from("user").insert({
+          user_id: user.id,
+          name: fullname,
+          email: user.email,
+          date_registered: new Date().toISOString(),
+          course: null,
+          profilePicture: user.user_metadata?.avatar_url
+        });
+
+        if (insertError) {
+          console.error("Error inserting user:", insertError);
           await supabase.auth.signOut();
           setLoading(false);
           return;
         }
+      }
 
-        if (userData?.role === 'student') {
-          const { data: requirements } = await supabase
-            .from("requirements")
-            .select("endorsement_url")
-            .eq("student_id", user.id)
-            .not("endorsement_url", "is", null);
-          
-          if (requirements && requirements.length > 0) {
-            navigate("/student-dashboard");
-          } else {
-            navigate("/landing-page");
-          }
-        } else if (userData?.role) {
-          navigate("/admin");
-        }
-      } else {
+      // Check user role from user table
+      const { data: userData, error: roleError } = await supabase
+        .from('user')
+        .select('role')
+        .eq('user_id', user.id)
+        .single();
+      
+      if (roleError) {
+        console.error('Error fetching user role:', roleError);
         await supabase.auth.signOut();
         setLoading(false);
+        return;
       }
+
+      if (userData?.role === 'student') {
+        const { data: requirements } = await supabase
+          .from("requirements")
+          .select("endorsement_url")
+          .eq("student_id", user.id)
+          .not("endorsement_url", "is", null);
+        
+        if (requirements && requirements.length > 0) {
+          navigate("/student-dashboard");
+        } else {
+          navigate("/landing-page");
+        }
+      } else if (userData?.role) {
+        navigate("/admin");
+      }
+
+      setLoading(false);
     };
 
     checkUser();
@@ -67,8 +96,6 @@ const Auth = () => {
 
     if (error) console.error("Google Sign-In Error:", error);
     
-    // The actual saving of the username will happen after successful login
-    // and we'll handle it on the landing page or using auth state change listeners
   };
 
   return (
