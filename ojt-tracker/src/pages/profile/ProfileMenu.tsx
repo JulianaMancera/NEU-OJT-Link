@@ -149,8 +149,6 @@ export const ProfileMenu = ({ userName: initialName, userRole, profilePicture, o
             )}
             <li>
               <button
-        onClick={() => { onLogout(); setIsProfileOpen(false); }}
-
                 onClick={() => {
                   navigate("/about");
                   setIsProfileOpen(false);

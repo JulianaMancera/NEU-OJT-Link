@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { supabase } from "../../../supabase";
-import { UserSquare2 } from "lucide-react";
+import { UserSquare2, Trash2 } from "lucide-react";
 import { Calendar, momentLocalizer, ToolbarProps } from 'react-big-calendar';
 import moment from 'moment';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
@@ -53,7 +53,7 @@ const ScheduleSide: React.FC = () => {
           return;
         }
 
-        setUserId(user.id); // Store user ID for dependency
+        setUserId(user.id);
 
         // Fetch company and job details
         const { data: application, error: applicationError } = await supabase
@@ -100,7 +100,7 @@ const ScheduleSide: React.FC = () => {
         setSupervisor(company.supervisor || null);
         setJobPosition(job.position);
 
-        // Fetch work days within the same useEffect
+        // Fetch work days
         const { data: workDaysData, error: workDaysError } = await supabase
           .from("availability")
           .select("day_of_week, start_time, end_time")
@@ -122,7 +122,7 @@ const ScheduleSide: React.FC = () => {
           setWorkDays(formattedWorkDays);
         }
 
-        // Fetch total hours with explicit reset logic
+        // Fetch total hours
         const { data: hoursData, error: hoursError } = await supabase
           .from("user_hours")
           .select("total_hours")
@@ -134,7 +134,7 @@ const ScheduleSide: React.FC = () => {
         if (hoursError) {
           if (hoursError.code === "PGRST116") {
             console.log("No hours record found, initializing to 300...");
-            const { data: insertData, error: insertError } = await supabase
+            const { error: insertError } = await supabase
               .from("user_hours")
               .insert({ user_id: user.id, total_hours: 300 })
               .select()
@@ -143,38 +143,20 @@ const ScheduleSide: React.FC = () => {
             if (insertError) {
               console.error("Error initializing total hours:", insertError.message);
               setError(`Failed to initialize hours: ${insertError.message}`);
-              setTotalHours(300); // Fallback to 300 even if insert fails
+              setTotalHours(300);
               return;
             }
-            console.log("Inserted new hours record:", insertData);
             setTotalHours(300);
             console.log("Total hours reset to 300 after initialization");
           } else {
             console.error("Error fetching total hours:", hoursError.message);
             setError(`Failed to load hours data: ${hoursError.message}`);
-            setTotalHours(300); // Fallback to 300 on error
+            setTotalHours(300);
             return;
           }
         } else if (hoursData) {
           setTotalHours(hoursData.total_hours);
           console.log("Total hours set to:", hoursData.total_hours);
-        } else {
-          console.log("Unexpected: hoursData is null, initializing to 300...");
-          const { data: insertData, error: insertError } = await supabase
-            .from("user_hours")
-            .insert({ user_id: user.id, total_hours: 300 })
-            .select()
-            .single();
-
-          if (insertError) {
-            console.error("Error initializing total hours:", insertError.message);
-            setError(`Failed to initialize hours: ${insertError.message}`);
-            setTotalHours(300); // Fallback to 300 even if insert fails
-            return;
-          }
-          console.log("Inserted new hours record (fallback):", insertData);
-          setTotalHours(300);
-          console.log("Total hours reset to 300 (fallback)");
         }
 
         // Fetch logs
@@ -222,12 +204,12 @@ const ScheduleSide: React.FC = () => {
       } catch (err) {
         console.error("Unexpected error in fetchData:", err);
         setError("An unexpected error occurred while loading data.");
-        setTotalHours(300); // Fallback to 300 on unexpected error
+        setTotalHours(300);
       }
     };
 
     fetchData();
-  }, [userId]); // Re-run if userId changes (e.g., after logout/login)
+  }, [userId]);
 
   const formatTime = (time24: string): string => {
     const timeParts = time24.split(':');
@@ -245,28 +227,83 @@ const ScheduleSide: React.FC = () => {
 
   const handleHoursSubmit = async () => {
     const hours = parseFloat(hoursInput);
-    if (!isNaN(hours) && hours > 0 && totalHours !== null) {
+    if (!isNaN(hours) && hours > 0 && hours <= 10 && totalHours !== null) {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          setError("User not authenticated.");
+          return;
+        }
+
+        // Insert new log entry
+        const { data: logData, error: logError } = await supabase
+          .from("hours_logs")
+          .insert({ user_id: user.id, hours })
+          .select("id, hours, logged_at")
+          .single();
+
+        if (logError) {
+          console.error("Error saving log:", logError.message);
+          setError("Failed to save hours log.");
+          return;
+        }
+
+        // Update total hours
+        const newTotalHours = Math.max(0, totalHours - hours);
+        const { error: hoursError } = await supabase
+          .from("user_hours")
+          .update({ total_hours: newTotalHours })
+          .eq("user_id", user.id);
+
+        if (hoursError) {
+          console.error("Error updating total hours:", hoursError.message);
+          setError("Failed to update total hours.");
+          return;
+        }
+
+        // Update state
+        setTotalHours(newTotalHours);
+        setLogs(prev => [{
+          id: logData.id,
+          hours: logData.hours,
+          logged_at: new Date(logData.logged_at).toLocaleString(),
+        }, ...prev]);
+        setHoursInput("");
+        setError(null);
+      } catch (err) {
+        console.error("Error in handleHoursSubmit:", err);
+        setError("An unexpected error occurred while logging hours.");
+      }
+    } else if (hours > 10) {
+      setError("Maximum 10 hours can be logged at once.");
+    } else {
+      setError("Please enter a valid number of hours.");
+    }
+  };
+
+  const handleDeleteLog = async (logId: string, hours: number) => {
+    try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         setError("User not authenticated.");
         return;
       }
 
-      // Insert new log entry
-      const { data: logData, error: logError } = await supabase
+      // Delete log entry
+      const { error: deleteError } = await supabase
         .from("hours_logs")
-        .insert({ user_id: user.id, hours })
-        .select("id, hours, logged_at")
-        .single();
+        .delete()
+        .eq("id", logId)
+        .eq("user_id", user.id);
 
-      if (logError) {
-        console.error("Error saving log:", logError.message);
-        setError("Failed to save hours log.");
+      if (deleteError) {
+        console.error("Error deleting log:", deleteError.message);
+        setError("Failed to delete hours log.");
         return;
       }
 
       // Update total hours
-      const newTotalHours = Math.max(0, totalHours - hours);
+      const newTotalHours = totalHours !== null ? Math.min(300, totalHours + hours) : 300;
       const { error: hoursError } = await supabase
         .from("user_hours")
         .update({ total_hours: newTotalHours })
@@ -280,50 +317,23 @@ const ScheduleSide: React.FC = () => {
 
       // Update state
       setTotalHours(newTotalHours);
-      setLogs(prev => [{
-        id: logData.id,
-        hours: logData.hours,
-        logged_at: new Date(logData.logged_at).toLocaleString(),
-      }, ...prev]);
-      setHoursInput("");
+      setLogs(prev => prev.filter(log => log.id !== logId));
       setError(null);
+    } catch (err) {
+      console.error("Error in handleDeleteLog:", err);
+      setError("An unexpected error occurred while deleting log.");
     }
-  };
-
-  // Function to reset total hours to 300
-  const handleResetHours = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      setError("User not authenticated.");
-      return;
-    }
-
-    // Update total hours to 300 in Supabase
-    const { error: hoursError } = await supabase
-      .from("user_hours")
-      .update({ total_hours: 300 })
-      .eq("user_id", user.id);
-
-    if (hoursError) {
-      console.error("Error resetting total hours:", hoursError.message);
-      setError("Failed to reset total hours.");
-      return;
-    }
-
-    // Update state
-    setTotalHours(300);
-    setError(null);
   };
 
   // Function to determine if a day should be highlighted
   const dayPropGetter = (date: Date) => {
-    const dayOfWeek = moment(date).format('dddd'); // e.g., "Monday"
+    const dayOfWeek = moment(date).format('dddd');
     const isWorkDay = workDays.some(workDay => workDay.day_of_week === dayOfWeek);
 
     if (isWorkDay) {
       return {
         style: {
-          backgroundColor: '#d1fae5', // Light green for work days
+          backgroundColor: '#d1fae5',
         },
       };
     }
@@ -403,7 +413,7 @@ const ScheduleSide: React.FC = () => {
     );
   };
 
-  // Calculate progress for the progress bar (assuming 300 is the initial total hours)
+  // Calculate progress for the progress bar
   const initialTotalHours = 300;
   const progressPercentage = totalHours !== null ? (totalHours / initialTotalHours) * 100 : 100;
 
@@ -514,12 +524,6 @@ const ScheduleSide: React.FC = () => {
                   {totalHours !== null ? `${Math.round(progressPercentage)}% remaining` : "Calculating..."}
                 </p>
               </div>
-              <button
-                onClick={handleResetHours}
-                className="mt-2 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-all duration-300 font-medium text-sm"
-              >
-                Reset Hours to 300
-              </button>
             </div>
             <div className="flex items-center space-x-2">
               <input
@@ -529,12 +533,13 @@ const ScheduleSide: React.FC = () => {
                 placeholder="Hours worked (e.g., 4.5)"
                 className="w-full p-3 border border-gray-300 rounded-lg text-gray-900 text-sm placeholder-gray-500"
                 min="0"
+                max="10"
                 step="0.5"
               />
               <button
                 onClick={handleHoursSubmit}
                 className="bg-blue-600 text-white px-4 py-3 rounded-lg hover:bg-blue-700 transition-all duration-300 font-medium text-sm"
-                disabled={!hoursInput || parseFloat(hoursInput) <= 0}
+                disabled={!hoursInput || parseFloat(hoursInput) <= 0 || parseFloat(hoursInput) > 10}
               >
                 Log
               </button>
@@ -545,8 +550,15 @@ const ScheduleSide: React.FC = () => {
               {logs.length > 0 ? (
                 <div className="max-h-48 overflow-y-auto space-y-2">
                   {logs.map((log) => (
-                    <div key={log.id} className="text-xs text-gray-700">
+                    <div key={log.id} className="flex justify-between items-center text-xs text-gray-700">
                       <span>{log.hours} hours logged on {log.logged_at}</span>
+                      <button
+                        onClick={() => handleDeleteLog(log.id, log.hours)}
+                        className="text-red-500 hover:text-red-700"
+                        title="Delete log"
+                      >
+                        <Trash2 size={16} />
+                      </button>
                     </div>
                   ))}
                 </div>

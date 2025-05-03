@@ -85,6 +85,7 @@ const Reports = () => {
     applyFilters();
   }, [statusFilter, weeklyReports, monthlyReports, searchTerm]);
 
+  
   const applyFilters = () => {
     // Filter weekly reports
     let filteredWeekly = [...weeklyReports];
