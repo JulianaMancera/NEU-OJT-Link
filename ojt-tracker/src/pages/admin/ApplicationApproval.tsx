@@ -4,7 +4,7 @@ import { User as SupabaseUser } from "@supabase/supabase-js";
 import Sidebar from "./SideBar";
 import OJTLogo from "/src/assets/ojt-white.png";
 import { Loading } from "../../components/Loading";
-import { Folder, User, Settings, CircleHelp, LogOut, UserCog, ArrowLeft, FileText } from "lucide-react";
+import { Folder, User, Settings, CircleHelp, LogOut, UserCog, ArrowLeft} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { updateAllJobSlots } from "../../services/JobService";
 
