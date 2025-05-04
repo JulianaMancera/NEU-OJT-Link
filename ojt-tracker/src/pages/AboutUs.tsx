@@ -12,8 +12,9 @@ interface AboutUsProps {
 const AboutUs = ({ handleLogout }: AboutUsProps) => {
   const [isProfileOpen, setProfileOpen] = useState(false);
   const [userName, setUserName] = useState("");
-  const [userRole, setUserRole] = useState(null);
-  const [profilePicture, setProfilePicture] = useState(null);
+  const [userRole, setUserRole] = useState<string | null>(null);
+  const [profilePicture, setProfilePicture] = useState<string | null>(null);
+  const [hasApplied, setHasApplied] = useState(false);
   const [activeSection, setActiveSection] = useState("about");
   const navigate = useNavigate();
   const location = useLocation();
@@ -34,11 +35,39 @@ const AboutUs = ({ handleLogout }: AboutUsProps) => {
           setUserRole(roleData.role);
           setProfilePicture(roleData.profilePicture);
         }
+
+        // Check if user has applied for any position
+        if (roleData?.role === "student") {
+          const { data: applicationData } = await supabase
+            .from("application")
+            .select("id")
+            .eq("student_id", user.id)
+            .limit(1);
+          
+          // Fix here: Ensure we're setting a boolean value
+          setHasApplied(applicationData !== null && applicationData !== undefined && applicationData.length > 0);
+        }
       }
     };
 
     fetchUserData();
   }, []);
+
+  // Handle home button navigation based on user role and application status
+  const handleHomeNavigation = () => {
+    if (userRole === "admin") {
+      navigate("/admin");
+    } else if (userRole === "student") {
+      if (hasApplied) {
+        navigate("/student-dashboard");
+      } else {
+        navigate("/dashboard");
+      }
+    } else {
+      // Default route if role is undefined or not recognized
+      navigate("/dashboard");
+    }
+  };
 
   // Team members data with their details
   const teamMembers = [
@@ -125,7 +154,7 @@ const AboutUs = ({ handleLogout }: AboutUsProps) => {
         <div className="flex items-center space-x-4">
           <img src={OJTLogo} alt="OJT Link Logo" className="w-[220px] h-[220px] ml-15" />
           <button
-            onClick={() => navigate("/student-dashboard")}
+            onClick={handleHomeNavigation}
             className={`text-white px-5 py-2 rounded-full transition-all duration-300 shadow-md hover:shadow-lg ${
               isHomePage ? "bg-blue-700 hover:brightness-110" : "bg-transparent hover:bg-blue-700"
             }`}
