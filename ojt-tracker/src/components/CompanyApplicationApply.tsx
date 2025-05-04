@@ -31,6 +31,16 @@ const CompanyApplicationApply: React.FC<CompanyApplicationApplyProps> = ({
     }
   };
 
+  const formatTime = (time: string) => {
+    const [hourStr, minStr] = time.split(":");
+    const date = new Date();
+    date.setHours(+hourStr, +minStr);
+    return date.toLocaleTimeString([], {
+      hour: "numeric",
+      minute: "2-digit",
+    });
+  };
+
   return (
     <div className="text-gray-800 max-w-6xl mx-auto p-8">
       {/* Header Section */}
@@ -61,11 +71,20 @@ const CompanyApplicationApply: React.FC<CompanyApplicationApplyProps> = ({
             aria-label={`Apply for ${job.position}`}
             disabled={hasApplied}
           >
-            {hasApplied ? "Application in Progress" : "Apply Now"}
+            {hasApplied ? "Application in Progress" : "Apply Now"} 
           </button>
         )}
-      </div>
-
+      </div> 
+        {/* Company schedule display */}
+        {company.start_time && company.end_time && (
+        <div className="text-center mb-10">
+          <p className="text-gray-700 font-medium">
+            Company Schedule:{" "}
+            {formatTime(company.start_time)} to{" "}
+           {formatTime(company.end_time)}
+          </p>
+        </div>
+      )}
       {/* Job Details */}
       <section className="space-y-6">
         {/* Description */}

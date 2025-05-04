@@ -29,8 +29,46 @@ const WeeklyReport = ({ isOpen, onClose, editingReport }: WeeklyReportProps) => 
   const [progress, setProgress] = useState<number | null>(null);
   const [message, setMessage] = useState("");
   const [extractedEntries, setExtractedEntries] = useState<TimeEntry[]>([]);
+  const [,setSubmittedWeeks] = useState<number[]>([]);
+  const [nextExpectedWeek,  setNextExpectedWeek]  = useState<number>(1);
+  const [selectedFileWeek,  setSelectedFileWeek]  = useState<number|null>(null);
   const [isExtracting, setIsExtracting] = useState(false);
   const [totalHours, setTotalHours] = useState<number>(0);
+  const [loadingWeeks, setLoadingWeeks] = useState<boolean>(true);
+
+  useEffect(() => {
+    if (!isOpen || editingReport) return;
+    setLoadingWeeks(true);
+
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setSubmittedWeeks([]);
+        setNextExpectedWeek(1);
+        setLoadingWeeks(false);
+         return;
+    }
+      const { data, error } = await supabase
+        .from("weekly_report")
+        .select("week_number")
+        .eq("user_id", user.id);
+
+        const weeks: number[] = !error && data
+      ? data
+          .map(r => r.week_number)
+          .filter((n): n is number => typeof n === "number" && n > 0)
+          .sort((a,b) => a-b)
+      : [];
+
+    let next = 1;
+    for (const w of weeks) {
+      if (w === next) next++;
+      else if (w > next) break;
+    }
+    setNextExpectedWeek(next);
+    setLoadingWeeks(false);
+  })();
+}, [isOpen, editingReport]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -39,27 +77,39 @@ const WeeklyReport = ({ isOpen, onClose, editingReport }: WeeklyReportProps) => 
       setProgress(null);
       setExtractedEntries([]);
       setTotalHours(0);
+      setSelectedFileWeek(null);
     }
   }, [isOpen]);
 
   const resetMessage = () => setMessage("");
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      const selectedFiles = Array.from(e.target.files);
+      const fileList = e.target.files;
+      if (!fileList || fileList.length === 0) return;
+
+      const selectedFiles = Array.from(fileList);
       setFiles(selectedFiles);
+
+      // immediately pull week number from filename
+      const filenameWeek = extractWeekNumber(selectedFiles[0].name);
+      setSelectedFileWeek(filenameWeek);
       
       // Extract table data from the first PDF
       if (selectedFiles.length > 0 && selectedFiles[0].type === "application/pdf") {
         await extractTableFromPdf(selectedFiles[0]);
       }
-    }
+    
   };
 
   const handleDrop = async (e: React.DragEvent<HTMLLabelElement>) => {
     e.preventDefault();
     const droppedFiles = Array.from(e.dataTransfer.files);
+    if (droppedFiles.length === 0) return;
+
     setFiles(droppedFiles);
+    
+    const filenameWeek = extractWeekNumber(droppedFiles[0].name);
+    setSelectedFileWeek(filenameWeek);
     
     // Extract table data from the first PDF
     if (droppedFiles.length > 0 && droppedFiles[0].type === "application/pdf") {
@@ -241,6 +291,14 @@ const WeeklyReport = ({ isOpen, onClose, editingReport }: WeeklyReportProps) => 
     return /^WeeklyReport_[a-zA-Z]+_Week(\d+)\.pdf$/.test(fileName);
   };
 
+    const uploadDisabled =
+    loadingWeeks                  ||  // still fetching your past submissions
+    uploading                     ||  // or mid‑upload
+    files.length === 0            ||  // or no file picked
+    (!editingReport && (
+        selectedFileWeek !== nextExpectedWeek
+    ));
+
   const extractWeekNumber = (fileName: string): number | null => {
     const match = fileName.match(/Week(\d+)/);
     return match ? parseInt(match[1], 10) : null;
@@ -251,6 +309,21 @@ const WeeklyReport = ({ isOpen, onClose, editingReport }: WeeklyReportProps) => 
       setMessage("❌ Please select at least one file.");
       return;
     }
+
+    if (!editingReport && selectedFileWeek !== nextExpectedWeek) {
+      setMessage(`❌ Please upload Week ${nextExpectedWeek} next.`);
+      return;
+          }
+    
+    if (loadingWeeks) {
+      setMessage("🔄 Still checking which week comes next…");
+      return;
+          }
+    if (!editingReport && selectedFileWeek !== nextExpectedWeek) {
+      setMessage(`❌ Please upload Week ${nextExpectedWeek} next.`);
+      return;
+          }
+
   
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
@@ -272,7 +345,7 @@ const WeeklyReport = ({ isOpen, onClose, editingReport }: WeeklyReportProps) => 
       }
   
       if (!isValidFileName(fileName)) {
-        errors.push(`Invalid format: ${fileName}. Format should be WeeklyReport_Surname_Week#.pdf`);
+        errors.push(`Invalid format: ${fileName}. Format should be WeeklyReport_Surname_Week#.pdf`); 
         continue;
       }
   
@@ -534,14 +607,15 @@ const WeeklyReport = ({ isOpen, onClose, editingReport }: WeeklyReportProps) => 
             {message}
           </p>
         )}
-
-        <button
-          onClick={handleUpload}
-          className="w-full bg-blue-600 text-white py-2 mt-4 rounded-lg text-lg font-semibold hover:bg-blue-700 disabled:bg-gray-400"
-          disabled={uploading || files.length === 0}
-        >
-          {uploading ? "Uploading..." : editingReport ? "UPDATE REPORT" : "UPLOAD REPORT"}
-        </button>
+          <button
+            onClick={handleUpload}
+            disabled={uploadDisabled}
+            className="w-full bg-blue-600 text-white py-2 mt-4 rounded-lg text-lg font-semibold hover:bg-blue-700 disabled:bg-gray-400"
+          >
+            {editingReport
+              ? "UPDATE REPORT"
+              : `UPLOAD WEEK ${nextExpectedWeek} REPORT`}
+          </button>
       </div>
     </div>
   );
