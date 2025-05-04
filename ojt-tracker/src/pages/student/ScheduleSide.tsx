@@ -37,6 +37,15 @@ const ScheduleSide: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [supervisor, setSupervisor] = useState<string | null>(null);
+  const [showModal, setShowModal] = useState(false); // State to control modal visibility
+
+  // Check localStorage for modal display status on mount
+  useEffect(() => {
+    const hasSeenModal = localStorage.getItem(`hasSeenCompletionModal_${userId}`);
+    if (totalHours !== null && totalHours <= 0 && !hasSeenModal) {
+      setShowModal(true);
+    }
+  }, [totalHours, userId]); // Re-check when totalHours or userId changes
 
   // Fetch company info, work days, total hours, logs, and holidays
   useEffect(() => {
@@ -242,11 +251,23 @@ const ScheduleSide: React.FC = () => {
           .select("id, hours, logged_at")
           .single();
 
-        if (logError) {
-          console.error("Error saving log:", logError.message);
-          setError("Failed to save hours log.");
-          return;
-        }
+      // Update state
+      setTotalHours(newTotalHours);
+      setLogs(prev => [{
+        id: logData.id,
+        hours: logData.hours,
+        logged_at: new Date(logData.logged_at).toLocaleString(),
+      }, ...prev]);
+      setHoursInput("");
+      setError(null);
+
+      // Check if total hours is now 0 or less and modal hasn't been shown
+      const hasSeenModal = localStorage.getItem(`hasSeenCompletionModal_${user.id}`);
+      if (newTotalHours <= 0 && !hasSeenModal) {
+        setShowModal(true);
+      }
+    }
+  };
 
         // Update total hours
         const newTotalHours = Math.max(0, totalHours - hours);
@@ -279,6 +300,13 @@ const ScheduleSide: React.FC = () => {
     } else {
       setError("Please enter a valid number of hours.");
     }
+
+    // Update state and clear modal flag
+    setTotalHours(300);
+    setShowModal(false);
+    localStorage.removeItem(`hasSeenCompletionModal_${user.id}`); // Allow modal to show again after reset
+    setError(null);
+
   };
 
   // Function to determine if a day should be highlighted
@@ -518,6 +546,31 @@ const ScheduleSide: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Modal for 300 hours completion */}
+      {showModal && (
+        <div className="fixed inset-0 bg-blur bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4 text-center">
+              Congratulations!
+            </h2>
+            <p className="text-gray-700 mb-6 text-center">
+              You completed 300 hours of your OJT. You can now download your Certificate of Completion in the Reports Tab.
+            </p>
+            <div className="flex justify-center">
+              <button
+                onClick={() => {
+                  setShowModal(false);
+                  localStorage.setItem(`hasSeenCompletionModal_${userId}`, "true"); // Mark modal as seen
+                }}
+                className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-all duration-300 font-medium"
+              >
+                Okay
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

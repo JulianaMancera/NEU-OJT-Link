@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { pdf } from "@react-pdf/renderer";
 import { supabase } from "../../supabase";
 import MonthlyReportPDF from "../services/MonthlyReportPDF";
+import { FileText } from "lucide-react";
+
 
 interface GenMonthlyProps {
   companyName: string;
@@ -103,10 +105,11 @@ const GenerateMonthlyReport: React.FC<GenMonthlyProps> = ({ companyName, job }) 
     <div className="relative">
       {/* Generate Button */}
       <button
-        className="text-white mb-3 bg-black px-4 py-2 rounded disabled:opacity-50 disabled:cursor-not-allowed"
+        className="flex items-center gap-2 text-white mt-4 mb-4 bg-blue-600 px-4 py-2 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
         onClick={onGenerateClick}
         disabled={loadingCount || !companyName || !job}
       >
+        <FileText className="w-5 h-5" />
         {loadingCount
           ? "Checking..."
           : isEligible

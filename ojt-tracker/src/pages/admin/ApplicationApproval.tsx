@@ -201,8 +201,8 @@ const ApplicationApproval = () => {
 
   return (
     <div>
-      <div className="bg-blue-200 w-screen h-screen p-20">
-        <div className="w-full h-[80px] absolute left-0 top-0 bg-gradient-to-b from-[#578FCA] to-[#2B4764] border-1 border-black flex items-center justify-between px-6">
+      <div className="bg-blue-200 w-screen relative min-h-screen p-20">
+        <div className="w-full h-[80px] fixed absolute left-0 top-0 bg-gradient-to-b from-[#578FCA] to-[#2B4764] border-1 border-black flex items-center justify-between px-6">
           <img src={OJTLogo} alt="OJT Link Logo" className="w-[220px] h-[220px] ml-15" />
           <div className="flex items-center">
             <button
