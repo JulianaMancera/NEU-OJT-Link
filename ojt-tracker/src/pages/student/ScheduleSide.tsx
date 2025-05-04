@@ -37,34 +37,35 @@ const ScheduleSide: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [supervisor, setSupervisor] = useState<string | null>(null);
-  const [showModal, setShowModal] = useState(false); // State to control modal visibility
+  const [showModal, setShowModal] = useState(false);
 
-  // Check localStorage for modal display status on mount
+  // Check for modal display when totalHours changes
   useEffect(() => {
-    const hasSeenModal = localStorage.getItem(`hasSeenCompletionModal_${userId}`);
-    if (totalHours !== null && totalHours <= 0 && !hasSeenModal) {
-      setShowModal(true);
+    if (userId && totalHours !== null && totalHours <= 0) {
+      const hasSeenModal = localStorage.getItem(`hasSeenCompletionModal_${userId}`);
+      if (!hasSeenModal) {
+        setShowModal(true);
+      }
     }
-  }, [totalHours, userId]); // Re-check when totalHours or userId changes
+  }, [totalHours, userId]);
 
-  // Fetch company info, work days, total hours, logs, and holidays
+  // Fetch all data on component mount
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Reset state to ensure we don't use stale values
         setTotalHours(null);
         setError(null);
 
+        // Fetch user
         const { data: { user }, error: userError } = await supabase.auth.getUser();
         if (userError || !user) {
           console.error("User fetch error:", userError?.message);
           setError("User not authenticated.");
           return;
         }
-
         setUserId(user.id);
 
-        // Fetch company and job details
+        // Fetch application
         const { data: application, error: applicationError } = await supabase
           .from("application")
           .select("company_id, job_id, application_id")
@@ -80,6 +81,7 @@ const ScheduleSide: React.FC = () => {
 
         const { company_id, job_id, application_id } = application;
 
+        // Fetch company
         const { data: company, error: companyError } = await supabase
           .from("company")
           .select("name, logo_url, supervisor")
@@ -92,6 +94,7 @@ const ScheduleSide: React.FC = () => {
           return;
         }
 
+        // Fetch job
         const { data: job, error: jobError } = await supabase
           .from("job")
           .select("position")
@@ -122,7 +125,7 @@ const ScheduleSide: React.FC = () => {
           return;
         }
 
-        if (workDaysData && workDaysData.length > 0) {
+        if (workDaysData) {
           const formattedWorkDays = workDaysData.map(day => ({
             day_of_week: day.day_of_week,
             start_time: formatTime(day.start_time),
@@ -156,7 +159,7 @@ const ScheduleSide: React.FC = () => {
               return;
             }
             setTotalHours(300);
-            console.log("Total hours reset to 300 after initialization");
+            console.log("Total hours set to 300 after initialization");
           } else {
             console.error("Error fetching total hours:", hoursError.message);
             setError(`Failed to load hours data: ${hoursError.message}`);
@@ -218,7 +221,7 @@ const ScheduleSide: React.FC = () => {
     };
 
     fetchData();
-  }, [userId]);
+  }, []); // Empty dependency array for one-time fetch
 
   const formatTime = (time24: string): string => {
     const timeParts = time24.split(':');
@@ -236,20 +239,54 @@ const ScheduleSide: React.FC = () => {
 
   const handleHoursSubmit = async () => {
     const hours = parseFloat(hoursInput);
-    if (!isNaN(hours) && hours > 0 && hours <= 10 && totalHours !== null) {
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
-          setError("User not authenticated.");
-          return;
-        }
+    // Validate input: must be a number, positive, <= 10, and in 0.5 increments
+    if (
+      isNaN(hours) ||
+      hours <= 0 ||
+      hours > 10 ||
+      totalHours === null ||
+      (hours * 10) % 5 !== 0 // Ensures 0.5 increments
+    ) {
+      setError(
+        hours > 10
+          ? "Maximum 10 hours can be logged at once."
+          : "Please enter a valid number of hours (e.g., 4.0, 4.5, up to 10.0)."
+      );
+      return;
+    }
 
-        // Insert new log entry
-        const { data: logData, error: logError } = await supabase
-          .from("hours_logs")
-          .insert({ user_id: user.id, hours })
-          .select("id, hours, logged_at")
-          .single();
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setError("User not authenticated.");
+        return;
+      }
+
+      // Insert new log entry
+      const { data: logData, error: logError } = await supabase
+        .from("hours_logs")
+        .insert({ user_id: user.id, hours })
+        .select("id, hours, logged_at")
+        .single();
+
+      if (logError || !logData) {
+        console.error("Error logging hours:", logError?.message);
+        setError("Failed to log hours.");
+        return;
+      }
+
+      // Update total hours
+      const newTotalHours = Math.max(0, totalHours - hours);
+      const { error: hoursError } = await supabase
+        .from("user_hours")
+        .update({ total_hours: newTotalHours })
+        .eq("user_id", user.id);
+
+      if (hoursError) {
+        console.error("Error updating total hours:", hoursError.message);
+        setError("Failed to update total hours.");
+        return;
+      }
 
       // Update state
       setTotalHours(newTotalHours);
@@ -260,56 +297,12 @@ const ScheduleSide: React.FC = () => {
       }, ...prev]);
       setHoursInput("");
       setError(null);
-
-      // Check if total hours is now 0 or less and modal hasn't been shown
-      const hasSeenModal = localStorage.getItem(`hasSeenCompletionModal_${user.id}`);
-      if (newTotalHours <= 0 && !hasSeenModal) {
-        setShowModal(true);
-      }
+    } catch (err) {
+      console.error("Error in handleHoursSubmit:", err);
+      setError("An unexpected error occurred while logging hours.");
     }
   };
 
-        // Update total hours
-        const newTotalHours = Math.max(0, totalHours - hours);
-        const { error: hoursError } = await supabase
-          .from("user_hours")
-          .update({ total_hours: newTotalHours })
-          .eq("user_id", user.id);
-
-        if (hoursError) {
-          console.error("Error updating total hours:", hoursError.message);
-          setError("Failed to update total hours.");
-          return;
-        }
-
-        // Update state
-        setTotalHours(newTotalHours);
-        setLogs(prev => [{
-          id: logData.id,
-          hours: logData.hours,
-          logged_at: new Date(logData.logged_at).toLocaleString(),
-        }, ...prev]);
-        setHoursInput("");
-        setError(null);
-      } catch (err) {
-        console.error("Error in handleHoursSubmit:", err);
-        setError("An unexpected error occurred while logging hours.");
-      }
-    } else if (hours > 10) {
-      setError("Maximum 10 hours can be logged at once.");
-    } else {
-      setError("Please enter a valid number of hours.");
-    }
-
-    // Update state and clear modal flag
-    setTotalHours(300);
-    setShowModal(false);
-    localStorage.removeItem(`hasSeenCompletionModal_${user.id}`); // Allow modal to show again after reset
-    setError(null);
-
-  };
-
-  // Function to determine if a day should be highlighted
   const dayPropGetter = (date: Date) => {
     const dayOfWeek = moment(date).format('dddd');
     const isWorkDay = workDays.some(workDay => workDay.day_of_week === dayOfWeek);
@@ -324,7 +317,6 @@ const ScheduleSide: React.FC = () => {
     return {};
   };
 
-  // Custom toolbar to style the month label
   const CustomToolbar: React.FC<ToolbarProps<Holiday>> = (toolbar) => {
     const goToBack = () => {
       toolbar.onNavigate('PREV');
@@ -344,7 +336,7 @@ const ScheduleSide: React.FC = () => {
         <span className="text-xl font-bold text-gray-900">
           {date.format('MMMM YYYY')}
         </span>
-      );
+    );
     };
 
     return (
@@ -397,13 +389,11 @@ const ScheduleSide: React.FC = () => {
     );
   };
 
-  // Calculate progress for the progress bar
   const initialTotalHours = 300;
-  const progressPercentage = totalHours !== null ? (totalHours / initialTotalHours) * 100 : 100;
+  const progressPercentage = totalHours !== null ? Math.max(0, (totalHours / initialTotalHours) * 100) : 100;
 
   return (
     <div className="space-y-6">
-      {/* Company Info, Work Days, Supervisors */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-white shadow-md rounded-lg p-6 flex items-center space-x-4">
           <div className="w-16 h-16 rounded-full bg-yellow-400 flex items-center justify-center overflow-hidden flex-shrink-0">
@@ -425,7 +415,7 @@ const ScheduleSide: React.FC = () => {
           </div>
         </div>
         <div className="bg-white shadow-md rounded-lg p-6">
-          <h3 className="text-lg font-bold mb-4 text-gray-900 text-center">Work Days</h3>          
+          <h3 className="text-lg font-bold mb-4 text-gray-900 text-center">Work Days</h3>
           {workDays.length > 0 ? (
             <div className="space-y-2">
               {sortDaysOfWeek(workDays).map((day, index) => (
@@ -459,12 +449,11 @@ const ScheduleSide: React.FC = () => {
             <div className="flex items-center gap-2">
               <UserSquare2 size={24} color="#1e40af"/>
               <span className="font-semibold text-gray-900 text-sm">OJT Coordinator: Prof. Jeremias C. Esperanza</span>
-            </div>           
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Calendar and Hours Tracker */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-white text-black shadow-md rounded-lg p-6 col-span-2">
           <h3 className="text-lg font-bold mb-4 text-gray-900 text-center">Work Calendar</h3>
@@ -519,16 +508,18 @@ const ScheduleSide: React.FC = () => {
                 min="0"
                 max="10"
                 step="0.5"
+                aria-label="Hours worked input"
               />
               <button
                 onClick={handleHoursSubmit}
                 className="bg-blue-600 text-white px-4 py-3 rounded-lg hover:bg-blue-700 transition-all duration-300 font-medium text-sm"
                 disabled={!hoursInput || parseFloat(hoursInput) <= 0 || parseFloat(hoursInput) > 10}
+                aria-label="Log hours"
               >
                 Log
               </button>
             </div>
-            {error && <p className="text-red-500 text-xs text-center">{error}</p>}
+            {error && <p className="text-red-500 text-xs text-center" role="alert">{error}</p>}
             <div className="mt-4">
               <h4 className="text-sm font-semibold text-gray-900 mb-2">Work Hours Log</h4>
               {logs.length > 0 ? (
@@ -547,9 +538,8 @@ const ScheduleSide: React.FC = () => {
         </div>
       </div>
 
-      {/* Modal for 300 hours completion */}
       {showModal && (
-        <div className="fixed inset-0 bg-blur bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" role="dialog" aria-modal="true">
           <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
             <h2 className="text-2xl font-bold text-gray-900 mb-4 text-center">
               Congratulations!
@@ -561,9 +551,12 @@ const ScheduleSide: React.FC = () => {
               <button
                 onClick={() => {
                   setShowModal(false);
-                  localStorage.setItem(`hasSeenCompletionModal_${userId}`, "true"); // Mark modal as seen
+                  if (userId) {
+                    localStorage.setItem(`hasSeenCompletionModal_${userId}`, "true");
+                  }
                 }}
                 className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-all duration-300 font-medium"
+                aria-label="Close modal"
               >
                 Okay
               </button>
