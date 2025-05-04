@@ -66,6 +66,7 @@ const WeeklyJournalReport = ({ isOpen, onClose }: WeeklyJournalReportProps) => {
       // Save file info to database
       const { error: insertError } = await supabase.from("weekly_journal").insert([
         {
+          user_id: user.id,
           file_name: file.name,
           file_url: fileData.publicUrl,
           uploaded_at: new Date().toISOString(),

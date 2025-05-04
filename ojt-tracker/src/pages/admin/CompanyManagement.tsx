@@ -139,7 +139,10 @@ const CompanyManagement = () => {
     if (!newCompany.address?.trim()) errors.address = "Address is required";
     if (!newCompany.email?.trim()) errors.email = "Email is required";
     else if (!/\S+@\S+\.\S+/.test(newCompany.email)) errors.email = "Email is invalid";
-    if (!newCompany.contact_no?.trim()) errors.contact_no = "Contact number is required";
+    // Ito error dahil hindi number yung string. Trim function ay only for string, not for number.
+    if (!String(newCompany.contact_no ?? "").trim()) { 
+     errors.contact_no = "Contact number is required";
+    }; 
     if (!newCompany.supervisor?.trim()) errors.supervisor = "Supervisor name is required";
 
     const startHour = parseInt(newCompany.start_hour || '06');

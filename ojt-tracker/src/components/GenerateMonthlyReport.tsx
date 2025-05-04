@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { pdf } from "@react-pdf/renderer";
 import { supabase } from "../../supabase";
 import MonthlyReportPDF from "../services/MonthlyReportPDF";
+import { FileText } from "lucide-react";
+
 
 interface GenMonthlyProps {
   companyName: string;
@@ -103,10 +105,11 @@ const GenerateMonthlyReport: React.FC<GenMonthlyProps> = ({ companyName, job }) 
     <div className="relative">
       {/* Generate Button */}
       <button
-        className="text-white mb-3 bg-black px-4 py-2 rounded disabled:opacity-50 disabled:cursor-not-allowed"
+        className="flex items-center gap-2 text-white mt-4 mb-4 bg-blue-600 px-4 py-2 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
         onClick={onGenerateClick}
         disabled={loadingCount || !companyName || !job}
       >
+        <FileText className="w-5 h-5" />
         {loadingCount
           ? "Checking..."
           : isEligible
@@ -125,10 +128,10 @@ const GenerateMonthlyReport: React.FC<GenMonthlyProps> = ({ companyName, job }) 
             <h3 className="text-lg font-semibold mb-4 text-red-600">
               ❌ Not Eligible Yet
             </h3>
-            <p className="mb-2">
+            <p className="mb-2 text-black">
               You have submitted <span className="font-bold">{weeklyCount}</span> weekly report{weeklyCount === 1 ? '' : 's'}.
             </p>
-            <p className="mb-4">
+            <p className="mb-4 text-black">
               You need <span className="font-bold">{remaining}</span> more weekly report{remaining === 1 ? '' : 's'} to generate a monthly report.
             </p>
             <button
