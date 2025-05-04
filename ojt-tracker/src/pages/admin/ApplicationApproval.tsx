@@ -4,7 +4,7 @@ import { User as SupabaseUser } from "@supabase/supabase-js";
 import Sidebar from "./SideBar";
 import OJTLogo from "/src/assets/ojt-white.png";
 import { Loading } from "../../components/Loading";
-import { Folder, User, Settings, CircleHelp, LogOut, UserCog } from "lucide-react";
+import { Folder, User, Settings, CircleHelp, LogOut, UserCog, ArrowLeft, FileText } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { updateAllJobSlots } from "../../services/JobService";
 
@@ -328,76 +328,102 @@ const ApplicationApproval = () => {
           </tbody>
         </table>
 
-        {/* ← NEW: modal showing the 7 folders */}
+        {/* Show Modal Documents */}   
         {showModalFor && (
-        <div
-          className="fixed inset-0 bg-gradient-to-b from-[#5F74C9] to-[#0A279C] bg-opacity-50 flex items-center justify-center p-4"
-          onClick={() => setShowModalFor(null)}
-        >
           <div
-            className="bg-white rounded-lg p-6 w-full max-w-2xl relative overflow-y-auto max-h-[80vh]"
-            onClick={e => e.stopPropagation()}
+            className="fixed inset-0 bg-gradient-to-b from-[#5F74C9] to-[#0A279C] backdrop-blur-sm flex items-center justify-center p-4"
+            onClick={() => setShowModalFor(null)}
           >
-            <h3 className="text-xl text-gray-600 font-semibold mb-4">
-              Documents for <span className="font-mono">{showModalName}</span>
-            </h3>
-            <button
-             className="absolute top-2 right-2 text-gray-600 hover:text-black"
-              onClick={() => setShowModalFor(null)}
+            <div
+              className="bg-white rounded-xl p-4 sm:p-6 w-full max-w-[90vw] sm:max-w-2xl relative overflow-y-auto max-h-[80vh] shadow-xl"
+              onClick={(e) => e.stopPropagation()}
+              role="dialog"
+              aria-labelledby="modal-title"
+              aria-modal="true"
             >
-              ✕
-           </button>
+              <h3 id="modal-title" className="text-2xl text-gray-600 font-bold mb-4">
+                Documents for <span className="font-arial">{showModalName}</span>
+              </h3>
+              <button
+                className="absolute top-2 right-2 text-gray-600 hover:text-black p-2 hover:bg-gray-100 rounded-full"
+                onClick={() => setShowModalFor(null)}
+                aria-label="Close modal"
+              >
+                ✕
+              </button>
 
-            {/* STEP 1: show 7 folder icons */}
-            {!selectedFolder ? (
-              <div className="grid grid-cols-4 gap-4">
-                {folders.map(folder => (
-                  <div
-                    key={folder}
-                    onClick={() => setSelectedFolder(folder)}
-                    className="cursor-pointer hover:bg-gray-100 p-4 rounded text-center"
+              {/* STEP 1: show 7 folder icons */}
+              {!selectedFolder ? (
+                <div className="grid grid-cols-4 gap-4">
+                  {folders.map((folder) => (
+                    <div
+                      key={folder}
+                      onClick={() => setSelectedFolder(folder)}
+                      onKeyDown={(e) => e.key === "Enter" && setSelectedFolder(folder)}
+                      tabIndex={0}
+                      className={`cursor-pointer p-4 rounded text-center transition-colors duration-200 ${selectedFolder === folder ? "bg-gray-100" : "hover:bg-gray-50"} focus:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-300`}
+                    >
+                      <Folder className="w-12 h-12 mx-auto text-gray-600" />
+                      <p className="mt-2 text-gray-600 capitalize">{folder}</p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <>
+                  {/* STEP 2: show files in selectedFolder */}
+                  <button
+                    onClick={() => setSelectedFolder(null)}
+                    className="inline-flex items-center space-x-1 text-blue-600 hover:text-blue-800 font-medium mb-4 transition-colors"
                   >
-                    <Folder className="w-12 h-12 mx-auto text-gray-600" />
-                    <p className="mt-2 text-gray-600 capitalize">{folder}</p>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <>
-                {/* STEP 2: show files in selectedFolder */}
-                <button
-                  onClick={() => setSelectedFolder(null)}
-                  className="text-blue-600 underline mb-4"
-                >
-                  ← Back to folders
-                </button>
-                <h4 className="text-lg font-medium mb-2 capitalize">
-                  {selectedFolder}
-                </h4>
-                {docsByFolder[selectedFolder]?.length ? (
-                  <ul className="list-disc list-inside space-y-2">
-                    {docsByFolder[selectedFolder].map((url, i) => (
-                      <li key={i} className="flex items-center space-x-2">
-                        <span>📄</span>
-                        <a
-                          href={url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-blue-600 underline hover:text-blue-800"
-                        >
-                          {url.split("/").pop()}
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="text-gray-500 italic">No files found</p>
-                )}
-              </>
-            )}
-         </div>
-        </div>
-      )}
+                    <ArrowLeft className="w-4 h-4" />
+                    <span>Back to folders</span>
+                  </button>
+                  <h4 className="text-lg font-medium mb-2 capitalize">{selectedFolder}</h4>
+                  {docsByFolder[selectedFolder]?.length ? (
+                    <div className="overflow-x-auto">
+                      <table className="w-full border-collapse">
+                        <thead>
+                          <tr className="bg-gray-100 text-gray-700">
+                            <th className="border p-2 text-left font-semibold">File Name</th>
+                            <th className="border p-2 text-center font-semibold">Action</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {docsByFolder[selectedFolder].map((url, i) => {
+                            const filename = url.split('/').pop() || url; // Extract the filename from the URL
+                            return (
+                              <tr key={i} className="hover:bg-gray-50 transition-colors">
+                                <td className="border p-2 text-black truncate max-w-xs">
+                                  <span className="text-gray-500 mr-2">📄</span>
+                                  {filename.length > 30 ? `${filename.substring(0, 30)}...` : filename} {/* Truncate if too long */}
+                                </td>
+                                <td className="border border-solid border-black p-2 text-center">
+                                  <a
+                                    href={url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-blue-600 hover:text-blue-800 underline"
+                                  >
+                                    View
+                                  </a>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  ) : (
+                    <div className="text-center py-6">
+                      <Folder className="w-12 h-12 mx-auto text-gray-400" />
+                      <p className="mt-2 text-gray-500 italic">No files found in this folder.</p>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          </div>
+        )}
     </div>
   </div>
 );
