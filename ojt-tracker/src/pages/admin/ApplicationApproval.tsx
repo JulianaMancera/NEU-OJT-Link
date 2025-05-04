@@ -233,7 +233,8 @@ const ApplicationApproval = () => {
 
   return (
     <div className="relative min-h-screen w-screen bg-gradient-to-b from-[#5F74C9] to-[#0A279C] p-8">
-      <div className="w-full h-[80px] absolute left-0 top-0 bg-gradient-to-b from-[#578FCA] to-[#2B4764] border-black flex items-center justify-between px-6">
+        {/* Header */}
+        <div className="w-full h-[80px] fixed left-0 top-0 bg-gradient-to-b from-[#578FCA] to-[#2B4764] border-black flex items-center justify-between px-6">
         <img src={OJTLogo} alt="OJT Link Logo" className="w-[220px] h-[220px] ml-15" />
         <div className="flex items-center">
           <button
@@ -439,15 +440,15 @@ const ApplicationApproval = () => {
         )}
       </div>
 
-      {showModalFor && (
+       {/* Documents Modal */}
+       {showModalFor && (
         <div className="fixed inset-0 bg-gradient-to-b from-[#3657DB] from-24% to-[#8D95B5] to-98% bg-opacity-75 flex items-center justify-center z-50"
           onClick={() => setShowModalFor(null)}
         >
           <div
-            className="fixed inset-0 bg-gradient-to-b from-[#5F74C9] to-[#0A279C] backdrop-blur-sm flex items-center justify-center p-4"
-            onClick={() => setShowModalFor(null)}
+            className="bg-white rounded-lg p-6 w-full max-w-2xl relative overflow-y-auto max-h-[80vh]"
+            onClick={e => e.stopPropagation()}
           >
-
             <h3 className="text-xl font-bold mb-4 text-gray-800 border-b pb-2">
               Documents for {showModalName}
             </h3>
@@ -458,7 +459,8 @@ const ApplicationApproval = () => {
               ✕
             </button>
 
-            {!selectedFolder ? (
+              {/* STEP 1: show 7 folder icons */}
+              {!selectedFolder ? (
               <div className="grid grid-cols-3 md:grid-cols-4 gap-4 mt-4">
                 {folders.map(folder => (
                   <div
@@ -473,6 +475,7 @@ const ApplicationApproval = () => {
               </div>
             ) : (
               <>
+                {/* STEP 2: show files in selectedFolder */}
                 <button
                   onClick={() => setSelectedFolder(null)}
                   className="text-blue-600 hover:text-blue-800 flex items-center gap-1 mb-4"
