@@ -4,7 +4,7 @@ import { User as SupabaseUser } from "@supabase/supabase-js";
 import Sidebar from "./SideBar";
 import OJTLogo from "/src/assets/ojt-white.png";
 import { Loading } from "../../components/Loading";
-import { User, Settings, CircleHelp, LogOut, UserCog } from "lucide-react";
+import { Folder, User, Settings, CircleHelp, LogOut, UserCog } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { updateAllJobSlots } from "../../services/JobService";
 
@@ -22,12 +22,11 @@ interface Application {
 const ApplicationApproval = () => {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<SupabaseUser | null>(null);
-
-  // ← NEW: modal + docs state
   const [showModalFor, setShowModalFor] = useState<string|null>(null);
+  const [showModalName, setShowModalName] = useState<string|null>(null) 
   const [docsByFolder, setDocsByFolder] = useState<Record<string,string[]>>({});
   const folders = ['com','coverLetter','cv','medCert','notarized','psyTest','resume'];
-
+  const [selectedFolder, setSelectedFolder] = useState<string | null>(null)
   const [applications, setApplications] = useState<Application[]>([]);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isProfileOpen, setProfileOpen] = useState(false);
@@ -111,7 +110,10 @@ const ApplicationApproval = () => {
   }, []);
 
   const handleViewDocs = async (user_id: string) => {
+    const app = applications.find(a => a.user_id === user_id)
+    setShowModalName(app?.user_name ?? user_id)
     setShowModalFor(user_id);
+    setSelectedFolder(null);
     // clear any previous results
     const out: Record<string,string[]> = {};
   
@@ -329,7 +331,7 @@ const ApplicationApproval = () => {
         </table>
 
         {/* ← NEW: modal showing the 7 folders */}
-      {showModalFor && (
+        {showModalFor && (
         <div
           className="fixed inset-0 bg-gradient-to-b from-[#5F74C9] to-[#0A279C] bg-opacity-50 flex items-center justify-center p-4"
           onClick={() => setShowModalFor(null)}
@@ -338,43 +340,64 @@ const ApplicationApproval = () => {
             className="bg-white rounded-lg p-6 w-full max-w-2xl relative overflow-y-auto max-h-[80vh]"
             onClick={e => e.stopPropagation()}
           >
-            <h3 className="text-xl font-semibold mb-4">
-              Documents for <span className="font-mono">{showModalFor}</span>
+            <h3 className="text-xl text-gray-600 font-semibold mb-4">
+              Documents for <span className="font-mono">{showModalName}</span>
             </h3>
             <button
-              className="absolute top-2 right-2 text-gray-600 hover:text-black"
+             className="absolute top-2 right-2 text-gray-600 hover:text-black"
               onClick={() => setShowModalFor(null)}
             >
               ✕
-            </button>
+           </button>
 
-            {folders.map(folder => (
-              <div key={folder} className="mb-6">
-                <h4 className="text-lg font-medium mb-2 capitalize">{folder}</h4>
-                {docsByFolder[folder]?.length ? (
-                  <ul className="list-disc list-inside space-y-1">
-                    {docsByFolder[folder].map((url, i) => {
-                      const fileName = url.split('/').pop() || url;
-                      return (
-                        <li key={i}>
-                          <a
-                            href={url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-blue-600 hover:underline"
-                          >
-                            {fileName}
-                          </a>
-                        </li>
-                      );
-                    })}
+            {/* STEP 1: show 7 folder icons */}
+            {!selectedFolder ? (
+              <div className="grid grid-cols-4 gap-4">
+                {folders.map(folder => (
+                  <div
+                    key={folder}
+                    onClick={() => setSelectedFolder(folder)}
+                    className="cursor-pointer hover:bg-gray-100 p-4 rounded text-center"
+                  >
+                    <Folder className="w-12 h-12 mx-auto text-gray-600" />
+                    <p className="mt-2 text-gray-600 capitalize">{folder}</p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <>
+                {/* STEP 2: show files in selectedFolder */}
+                <button
+                  onClick={() => setSelectedFolder(null)}
+                  className="text-blue-600 underline mb-4"
+                >
+                  ← Back to folders
+                </button>
+                <h4 className="text-lg font-medium mb-2 capitalize">
+                  {selectedFolder}
+                </h4>
+                {docsByFolder[selectedFolder]?.length ? (
+                  <ul className="list-disc list-inside space-y-2">
+                    {docsByFolder[selectedFolder].map((url, i) => (
+                      <li key={i} className="flex items-center space-x-2">
+                        <span>📄</span>
+                        <a
+                          href={url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 underline hover:text-blue-800"
+                        >
+                          {url.split("/").pop()}
+                        </a>
+                      </li>
+                    ))}
                   </ul>
                 ) : (
                   <p className="text-gray-500 italic">No files found</p>
                 )}
-              </div>
-            ))}
-          </div>
+              </>
+            )}
+         </div>
         </div>
       )}
     </div>
