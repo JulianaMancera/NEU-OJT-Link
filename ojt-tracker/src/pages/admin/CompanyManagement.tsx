@@ -139,8 +139,9 @@ const CompanyManagement = () => {
     if (!newCompany.address?.trim()) errors.address = "Address is required";
     if (!newCompany.email?.trim()) errors.email = "Email is required";
     else if (!/\S+@\S+\.\S+/.test(newCompany.email)) errors.email = "Email is invalid";
+    // Ito error dahil hindi number yung string. Trim function ay only for string, not for number.
     if (!String(newCompany.contact_no ?? "").trim()) { 
-      errors.contact_no = "Contact number is required";
+     errors.contact_no = "Contact number is required";
     }; 
     if (!newCompany.supervisor?.trim()) errors.supervisor = "Supervisor name is required";
 
@@ -382,17 +383,6 @@ const CompanyManagement = () => {
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "Active":
-        return "bg-green-100 text-green-800 border-green-300";
-      case "Restricted":
-        return "bg-red-100 text-red-800 border-red-300";
-      default:
-        return "bg-gray-100 text-gray-800 border-gray-300";
-    }
-  };
-
   return (
     <div className="relative min-h-screen w-screen bg-gradient-to-b from-[#5F74C9] to-[#0A279C] p-8">
       <div className="w-screen h-[80px] fixed left-0 top-0 bg-gradient-to-b from-[#578FCA] to-[#2B4764] border-b border-black flex items-center justify-between px-6 z-10">
@@ -453,7 +443,7 @@ const CompanyManagement = () => {
       </div>
       <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 
-      <div className="mt-24 bg-[#FFFCF9] border border-black rounded-lg p-6 max-w-8xl mx-auto text-black shadow-lg">
+      <div className="mt-24 bg-[#FFFCF9] border border-black rounded-lg p-6 max-w-8xl mx-auto text-black">
         <h2 className="text-center justify-center py-4 font-bold text-5xl mb-6">Company Management</h2>
 
         {error && (
@@ -486,70 +476,56 @@ const CompanyManagement = () => {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full border-collapse shadow-sm">
-            <thead className="bg-gray-900 text-white">
+          <table className="w-full border-collapse">
+            <thead className="bg-black text-white">
               <tr>
-                <th className="p-3 text-left">Logo</th>
-                <th className="p-3 text-center">Name</th>
-                <th className="p-3 text-center">Email</th>
-                <th className="p-3 text-center">Contact</th>
-                <th className="p-3 text-left">Address</th>
-                <th className="p-3 text-left">Supervisor</th>
-                <th className="p-3 text-center">Start Time</th>
-                <th className="p-3 text-center">End Time</th>
-                <th className="p-3 text-center">Status</th>
-                <th className="p-3 text-center">Actions</th>
+                <th className="p-3 border border-gray-300">Logo</th>
+                <th className="p-3 border border-gray-300">Name</th>
+                <th className="p-3 border border-gray-300">Email</th>
+                <th className="p-3 border border-gray-300">Contact</th>
+                <th className="p-3 border border-gray-300">Address</th>
+                <th className="p-3 border border-gray-300">Supervisor</th>
+                <th className="p-3 border border-gray-300">Start Time</th>
+                <th className="p-3 border border-gray-300">End Time</th>
+                <th className="p-3 border border-gray-300">Status</th>
+                <th className="p-3 border border-gray-300">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {filteredCompanies.length === 0 ? (
-                <tr>
-                  <td colSpan={10} className="p-8 text-center text-gray-500">
-                    No companies found matching your filters.
+              {filteredCompanies.map((company, index) => (
+                <tr
+                  key={company.company_id}
+                  className={`text-center ${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'}`}
+                >
+                  <td className="p-3 border border-gray-300">
+                    {company.logo_url && (
+                      <img src={company.logo_url} alt="Logo" className="h-10 mx-auto" />
+                    )}
+                  </td>
+                  <td className="p-3 border border-gray-300">{company.name}</td>
+                  <td className="p-3 border border-gray-300">{company.email}</td>
+                  <td className="p-3 border border-gray-300">{company.contact_no}</td>
+                  <td className="p-3 border border-gray-300">{company.address}</td>
+                  <td className="p-3 border border-gray-300">{company.supervisor}</td>
+                  <td className="p-3 border border-gray-300">{company.start_time ? formatTo12Hour(company.start_time) : '-'}</td>
+                  <td className="p-3 border border-gray-300">{company.end_time ? formatTo12Hour(company.end_time) : '-'}</td>
+                  <td className="p-3 border border-gray-300">{company.companyRestrict}</td>
+                  <td className="p-3 border border-gray-300 space-x-2">
+                    <button
+                      onClick={() => handleEdit(company)}
+                      className="bg-blue-400 text-white px-3 py-1 rounded hover:bg-blue-600"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleRestrictCompany(company.company_id, company.companyRestrict === 'Active' ? 'Restricted' : 'Active')}
+                      className={`px-3 py-1 rounded text-white ${company.companyRestrict === 'Active' ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600'}`}
+                    >
+                      {company.companyRestrict === 'Active' ? 'Restrict' : 'Unrestrict'}
+                    </button>
                   </td>
                 </tr>
-              ) : (
-                filteredCompanies.map((company, index) => (
-                  <tr
-                    key={company.company_id}
-                    className={`border-b hover:bg-gray-50 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}
-                  >
-                    <td className="p-3">
-                      {company.logo_url && (
-                        <img src={company.logo_url} alt="Logo" className="h-10 mx-auto" />
-                      )}
-                    </td>
-                    <td className="p-3">{company.name}</td>
-                    <td className="p-3">{company.email}</td>
-                    <td className="p-3 text-center">{company.contact_no}</td>
-                    <td className="p-3">{company.address}</td>
-                    <td className="p-3">{company.supervisor}</td>
-                    <td className="p-3 text-center">{company.start_time ? formatTo12Hour(company.start_time) : '-'}</td>
-                    <td className="p-3 text-center">{company.end_time ? formatTo12Hour(company.end_time) : '-'}</td>
-                    <td className="p-3 text-center">
-                      <span
-                        className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(company.companyRestrict)}`}
-                      >
-                        {company.companyRestrict}
-                      </span>
-                    </td>
-                    <td className="p-3 text-center space-x-2">
-                      <button
-                        onClick={() => handleEdit(company)}
-                        className="bg-blue-400 text-white px-3 py-1 rounded hover:bg-blue-600"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => handleRestrictCompany(company.company_id, company.companyRestrict === 'Active' ? 'Restricted' : 'Active')}
-                        className={`px-3 py-1 rounded text-white ${company.companyRestrict === 'Active' ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600'}`}
-                      >
-                        {company.companyRestrict === 'Active' ? 'Restrict' : 'Unrestrict'}
-                      </button>
-                    </td>
-                  </tr>
-                ))
-              )}
+              ))}
             </tbody>
           </table>
         </div>

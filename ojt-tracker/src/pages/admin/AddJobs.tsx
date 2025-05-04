@@ -19,7 +19,6 @@ const AddJobs = () => {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(false);
-  // Profile-related states
   const [isProfileOpen, setProfileOpen] = useState(false);
   const [userName, setUserName] = useState("");
   const [userRole, setUserRole] = useState<string | null>(null);
