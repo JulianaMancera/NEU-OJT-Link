@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "../../../supabase";
 import Sidebar from "./SideBar";
 import OJTLogo from "/src/assets/ojt-white.png";
-import { User, Settings, CircleHelp, LogOut, UserCog } from "lucide-react";
+import { User, Settings, CircleHelp, LogOut, UserCog, Filter, FileText, Calendar, Search } from "lucide-react"; //'Settings', Circle, LogOut, UserCog is declared but its value is never read.ts(6133)
 import { useNavigate } from "react-router-dom";
 
 interface WeeklyReport {
@@ -28,18 +28,34 @@ interface MonthlyReport {
   file_url: string;
 }
 
+interface WeeklyJournal {
+  weekly_journal_id: string;
+  submitted_by: string;
+  start_date: string;
+  uploaded_at: string;
+  status: string;
+  file_name: string;
+  file_url: string;
+}
+
 const Reports = () => {
-  const [view, setView] = useState<'weekly' | 'monthly'>('weekly');
+  const [view, setView] = useState<'weekly' | 'monthly' | 'journal'>('weekly');
   const [weeklyReports, setWeeklyReports] = useState<WeeklyReport[]>([]);
   const [monthlyReports, setMonthlyReports] = useState<MonthlyReport[]>([]);
+  const [weeklyJournals, setWeeklyJournals] = useState<WeeklyJournal[]>([]);
+  const [filteredWeeklyReports, setFilteredWeeklyReports] = useState<WeeklyReport[]>([]);
+  const [filteredMonthlyReports, setFilteredMonthlyReports] = useState<MonthlyReport[]>([]);
+  const [filteredWeeklyJournals, setFilteredWeeklyJournals] = useState<WeeklyJournal[]>([]);
+  const [statusFilter, setStatusFilter] = useState<string>("all");
   const [loading, setLoading] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isProfileOpen, setProfileOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate();
 
   // Placeholder user data (replace with actual auth data from Supabase)
-  const [userName, setUserName] = useState<string>("Admin User");
-  const [userRole, setUserRole] = useState<string>("admin");
+  const [userName, setUserName] = useState<string>("Admin User"); //'userName' is declared but its value is never read.ts(6133)
+  const [userRole, setUserRole] = useState<string>("admin"); //'userRole' is declared but its value is never read.ts(6133)
   const [profilePicture, setProfilePicture] = useState<string | null>(null);
 
   // Fetch current user data
@@ -62,7 +78,7 @@ const Reports = () => {
     fetchCurrentUser();
   }, []);
 
-  const handleLogout = async () => {
+  const handleLogout = async () => { //handleLogout is declared but its value is never read.ts(6133)
     try {
       await supabase.auth.signOut();
       navigate("/");
@@ -73,8 +89,68 @@ const Reports = () => {
 
   useEffect(() => {
     if (view === 'weekly') fetchWeeklyReports();
-    else fetchMonthlyReports();
+    else if (view === 'monthly') fetchMonthlyReports();
+    else if ( view === 'journal') fetchWeeklyJournals(); 
   }, [view]);
+
+  // Apply filters whenever status filter or data changes
+  useEffect(() => {
+    applyFilters();
+  }, [statusFilter, weeklyReports, monthlyReports, weeklyJournals, searchTerm]);
+
+  
+  const applyFilters = () => {
+    // Filter weekly reports
+    let filteredWeekly = [...weeklyReports];
+    
+    // Apply status filter
+    if (statusFilter !== "all") {
+      filteredWeekly = filteredWeekly.filter(report => report.status === statusFilter);
+    }
+    
+    // Apply search term if any
+    if (searchTerm) {
+      filteredWeekly = filteredWeekly.filter(report => 
+        report.submitted_by.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        report.week_number.toString().includes(searchTerm)
+      );
+    }
+    
+    setFilteredWeeklyReports(filteredWeekly);
+
+    // Filter monthly reports
+    let filteredMonthly = [...monthlyReports];
+    
+    // Apply status filter
+    if (statusFilter !== "all") {
+      filteredMonthly = filteredMonthly.filter(report => report.status === statusFilter);
+    }
+    
+    // Apply search term if any
+    if (searchTerm) {
+      filteredMonthly = filteredMonthly.filter(report => 
+        report.submitted_by.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (report.month && report.month.toString().includes(searchTerm)) ||
+        (report.year && report.year.toString().includes(searchTerm))
+      );
+    }
+    
+    setFilteredMonthlyReports(filteredMonthly);
+
+    // Filter weekly journals
+    let filteredJournal = [...weeklyJournals];
+    if (statusFilter !== 'all') {
+      filteredJournal = filteredJournal.filter(j => j.status === statusFilter);
+    }
+    if (searchTerm) {
+      filteredJournal = filteredJournal.filter(j =>
+        j.submitted_by.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        j.start_date.includes(searchTerm)
+      );
+    }
+    setFilteredWeeklyJournals(filteredJournal);
+
+  };
 
   const fetchWeeklyReports = async () => {
     setLoading(true);
@@ -82,7 +158,10 @@ const Reports = () => {
       .from('weekly_report')
       .select('*');
     if (error) console.error('Error fetching weekly reports:', error.message);
-    else setWeeklyReports(data || []);
+    else {
+      setWeeklyReports(data || []);
+      setFilteredWeeklyReports(data || []);
+    }
     setLoading(false);
   };
 
@@ -92,9 +171,26 @@ const Reports = () => {
       .from('monthly_report')
       .select('*');
     if (error) console.error('Error fetching monthly reports:', error.message);
-    else setMonthlyReports(data || []);
+    else {
+      setMonthlyReports(data || []);
+      setFilteredMonthlyReports(data || []);
+    }
     setLoading(false);
   };
+
+  const fetchWeeklyJournals = async () => {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from('weekly_journal')
+      .select('*');
+    if (error) console.error('Error fetching weekly journals:', error.message);
+    else {
+      setWeeklyJournals(data || []);
+      setFilteredWeeklyJournals(data || []);
+    }
+    setLoading(false);
+  };
+  
 
   const handleWeeklyStatusChange = async (id: string, newStatus: string) => {
     setLoading(true);
@@ -124,6 +220,35 @@ const Reports = () => {
       );
     }
     setLoading(false);
+  };
+
+  const handleJournalStatusChange = async (id: string, newStatus: string) => {
+    setLoading(true);
+    const { error } = await supabase
+      .from('weekly_journal')
+      .update({ status: newStatus })
+      .eq('weekly_journal_id', id);
+    if (error) console.error('Error updating journal status:', error.message);
+    else {
+      setWeeklyJournals(prev =>
+        prev.map(j => j.weekly_journal_id === id ? { ...j, status: newStatus } : j)
+      );
+    }
+    setLoading(false);
+  };
+  
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "approved":
+        return "bg-green-100 text-green-800 border-green-300";
+      case "pending":
+        return "bg-yellow-100 text-yellow-800 border-yellow-300";
+      case "revise":
+        return "bg-red-100 text-red-800 border-red-300";
+      default:
+        return "bg-gray-100 text-gray-800 border-gray-300";
+    }
   };
 
   return (
@@ -184,12 +309,12 @@ const Reports = () => {
                 </li>
                 {userRole === "admin" && (
                   <li>
-                   <button
-                    onClick={() => navigate("/admin")}
-                    className="w-full text-left px-6 py-4 hover:bg-gray-100 flex items-center transition-all duration-200"
-                  >
-                    <UserCog className="w-6 h-6 mr-3" /> Admin
-                  </button>
+                    <button
+                      onClick={() => navigate("/admin")}
+                      className="w-full text-left px-6 py-4 hover:bg-gray-100 flex items-center transition-all duration-200"
+                    >
+                      <UserCog className="w-6 h-6 mr-3" /> Admin
+                    </button>
                   </li>
                 )}
                 <li>
@@ -205,108 +330,315 @@ const Reports = () => {
           )}
         </div>
       </div>
+
       <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 
-      <div className="mt-24 bg-[#FFFCF9] border border-black rounded-lg p-6 max-w-8xl mx-auto text-black">
-        <h2 className="text-center justify-center py-4 font-bold text-5xl mb-6">Reports Management</h2>
+      <div className="mt-24 bg-[#FFFCF9] border border-black rounded-lg p-6 max-w-8xl mx-auto text-black shadow-lg">
+        <h2 className="text-center justify-center py-4 font-bold text-5xl mb-6">
+          Reports Management
+        </h2>
 
-        {/* View Toggle Buttons */}
-        <div className="flex justify-center gap-4 mb-6">
+        {/* Top Action Bar */}
+        <div className="flex flex-wrap justify-center items-center gap-4 mb-6">
           <button
             onClick={() => setView('weekly')}
-            className={`px-4 py-2 rounded ${view === 'weekly' ? 'bg-[#90D5FF]' : 'bg-gray-200'}`}
+            className={`px-6 py-3 rounded-md flex items-center gap-2 transition-all shadow-sm ${
+              view === 'weekly' ? 'bg-blue-600 text-white font-medium' : 'bg-white hover:bg-gray-100'
+            }`}
           >
-            Weekly Reports
+            <Calendar size={18} /> Weekly Reports
           </button>
           <button
             onClick={() => setView('monthly')}
-            className={`px-4 py-2 rounded ${view === 'monthly' ? 'bg-[#90D5FF]' : 'bg-gray-200'}`}
+            className={`px-6 py-3 rounded-md flex items-center gap-2 transition-all shadow-sm ${
+              view === 'monthly' ? 'bg-blue-600 text-white font-medium' : 'bg-white hover:bg-gray-100'
+            }`}
           >
-            Monthly Reports
+            <Calendar size={18} /> Monthly Reports
+          </button>
+          <button
+            onClick={() => setView('journal')}
+            className="px-6 py-3 bg-green-600 text-white rounded-md hover:bg-green-700 transition-all flex items-center gap-2 shadow-md"
+          >
+            <FileText size={18} /> Weekly Journals
           </button>
         </div>
 
+        {/* Search & Filter */}
+        <div className="bg-gray-50 p-4 rounded-lg mb-6 shadow-sm border flex flex-wrap gap-4 items-center justify-between">
+          <div className="relative flex-grow max-w-md">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Search size={16} className="text-gray-400" />
+            </div>
+            <input
+              type="text"
+              placeholder="Search by name or number..."
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+          <div className="flex items-center gap-3">
+            <Filter size={20} className="text-gray-500" />
+            <label htmlFor="status-filter" className="font-medium">Filter by Status:</label>
+            <select
+              id="status-filter"
+              value={statusFilter}
+              onChange={e => setStatusFilter(e.target.value)}
+              className="border rounded-md px-3 py-2 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            >
+              <option value="all">All Status</option>
+              <option value="pending">Pending</option>
+              <option value="approved">Approved</option>
+              <option value="revise">Revise</option>
+            </select>
+          </div>
+        </div>
+
         {loading ? (
-          <p className="text-center">Loading...</p>
+          <div className="flex justify-center items-center h-64">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-700" />
+          </div>
         ) : (
-          <table className="w-full border">
-            <thead className="bg-gray-950 text-white">
-              <tr>
-                {view === 'weekly' ? (
-                  <>
-                    <th className="p-2 border">Submitted By</th>
-                    <th className="p-2 border">Start Date</th>
-                    <th className="p-2 border">End Date</th>
-                    <th className="p-2 border">Week #</th>
-                    <th className="p-2 border">Total Hours</th>
-                    <th className="p-2 border">Status</th>
-                    <th className="p-2 border">File</th>
-                  </>
-                ) : (
-                  <>
-                    <th className="p-2 border">Submitted By</th>
-                    <th className="p-2 border">Month</th>
-                    <th className="p-2 border">Year</th>
-                    <th className="p-2 border">Hours Rendered</th>
-                    <th className="p-2 border">Status</th>
-                    <th className="p-2 border">File</th>
-                  </>
-                )}
-              </tr>
-            </thead>
-            <tbody>
-              {view === 'weekly'
-                ? weeklyReports.map(report => (
-                    <tr key={report.weekly_report_id} className="text-center bg-gray-100">
-                      <td className="p-2 border">{report.submitted_by}</td>
-                      <td className="p-2 border">{report.start_date}</td>
-                      <td className="p-2 border">{report.end_date || '-'}</td>
-                      <td className="p-2 border">{report.week_number}</td>
-                      <td className="p-2 border">{report.total_hours}</td>
-                      <td className="p-2 border">
-                        <select
-                          value={report.status}
-                          onChange={e => handleWeeklyStatusChange(report.weekly_report_id, e.target.value)}
-                          className="border p-1 rounded"
-                        >
-                          <option value="pending">pending</option>
-                          <option value="approved">approved</option>
-                          <option value="revise">revise</option>
-                        </select>
+          <>
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse shadow-sm">
+                <thead className="bg-gray-900 text-white">
+                  <tr>
+                    {view === 'weekly' && (
+                      <>
+                        <th className="p-3 text-left">Submitted By</th>
+                        <th className="p-3 text-left">Start Date</th>
+                        <th className="p-3 text-left">End Date</th>
+                        <th className="p-3 text-center">Week #</th>
+                        <th className="p-3 text-center">Total Hours</th>
+                        <th className="p-3 text-center">Status</th>
+                        <th className="p-3 text-center">File</th>
+                        <th className="p-3 text-center">Action</th>
+                      </>
+                    )}
+                    {view === 'monthly' && (
+                      <>
+                        <th className="p-3 text-left">Submitted By</th>
+                        <th className="p-3 text-center">Month</th>
+                        <th className="p-3 text-center">Year</th>
+                        <th className="p-3 text-center">Hours Rendered</th>
+                        <th className="p-3 text-center">Status</th>
+                        <th className="p-3 text-center">File</th>
+                        <th className="p-3 text-center">Action</th>
+                      </>
+                    )}
+                    {view === 'journal' && (
+                      <>
+                        <th className="p-3 text-left">Submitted By</th>
+                        <th className="p-3 text-center">Start Date</th>
+                        <th className="p-3 text-center">Uploaded At</th>
+                        <th className="p-3 text-center">Status</th>
+                        <th className="p-3 text-center">File</th>
+                        <th className="p-3 text-center">Action</th>
+                      </>
+                    )}
+                  </tr>
+                </thead>
+                <tbody>
+                  {/* weekly rows */}
+                  {view === 'weekly' && filteredWeeklyReports.map((weeklyReport, idx) => (
+                    <tr
+                      key={weeklyReport.weekly_report_id}
+                      className={`border-b hover:bg-gray-50 ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}
+                    >
+                      <td className="p-3">{weeklyReport.submitted_by}</td>
+                      <td className="p-3">{new Date(weeklyReport.start_date).toLocaleDateString()}</td>
+                      <td className="p-3">
+                        {weeklyReport.end_date
+                          ? new Date(weeklyReport.end_date).toLocaleDateString()
+                          : '-'}
                       </td>
-                      <td className="p-2 border">
-                        <a href={report.file_url} target="_blank" rel="noopener noreferrer" className="hover:underline text-blue-600">
-                          {report.file_name}
+                      <td className="p-3 text-center">{weeklyReport.week_number}</td>
+                      <td className="p-3 text-center">{weeklyReport.total_hours}</td>
+                      <td className="p-3 text-center">
+                        <span
+                          className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
+                            weeklyReport.status
+                          )}`}
+                        >
+                          {weeklyReport.status}
+                        </span>
+                      </td>
+                      <td className="p-3 text-center">
+                        <a
+                          href={weeklyReport.file_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:underline flex items-center justify-center gap-1"
+                        >
+                          <FileText size={14} />
+                          {weeklyReport.file_name.length > 15
+                            ? `${weeklyReport.file_name.substring(0, 12)}…`
+                            : weeklyReport.file_name}
                         </a>
                       </td>
-                    </tr>
-                  ))
-                : monthlyReports.map(report => (
-                    <tr key={report.monthly_report_id} className="text-center bg-gray-200">
-                      <td className="p-2 border">{report.submitted_by}</td>
-                      <td className="p-2 border">{report.month ?? '-'}</td>
-                      <td className="p-2 border">{report.year ?? '-'}</td>
-                      <td className="p-2 border">{report.hours_rendered ?? '-'}</td>
-                      <td className="p-2 border">
+                      <td className="p-3 text-center">
                         <select
-                          value={report.status}
-                          onChange={e => handleMonthlyStatusChange(report.monthly_report_id, e.target.value)}
-                          className="border p-1 rounded"
+                          value={weeklyReport.status}
+                          onChange={e =>
+                            handleWeeklyStatusChange(weeklyReport.weekly_report_id, e.target.value)
+                          }
+                          className="border p-2 rounded-md bg-white shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-full"
                         >
-                          <option value="pending">pending</option>
-                          <option value="approved">approved</option>
-                          <option value="revise">revise</option>
+                          <option value="pending">Set Pending</option>
+                          <option value="approved">Set Approved</option>
+                          <option value="revise">Set Revise</option>
                         </select>
-                      </td>
-                      <td className="p-2 border">
-                        <a href={report.file_url} target="_blank" rel="noopener noreferrer" className="hover:underline text-blue-600">
-                          {report.file_name}
-                        </a>
                       </td>
                     </tr>
                   ))}
-            </tbody>
-          </table>
+
+                  {/* monthly rows */}
+                  {view === 'monthly' && filteredMonthlyReports.map((monthlyReport, idxMon) => (
+                    <tr
+                      key={monthlyReport.monthly_report_id}
+                      className={`border-b hover:bg-gray-50 ${idxMon % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}
+                    >
+                      <td className="p-3">{monthlyReport.submitted_by}</td>
+                      <td className="p-3 text-center">{monthlyReport.month ?? '-'}</td>
+                      <td className="p-3 text-center">{monthlyReport.year ?? '-'}</td>
+                      <td className="p-3 text-center">{monthlyReport.hours_rendered ?? '-'}</td>
+                      <td className="p-3 text-center">
+                        <span
+                          className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
+                            monthlyReport.status
+                          )}`}
+                        >
+                          {monthlyReport.status}
+                        </span>
+                      </td>
+                      <td className="p-3 text-center">
+                        <a
+                          href={monthlyReport.file_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:underline flex items-center justify-center gap-1"
+                        >
+                          <FileText size={14} />
+                          {monthlyReport.file_name.length > 15
+                            ? `${monthlyReport.file_name.substring(0, 12)}…`
+                            : monthlyReport.file_name}
+                        </a>
+                      </td>
+                      <td className="p-3 text-center">
+                        <select
+                          value={monthlyReport.status}
+                          onChange={e =>
+                            handleMonthlyStatusChange(monthlyReport.monthly_report_id, e.target.value)
+                          }
+                          className="border p-2 rounded-md bg-white shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-full"
+                        >
+                          <option value="pending">Set Pending</option>
+                          <option value="approved">Set Approved</option>
+                          <option value="revise">Set Revise</option>
+                        </select>
+                      </td>
+                    </tr>
+                  ))}
+
+                  {/* journal rows */}
+                  {view === 'journal' && filteredWeeklyJournals.map((journalEntry, idxJour) => (
+                    <tr
+                      key={journalEntry.weekly_journal_id}
+                      className={`border-b hover:bg-gray-50 ${idxJour % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}
+                    >
+                      <td className="p-3">{journalEntry.submitted_by}</td>
+                      <td className="p-3 text-center">
+                        {new Date(journalEntry.start_date).toLocaleDateString()}
+                      </td>
+                      <td className="p-3 text-center">
+                        {new Date(journalEntry.uploaded_at).toLocaleDateString()}
+                      </td>
+                      <td className="p-3 text-center">
+                        <span
+                          className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
+                            journalEntry.status
+                          )}`}
+                        >
+                          {journalEntry.status}
+                        </span>
+                      </td>
+                      <td className="p-3 text-center">
+                        <a
+                          href={journalEntry.file_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:underline"
+                        >
+                          {journalEntry.file_name.length > 15
+                            ? `${journalEntry.file_name.substring(0, 12)}…`
+                            : journalEntry.file_name}
+                        </a>
+                      </td>
+                      <td className="p-3 text-center">
+                        <select
+                          value={journalEntry.status}
+                          onChange={e =>
+                            handleJournalStatusChange(
+                              journalEntry.weekly_journal_id,
+                              e.target.value
+                            )
+                          }
+                          className="border p-2 rounded-md w-full"
+                        >
+                          <option value="pending">Set Pending</option>
+                          <option value="approved">Set Approved</option>
+                          <option value="revise">Set Revise</option>
+                        </select>
+                      </td>
+                    </tr>
+                  ))}
+
+                  {/* no‑data row */}
+                  {(
+                    (view === 'weekly' && filteredWeeklyReports.length === 0) ||
+                    (view === 'monthly' && filteredMonthlyReports.length === 0) ||
+                    (view === 'journal' && filteredWeeklyJournals.length === 0)
+                  ) && (
+                    <tr>
+                      <td
+                        colSpan={
+                          view === 'journal' ? 6 : view === 'weekly' ? 8 : 7
+                        }
+                        className="p-8 text-center text-gray-500"
+                      >
+                        No {view === 'journal' ? 'journals' : 'reports'} found matching your filters.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* summary + clear filters */}
+            <div className="mt-4 text-sm text-gray-500 flex items-center justify-between">
+              <div>
+                Showing{' '}
+                {view === 'weekly'
+                  ? filteredWeeklyReports.length
+                  : view === 'monthly'
+                  ? filteredMonthlyReports.length
+                  : filteredWeeklyJournals.length}{' '}
+                {view === 'journal' ? 'journals' : 'reports'}
+                {statusFilter !== 'all' && ` with status "${statusFilter}"`}
+              </div>
+              <button
+                onClick={() => {
+                  setStatusFilter('all');
+                  setSearchTerm('');
+                }}
+                className="text-blue-600 hover:underline"
+              >
+                Clear filters
+              </button>
+            </div>
+          </>
         )}
       </div>
     </div>

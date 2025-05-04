@@ -4,7 +4,7 @@ import { User as SupabaseUser } from "@supabase/supabase-js";
 import Sidebar from "./SideBar";
 import OJTLogo from "/src/assets/ojt-white.png";
 import { Loading } from "../../components/Loading";
-import { User, Settings, CircleHelp, LogOut, UserCog } from "lucide-react";
+import { Folder, User, Settings, CircleHelp, LogOut, UserCog } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { updateAllJobSlots } from "../../services/JobService";
 
@@ -15,15 +15,19 @@ interface Application {
   job_id: string;
   email: string;
   status: 'approved' | 'pending' | 'rejected';
+  user_name?: string;
+  company_name?: string;
 }
 
 const ApplicationApproval = () => {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<SupabaseUser | null>(null);
-  const [applications, setApplications] = useState<(Application & { 
-    user_name?: string; 
-    company_name?: string;
-  })[]>([]);
+  const [showModalFor, setShowModalFor] = useState<string|null>(null);
+  const [showModalName, setShowModalName] = useState<string|null>(null) 
+  const [docsByFolder, setDocsByFolder] = useState<Record<string,string[]>>({});
+  const folders = ['com','coverLetter','cv','medCert','notarized','psyTest','resume'];
+  const [selectedFolder, setSelectedFolder] = useState<string | null>(null)
+  const [applications, setApplications] = useState<Application[]>([]);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isProfileOpen, setProfileOpen] = useState(false);
   const navigate = useNavigate();
@@ -62,20 +66,18 @@ const ApplicationApproval = () => {
     }
   };
 
+  // Fetch applications + enrich with names
   useEffect(() => {
     const fetchApplications = async () => {
       const { data: { user }, error: userError } = await supabase.auth.getUser();
-
       if (userError || !user) {
         console.error("Authentication error:", userError);
         setLoading(false);
         return;
       }
-
       setUser(user);
 
       const { data, error } = await supabase.from("application").select("*");
-
       if (error) {
         console.error("Error fetching applications:", error.message);
         setLoading(false);
@@ -88,13 +90,11 @@ const ApplicationApproval = () => {
           .select("name")
           .eq("user_id", app.user_id)
           .single();
-
         const { data: companyData } = await supabase
           .from("company")
           .select("name")
           .eq("company_id", app.company_id)
           .single();
-
         return {
           ...app,
           user_name: userData?.name || 'Unknown',
@@ -109,6 +109,46 @@ const ApplicationApproval = () => {
     fetchApplications();
   }, []);
 
+  const handleViewDocs = async (user_id: string) => {
+    const app = applications.find(a => a.user_id === user_id)
+    setShowModalName(app?.user_name ?? user_id)
+    setShowModalFor(user_id);
+    setSelectedFolder(null);
+    // clear any previous results
+    const out: Record<string,string[]> = {};
+  
+    await Promise.all(folders.map(async folder => {
+      // list everything in this folder
+      const { data: files, error: listError } =
+        await supabase
+          .storage
+          .from('applicant-documents')
+          .list(folder);
+  
+      if (listError || !files) {
+        out[folder] = [];
+        return;
+      }
+  
+      // only keep the files for this user
+      const userFiles = files
+        .filter(f => f.name.includes(`_${user_id}_`))
+        .map(f => {
+          // getPublicUrl returns { data: { publicUrl } }
+          const { data: { publicUrl } } =
+            supabase
+              .storage
+              .from('applicant-documents')
+              .getPublicUrl(`${folder}/${f.name}`);
+          return publicUrl;
+        });
+  
+      out[folder] = userFiles;
+    }));
+  
+    setDocsByFolder(out);
+  };
+
   const handleStatusChange = async (applicationId: string, newStatus: Application['status']) => {
     if (!user) {
       console.error("User not authenticated");
@@ -117,41 +157,30 @@ const ApplicationApproval = () => {
 
     try {
       setLoading(true);
-      const application = applications.find(app => app.application_id === applicationId);
-      if (!application) return;
-      
-      // Update application status in Supabase
       const { error: statusError } = await supabase
         .from("application")
         .update({ status: newStatus })
         .eq('application_id', applicationId);
-
       if (statusError) throw statusError;
 
-      // Update job slots in Supabase
       await updateAllJobSlots();
 
-      // Refresh local applications data
       const { data: updatedApps, error: fetchError } = await supabase
         .from("application")
         .select("*");
-
       if (fetchError) throw fetchError;
 
-      // Update user and company names
       const updatedWithNames = await Promise.all(updatedApps.map(async (app) => {
         const { data: userData } = await supabase
           .from("user")
           .select("name")
           .eq("user_id", app.user_id)
           .single();
-
         const { data: companyData } = await supabase
           .from("company")
           .select("name")
           .eq("company_id", app.company_id)
           .single();
-
         return {
           ...app,
           user_name: userData?.name || 'Unknown',
@@ -168,10 +197,7 @@ const ApplicationApproval = () => {
   };
 
   if (loading) return <Loading />;
-
-  if (!user) {
-    return <p className="text-center mt-10">Please log in to view applications</p>;
-  }
+  if (!user) return <p className="text-center mt-10">Please log in to view applications</p>;
 
   return (
     <div>
@@ -210,10 +236,7 @@ const ApplicationApproval = () => {
                 <ul className="text-sm">
                   <li>
                     <button
-                      onClick={() => {
-                        navigate("/profile");
-                        setProfileOpen(false);
-                      }}
+                      onClick={() => { navigate("/profile"); setProfileOpen(false); }}
                       className="w-full text-left px-6 py-4 hover:bg-gray-100 flex items-center transition-all duration-200"
                     >
                       <User className="w-6 h-6 mr-3" /> Profile
@@ -252,6 +275,7 @@ const ApplicationApproval = () => {
             )}
           </div>
         </div>
+
         <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}/>
         <h2 className="text-[2.3rem] font-bold text-center mb-10 mt-12 text-black">
           Application Approvals
@@ -260,25 +284,26 @@ const ApplicationApproval = () => {
         <table className="w-full border-collapse">
           <thead>
             <tr className="bg-gray-200 text-black">
-              <th className="border p-2">Application ID</th>
               <th className="border p-2">Username</th>
               <th className="border p-2">Company Name</th>
               <th className="border p-2">Email</th>
               <th className="border p-2">Status</th>
+              {/* ← NEW: Documents col */}
+              <th className="border p-2">Documents</th>
             </tr>
           </thead>
           <tbody>
-            {applications.map((application) => (
-              <tr key={application.application_id} className="hover:bg-gray-300 text-black bg-white">
-                <td className="border p-2">{application.application_id}</td>
+            {applications.map(application => (
+              <tr key={application.application_id}
+                  className="hover:bg-gray-300 text-black bg-white">
                 <td className="border p-2">{application.user_name}</td>
                 <td className="border p-2">{application.company_name}</td>
                 <td className="border p-2">{application.email}</td>
                 <td className="border p-2">
                   <select
                     value={application.status}
-                    onChange={(e) => handleStatusChange(
-                      application.application_id, 
+                    onChange={e => handleStatusChange(
+                      application.application_id,
                       e.target.value as Application['status']
                     )}
                     className="w-full p-1 font-semibold"
@@ -289,13 +314,93 @@ const ApplicationApproval = () => {
                     <option value="rejected">Rejected</option>
                   </select>
                 </td>
+                {/* ← NEW: View Docs button */}
+                <td className="border p-2 text-center">
+                  <button
+                    onClick={() => handleViewDocs(application.user_id)}
+                    className="px-3 py-1 bg-blue-600 text-white rounded"
+                  >
+                    View Docs
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>
         </table>
-      </div>
+
+        {/* ← NEW: modal showing the 7 folders */}
+        {showModalFor && (
+        <div
+          className="fixed inset-0 bg-gradient-to-b from-[#5F74C9] to-[#0A279C] bg-opacity-50 flex items-center justify-center p-4"
+          onClick={() => setShowModalFor(null)}
+        >
+          <div
+            className="bg-white rounded-lg p-6 w-full max-w-2xl relative overflow-y-auto max-h-[80vh]"
+            onClick={e => e.stopPropagation()}
+          >
+            <h3 className="text-xl text-gray-600 font-semibold mb-4">
+              Documents for <span className="font-mono">{showModalName}</span>
+            </h3>
+            <button
+             className="absolute top-2 right-2 text-gray-600 hover:text-black"
+              onClick={() => setShowModalFor(null)}
+            >
+              ✕
+           </button>
+
+            {/* STEP 1: show 7 folder icons */}
+            {!selectedFolder ? (
+              <div className="grid grid-cols-4 gap-4">
+                {folders.map(folder => (
+                  <div
+                    key={folder}
+                    onClick={() => setSelectedFolder(folder)}
+                    className="cursor-pointer hover:bg-gray-100 p-4 rounded text-center"
+                  >
+                    <Folder className="w-12 h-12 mx-auto text-gray-600" />
+                    <p className="mt-2 text-gray-600 capitalize">{folder}</p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <>
+                {/* STEP 2: show files in selectedFolder */}
+                <button
+                  onClick={() => setSelectedFolder(null)}
+                  className="text-blue-600 underline mb-4"
+                >
+                  ← Back to folders
+                </button>
+                <h4 className="text-lg font-medium mb-2 capitalize">
+                  {selectedFolder}
+                </h4>
+                {docsByFolder[selectedFolder]?.length ? (
+                  <ul className="list-disc list-inside space-y-2">
+                    {docsByFolder[selectedFolder].map((url, i) => (
+                      <li key={i} className="flex items-center space-x-2">
+                        <span>📄</span>
+                        <a
+                          href={url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 underline hover:text-blue-800"
+                        >
+                          {url.split("/").pop()}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-gray-500 italic">No files found</p>
+                )}
+              </>
+            )}
+         </div>
+        </div>
+      )}
     </div>
-  );
+  </div>
+);
 };
 
 export default ApplicationApproval;

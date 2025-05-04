@@ -47,7 +47,6 @@ const AboutUs = ({ handleLogout }: AboutUsProps) => {
       role: "Scrum Master",
       github: "https://github.com/JulianaMancera",
       expertise: "Team Lead, Project Management, Full Stack Developement, UI/UX Design",
-      experience: "3 years in web development",
       avatar: "https://via.placeholder.com/150",
       position: "center"
     },
@@ -56,7 +55,6 @@ const AboutUs = ({ handleLogout }: AboutUsProps) => {
       role: "Developer 1",
       github: "https://github.com/RenardMacorol",
       expertise: "Backend Development, React",
-      experience: "2 years in React development",
       avatar: "https://via.placeholder.com/150",
       position: "other"
     },
@@ -65,7 +63,6 @@ const AboutUs = ({ handleLogout }: AboutUsProps) => {
       role: "Developer 2",
       github: "https://github.com/DLAyatoCabanilla",
       expertise: "Backend Development, Database Design",
-      experience: "4 years in software engineering",
       avatar: "https://via.placeholder.com/150",
       position: "other"
     },
@@ -74,7 +71,6 @@ const AboutUs = ({ handleLogout }: AboutUsProps) => {
       role: "Analyst",
       github: "https://github.com/VinceCampos",
       expertise: "UI/UX Design, Frontend Developement",
-      experience: "3 years in system analysis",
       avatar: "https://via.placeholder.com/150",
       position: "other"
     },
@@ -83,7 +79,6 @@ const AboutUs = ({ handleLogout }: AboutUsProps) => {
       role: "Tester",
       github: "https://github.com/AlyssaMaeSanPedro",
       expertise: "Full Stack Developement, UI/UX Design, Database Design",
-      experience: "2 years in software testing",
       avatar: "https://via.placeholder.com/150",
       position: "other"
     },
@@ -377,10 +372,7 @@ const AboutUs = ({ handleLogout }: AboutUsProps) => {
                               <p className="text-lg text-gray-600">{member.expertise}</p>
                             </div>
                             <div className="flex items-start justify-center">
-                              <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center mt-1 mr-4">
-                                <div className="w-2 h-2 rounded-full bg-blue-600"></div>
-                              </div>
-                              <p className="text-lg text-gray-600">{member.experience}</p>
+                             
                             </div>
                           </div>
                           <a
@@ -427,10 +419,7 @@ const AboutUs = ({ handleLogout }: AboutUsProps) => {
                                 <p className="text-base text-gray-600">{member.expertise}</p>
                               </div>
                               <div className="flex items-start justify-center">
-                                <div className="w-5 h-5 rounded-full bg-blue-100 flex items-center justify-center mt-1 mr-3">
-                                  <div className="w-2 h-2 rounded-full bg-blue-600"></div>
-                                </div>
-                                <p className="text-base text-gray-600">{member.experience}</p>
+                               
                               </div>
                             </div>
                             <a

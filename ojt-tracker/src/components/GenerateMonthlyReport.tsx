@@ -128,10 +128,10 @@ const GenerateMonthlyReport: React.FC<GenMonthlyProps> = ({ companyName, job }) 
             <h3 className="text-lg font-semibold mb-4 text-red-600">
               ❌ Not Eligible Yet
             </h3>
-            <p className="mb-2">
+            <p className="mb-2 text-black">
               You have submitted <span className="font-bold">{weeklyCount}</span> weekly report{weeklyCount === 1 ? '' : 's'}.
             </p>
-            <p className="mb-4">
+            <p className="mb-4 text-black">
               You need <span className="font-bold">{remaining}</span> more weekly report{remaining === 1 ? '' : 's'} to generate a monthly report.
             </p>
             <button

@@ -142,6 +142,16 @@ const WeeklyReport = ({ isOpen, onClose, editingReport }: WeeklyReportProps) => 
       setIsExtracting(false);
     }
   };
+
+  const computeEndDate = (d: Date): Date => {
+    const date = new Date(d);
+    const day = date.getDay(); // Sunday=0 … Saturday=6
+    const daysUntilSat = (6 - day + 7) % 7;
+    date.setDate(date.getDate() + daysUntilSat);
+    // clamp to end‐of‐day
+    date.setHours(23, 59, 59, 999);
+    return date;
+  };
   
   const processTableRow = (rowItems: any[], entries: TimeEntry[]) => {
     // Skip header rows or empty rows
@@ -340,9 +350,11 @@ const WeeklyReport = ({ isOpen, onClose, editingReport }: WeeklyReportProps) => 
               uploaded_at: new Date().toISOString(),
               submitted_by: userName,
               start_date: new Date().toISOString(),
+              end_date:   computeEndDate(new Date()).toISOString(),
               user_id: user.id,
               week_number: extractedWeek,
               total_hours: totalHours,
+              status: 'pending',
             }])
             .select("weekly_report_id")
             .single();
@@ -400,6 +412,12 @@ const WeeklyReport = ({ isOpen, onClose, editingReport }: WeeklyReportProps) => 
     }
   
     setUploading(false);
+
+    /**
+ * Given any Date, returns a Date set to the coming Saturday at 23:59:59.999,
+ * or to the same date if it's already Saturday.
+ */
+    
     
     if (errors.length > 0) {
       if (completed > 0) {
