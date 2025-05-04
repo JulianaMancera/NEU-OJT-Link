@@ -146,7 +146,7 @@ const FileUploadField: React.FC<FileUploadFieldProps> = ({
 
       {/* Modal for invalid file format */}
       {showModal && (
-        <div className="fixed inset-0 z-50 bg-black bg-opacity-40 flex items-center justify-center">
+        <div className="fixed inset-0 z-50 backdrop-blur bg-opacity-40 flex items-center justify-center">
           <div className="bg-white rounded-lg shadow-lg p-6 w-96 text-center">
             <h2 className="text-lg font-semibold text-red-600 mb-2">
               Invalid File Name

@@ -4,7 +4,7 @@ import { User as SupabaseUser } from "@supabase/supabase-js";
 import Sidebar from "./SideBar";
 import OJTLogo from "/src/assets/ojt-white.png";
 import { Loading } from "../../components/Loading";
-import { Folder, User, Settings, CircleHelp, LogOut, UserCog, Filter, Search } from "lucide-react";
+import { Folder, User, Settings, CircleHelp, LogOut, UserCog, Filter, Search, ArowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { updateAllJobSlots } from "../../services/JobService";
 
@@ -444,9 +444,10 @@ const ApplicationApproval = () => {
           onClick={() => setShowModalFor(null)}
         >
           <div
-            className="bg-white rounded-lg p-6 w-full max-w-2xl relative overflow-y-auto max-h-[80vh]"
-            onClick={e => e.stopPropagation()}
+            className="fixed inset-0 bg-gradient-to-b from-[#5F74C9] to-[#0A279C] backdrop-blur-sm flex items-center justify-center p-4"
+            onClick={() => setShowModalFor(null)}
           >
+
             <h3 className="text-xl font-bold mb-4 text-gray-800 border-b pb-2">
               Documents for {showModalName}
             </h3>
