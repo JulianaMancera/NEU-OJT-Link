@@ -13,8 +13,7 @@ interface Job {
   position: string;
   slots: number;
   isAvailable: boolean;
-  approved_application_count: number;
-  available_slots: number;
+  total_slots: number;
 }
 
 interface JobFormProps {
@@ -28,10 +27,9 @@ const AddJobForm = ({ companies, onSuccess, onClose, onSave }: JobFormProps) => 
   const [newJob, setNewJob] = useState<Omit<Job, 'job_id'>>({
     company_id: "",
     position: "",
-    slots: 1,
     isAvailable: true,
-    approved_application_count: 0,
-    available_slots: 1
+    total_slots: 1,
+    slots: 1
   });
   const [message, setMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
