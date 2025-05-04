@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom";
 
 interface WeeklyReport {
   weekly_report_id: string;
+  userName: string;
   submitted_by: string;
   start_date: string;
   end_date: string | null;
@@ -19,6 +20,7 @@ interface WeeklyReport {
 
 interface MonthlyReport {
   monthly_report_id: string;
+  userName: string;
   month: number | null;
   year: number | null;
   status: string;
@@ -30,6 +32,7 @@ interface MonthlyReport {
 
 interface WeeklyJournal {
   weekly_journal_id: string;
+  userName: string;
   submitted_by: string;
   start_date: string;
   uploaded_at: string;
@@ -156,24 +159,37 @@ const Reports = () => {
     setLoading(true);
     const { data, error } = await supabase
       .from('weekly_report')
-      .select('*');
-    if (error) console.error('Error fetching weekly reports:', error.message);
-    else {
-      setWeeklyReports(data || []);
-      setFilteredWeeklyReports(data || []);
+      .select(`*, user: user_id ( name )
+      `);
+  
+    if (error) {
+      console.error('Error fetching weekly reports:', error.message);
+    } else if (data) {
+      const enriched = data.map((r: any) => ({
+        ...r,
+        userName: r.user.name,        
+        submitted_by: r.user.name,    
+      }));
+      setWeeklyReports(enriched);
+      setFilteredWeeklyReports(enriched);
     }
     setLoading(false);
   };
+  
 
   const fetchMonthlyReports = async () => {
     setLoading(true);
     const { data, error } = await supabase
       .from('monthly_report')
-      .select('*');
+      .select('*, user: user_id ( name )');
     if (error) console.error('Error fetching monthly reports:', error.message);
-    else {
-      setMonthlyReports(data || []);
-      setFilteredMonthlyReports(data || []);
+    else {const enriched = data.map((r:any) => ({
+      ...r,
+      userName: r.user.name,
+      submitted_by: r.user.name,
+    }));
+    setMonthlyReports(enriched);
+    setFilteredMonthlyReports(enriched);
     }
     setLoading(false);
   };
@@ -182,11 +198,16 @@ const Reports = () => {
     setLoading(true);
     const { data, error } = await supabase
       .from('weekly_journal')
-      .select('*');
+      .select('*, user: user_id ( name )');
     if (error) console.error('Error fetching weekly journals:', error.message);
     else {
-      setWeeklyJournals(data || []);
-      setFilteredWeeklyJournals(data || []);
+      const enriched = data.map((r:any) => ({
+        ...r,
+        userName: r.user.name,
+        submitted_by: r.user.name,
+      }));
+      setWeeklyJournals(enriched);
+      setFilteredWeeklyJournals(enriched);
     }
     setLoading(false);
   };
