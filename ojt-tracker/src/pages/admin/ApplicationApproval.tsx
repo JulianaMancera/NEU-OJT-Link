@@ -284,7 +284,6 @@ const ApplicationApproval = () => {
         <table className="w-full border-collapse">
           <thead>
             <tr className="bg-gray-200 text-black">
-              <th className="border p-2">Application ID</th>
               <th className="border p-2">Username</th>
               <th className="border p-2">Company Name</th>
               <th className="border p-2">Email</th>
@@ -297,7 +296,6 @@ const ApplicationApproval = () => {
             {applications.map(application => (
               <tr key={application.application_id}
                   className="hover:bg-gray-300 text-black bg-white">
-                <td className="border p-2">{application.application_id}</td>
                 <td className="border p-2">{application.user_name}</td>
                 <td className="border p-2">{application.company_name}</td>
                 <td className="border p-2">{application.email}</td>
