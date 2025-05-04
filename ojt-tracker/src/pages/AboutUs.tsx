@@ -47,7 +47,7 @@ const AboutUs = ({ handleLogout }: AboutUsProps) => {
       role: "Scrum Master",
       github: "https://github.com/JulianaMancera",
       expertise: "Team Lead, Project Management, Full Stack Developement, UI/UX Design",
-      avatar: "https://via.placeholder.com/150",
+      avatar: "https://avatars.githubusercontent.com/u/133284711?v=4",
       position: "center"
     },
     {
@@ -55,7 +55,7 @@ const AboutUs = ({ handleLogout }: AboutUsProps) => {
       role: "Developer 1",
       github: "https://github.com/RenardMacorol",
       expertise: "Backend Development, React",
-      avatar: "https://via.placeholder.com/150",
+      avatar: "https://avatars.githubusercontent.com/u/84180143?v=4",
       position: "other"
     },
     {
@@ -63,7 +63,7 @@ const AboutUs = ({ handleLogout }: AboutUsProps) => {
       role: "Developer 2",
       github: "https://github.com/DLAyatoCabanilla",
       expertise: "Backend Development, Database Design",
-      avatar: "https://via.placeholder.com/150",
+      avatar: "https://avatars.githubusercontent.com/u/139518282?v=4",
       position: "other"
     },
     {
@@ -71,7 +71,7 @@ const AboutUs = ({ handleLogout }: AboutUsProps) => {
       role: "Analyst",
       github: "https://github.com/VinceCampos",
       expertise: "UI/UX Design, Frontend Developement",
-      avatar: "https://via.placeholder.com/150",
+      avatar: "https://avatars.githubusercontent.com/u/152839517?v=4",
       position: "other"
     },
     {
@@ -79,7 +79,7 @@ const AboutUs = ({ handleLogout }: AboutUsProps) => {
       role: "Tester",
       github: "https://github.com/AlyssaMaeSanPedro",
       expertise: "Full Stack Developement, UI/UX Design, Database Design",
-      avatar: "https://via.placeholder.com/150",
+      avatar: "https://avatars.githubusercontent.com/u/163331805?v=4",
       position: "other"
     },
   ];
@@ -350,7 +350,7 @@ const AboutUs = ({ handleLogout }: AboutUsProps) => {
                       >
                         <div className="relative h-32 bg-gradient-to-r from-blue-600 to-indigo-800 rounded-t-2xl">
                           <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2">
-                            <div className="w-32 h-32 rounded-full bg-white p-1">
+                            <div className="w-35 h-35 rounded-full bg-white p-1 border-4 border-blue-300">
                               <img
                                 src={member.avatar}
                                 alt={`${member.name}'s avatar`}
@@ -359,7 +359,7 @@ const AboutUs = ({ handleLogout }: AboutUsProps) => {
                               />
                             </div>
                           </div>
-                          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-40 h-20 bg-white rounded-t-full"></div>
+                          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-40 h-20 rounded-t-full"></div>
                         </div>
                         <div className="pt-20 px-8 pb-8 text-center">
                           <h3 className="text-2xl font-bold text-gray-800">{member.name}</h3>
@@ -396,8 +396,8 @@ const AboutUs = ({ handleLogout }: AboutUsProps) => {
                           className="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-100"
                         >
                           <div className="relative h-32 bg-gradient-to-r from-blue-600 to-indigo-800 rounded-t-2xl">
-                            <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2">
-                              <div className="w-32 h-32 rounded-full bg-white p-1">
+                            <div className="absolute top-10 left-1/2 transform -translate-x-1/2">
+                              <div className="w-35 h-35 rounded-full bg-white p-1 border-4 border-blue-300">
                                 <img
                                   src={member.avatar}
                                   alt={`${member.name}'s avatar`}
@@ -406,7 +406,7 @@ const AboutUs = ({ handleLogout }: AboutUsProps) => {
                                 />
                               </div>
                             </div>
-                            <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-40 h-20 bg-white rounded-t-full"></div>
+                            <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-40 h-20 rounded-t-full"></div>
                           </div>
                           <div className="pt-20 px-6 pb-8 text-center">
                             <h3 className="text-xl font-bold text-gray-800">{member.name}</h3>
@@ -442,7 +442,7 @@ const AboutUs = ({ handleLogout }: AboutUsProps) => {
                     Have questions about NEU OJT-Link or interested in collaborating with our team?
                   </p>
                   <a
-                    href="mailto:real.julianamancera@gmail.com"
+                    href="https://www.linkedin.com/in/juliana-mancera-84947b309/"
                     className="inline-flex items-center px-8 py-4 rounded-full bg-gradient-to-r from-blue-600 to-indigo-700 text-white font-medium text-lg hover:from-blue-700 hover:to-indigo-800 transition-all shadow-md"
                     style={{ color: 'white' }}
                   >
