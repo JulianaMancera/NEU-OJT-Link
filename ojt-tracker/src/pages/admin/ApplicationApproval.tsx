@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { supabase } from "../../../supabase";
 import { User as SupabaseUser } from "@supabase/supabase-js";
 import Sidebar from "./SideBar";
@@ -23,10 +23,10 @@ const ApplicationApproval = () => {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [showModalFor, setShowModalFor] = useState<string|null>(null);
-  const [showModalName, setShowModalName] = useState<string|null>(null) 
+  const [showModalName, setShowModalName] = useState<string|null>(null);
   const [docsByFolder, setDocsByFolder] = useState<Record<string,string[]>>({});
   const folders = ['com','coverLetter','cv','medCert','notarized','psyTest','resume'];
-  const [selectedFolder, setSelectedFolder] = useState<string | null>(null)
+  const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
   const [applications, setApplications] = useState<Application[]>([]);
   const [filteredApplications, setFilteredApplications] = useState<Application[]>([]);
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -35,12 +35,10 @@ const ApplicationApproval = () => {
   const [isProfileOpen, setProfileOpen] = useState(false);
   const navigate = useNavigate();
 
-  // User profile data
   const [userName, setUserName] = useState<string>("Admin User");
   const [userRole, setUserRole] = useState<string>("admin");
   const [profilePicture, setProfilePicture] = useState<string | null>(null);
 
-  // Fetch current user data
   useEffect(() => {
     const fetchCurrentUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -63,13 +61,12 @@ const ApplicationApproval = () => {
   const handleLogout = async () => {
     try {
       await supabase.auth.signOut();
-      navigate("/"); // Updated to navigate to root path, consistent with Admin
+      navigate("/");
     } catch (error) {
       console.error("Logout failed:", error);
     }
   };
 
-  // Fetch applications + enrich with names
   useEffect(() => {
     const fetchApplications = async () => {
       const { data: { user }, error: userError } = await supabase.auth.getUser();
@@ -113,20 +110,13 @@ const ApplicationApproval = () => {
     fetchApplications();
   }, []);
 
-  // Apply filters whenever status filter or data changes
-  useEffect(() => {
-    applyFilters();
-  }, [statusFilter, applications, searchTerm]);
-
-  const applyFilters = () => {
+  const applyFilters = useCallback(() => {
     let filtered = [...applications];
     
-    // Apply status filter
     if (statusFilter !== "all") {
       filtered = filtered.filter(application => application.status === statusFilter);
     }
     
-    // Apply search term if any
     if (searchTerm) {
       filtered = filtered.filter(application => 
         application.user_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -136,18 +126,20 @@ const ApplicationApproval = () => {
     }
     
     setFilteredApplications(filtered);
-  };
+  }, [statusFilter, applications, searchTerm]);
+
+  useEffect(() => {
+    applyFilters();
+  }, [applyFilters]);
 
   const handleViewDocs = async (user_id: string) => {
-    const app = applications.find(a => a.user_id === user_id)
-    setShowModalName(app?.user_name ?? user_id)
+    const app = applications.find(a => a.user_id === user_id);
+    setShowModalName(app?.user_name ?? user_id);
     setShowModalFor(user_id);
     setSelectedFolder(null);
-    // clear any previous results
     const out: Record<string,string[]> = {};
   
     await Promise.all(folders.map(async folder => {
-      // list everything in this folder
       const { data: files, error: listError } =
         await supabase
           .storage
@@ -159,11 +151,9 @@ const ApplicationApproval = () => {
         return;
       }
   
-      // only keep the files for this user
       const userFiles = files
         .filter(f => f.name.includes(`_${user_id}_`))
         .map(f => {
-          // getPublicUrl returns { data: { publicUrl } }
           const { data: { publicUrl } } =
             supabase
               .storage
@@ -243,8 +233,7 @@ const ApplicationApproval = () => {
 
   return (
     <div className="relative min-h-screen w-screen bg-gradient-to-b from-[#5F74C9] to-[#0A279C] p-8">
-      {/* Header */}
-      <div className="w-full h-[80px] fixed absolute left-0 top-0 bg-gradient-to-b from-[#578FCA] to-[#2B4764] border-black flex items-center justify-between px-6">
+      <div className="w-full h-[80px] absolute left-0 top-0 bg-gradient-to-b from-[#578FCA] to-[#2B4764] border-black flex items-center justify-between px-6">
         <img src={OJTLogo} alt="OJT Link Logo" className="w-[220px] h-[220px] ml-15" />
         <div className="flex items-center">
           <button
@@ -325,7 +314,6 @@ const ApplicationApproval = () => {
           Application Approvals
         </h2>
 
-        {/* Search & Filter */}
         <div className="bg-gray-50 p-4 rounded-lg mb-6 shadow-sm border flex flex-wrap gap-4 items-center justify-between">
           <div className="relative flex-grow max-w-md">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -432,7 +420,6 @@ const ApplicationApproval = () => {
               </table>
             </div>
 
-            {/* summary + clear filters */}
             <div className="mt-4 text-sm text-gray-500 flex items-center justify-between">
               <div>
                 Showing {filteredApplications.length} applications
@@ -452,10 +439,8 @@ const ApplicationApproval = () => {
         )}
       </div>
 
-      {/* Documents Modal */}
       {showModalFor && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+        <div className="fixed inset-0 bg-gradient-to-b from-[#3657DB] from-24% to-[#8D95B5] to-98% bg-opacity-75 flex items-center justify-center z-50"
           onClick={() => setShowModalFor(null)}
         >
           <div
@@ -472,7 +457,6 @@ const ApplicationApproval = () => {
               ✕
             </button>
 
-            {/* STEP 1: show 7 folder icons */}
             {!selectedFolder ? (
               <div className="grid grid-cols-3 md:grid-cols-4 gap-4 mt-4">
                 {folders.map(folder => (
@@ -488,7 +472,6 @@ const ApplicationApproval = () => {
               </div>
             ) : (
               <>
-                {/* STEP 2: show files in selectedFolder */}
                 <button
                   onClick={() => setSelectedFolder(null)}
                   className="text-blue-600 hover:text-blue-800 flex items-center gap-1 mb-4"
