@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { User, Settings, LogOut, CircleHelp } from "lucide-react";
+import { User, LogOut, Info } from "lucide-react";
 import { supabase } from "../../../supabase";
 import OJTLogo from "/src/assets/ojt-white.png";
 import Sidebar from "./SideBar";
@@ -102,15 +102,16 @@ const Admin = () => {
                          </button>
                        </li>
                        <li>
-                         <button className="w-full text-left px-6 py-4 hover:bg-gray-100 flex items-center transition-all duration-200">
-                           <Settings className="w-6 h-6 mr-3" /> Settings
-                         </button>
-                       </li>
-                       <li>
-                         <button className="w-full text-left px-6 py-4 hover:bg-gray-100 flex items-center transition-all duration-200">
-                           <CircleHelp className="w-6 h-6 mr-3 " /> Help & Support
-                         </button>
-                       </li>
+                          <button
+                            onClick={() => {
+                              navigate("/about");
+                              setProfileOpen(false);
+                            }}
+                            className="w-full text-left px-6 py-4 hover:bg-gray-100 flex items-center transition-all duration-200"
+                          >
+                            <Info className="w-6 h-6 mr-3" /> About Us
+                          </button>
+                        </li>
                       <li>
                         <button
                           onClick={handleLogout}
