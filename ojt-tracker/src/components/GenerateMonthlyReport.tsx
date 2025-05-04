@@ -1,4 +1,3 @@
-// src/components/GenerateMonthlyReport.tsx
 import { useState, useEffect } from "react";
 import { pdf } from "@react-pdf/renderer";
 import { supabase } from "../../supabase";
