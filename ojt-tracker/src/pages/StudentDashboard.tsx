@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { User, Settings, LogOut, CircleHelp, Menu, UserCog } from "lucide-react";
+import { User, Settings, LogOut, CircleHelp, Menu, UserCog, Info } from "lucide-react";
 import { supabase } from "../../supabase";
 import logo from "../assets/ojt-white.png";
 import StudentSide from "./student/StudentSide";
@@ -167,6 +167,17 @@ const StudentDashboard: React.FC = () => {
                   </button>
                 </li>
               )}
+              <li>
+              <button
+                onClick={() => {
+                  navigate("/about");
+                  setProfileOpen(false);
+                }}
+                className="w-full text-left px-6 py-4 hover:bg-gray-100 flex items-center transition-all duration-200"
+              >
+                <Info className="w-6 h-6 mr-3" /> About Us
+              </button>
+            </li>
               <li>
                 <button
                   onClick={handleLogout}
