@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "../../../supabase";
 import { FaCloudUploadAlt, FaTrash } from "react-icons/fa";
-import { extractTableFromPdf } from "../../services/pdfExtractor";
+import { extractTableFromPdf } from "../../services/pdfFileExtractor";
 
 interface WeeklyReportProps {
   isOpen: boolean;
