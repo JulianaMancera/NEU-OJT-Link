@@ -1,3 +1,4 @@
+
 import * as pdfjs from 'pdfjs-dist';
 pdfjs.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.worker.min.js';
 
@@ -175,3 +176,4 @@ export const extractTableFromPdf = async (file: File): Promise<{ entries: TimeEn
   const totalHours = entries.reduce((sum, entry) => sum + (entry.hours || 0), 0);
   return { entries, totalHours };
 };
+

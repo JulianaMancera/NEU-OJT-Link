@@ -1,9 +1,8 @@
 import { useState, useEffect } from "react";
 import { supabase } from "../../../supabase";
 import { FaCloudUploadAlt, FaTrash } from "react-icons/fa";
-import * as pdfjs from 'pdfjs-dist';
-// Set worker path explicitly to version 2.10.377
-pdfjs.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.worker.min.js';
+import { extractTableFromPdf } from "../../services/pdfFileExtractor";
+
 
 interface WeeklyReportProps {
   isOpen: boolean;
@@ -336,7 +335,6 @@ const WeeklyReport = ({ isOpen, onClose, editingReport }: WeeklyReportProps) => 
     setProgress(0);
     let completed = 0;
     const errors: string[] = [];
-  
     for (const file of files) {
       const fileName = file.name;
       if (file.type !== "application/pdf") {
