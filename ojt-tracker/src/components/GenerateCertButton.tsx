@@ -1,7 +1,7 @@
 import { pdf } from "@react-pdf/renderer";
 import { supabase } from "../../supabase";
 import CertificatePDF from "../services/CertificatePDF";
-
+import { Award } from "lucide-react";
 
 
 interface CertifacteProps{
@@ -53,10 +53,10 @@ const GenerateCertButton: React.FC<CertifacteProps> = ({companyInfo, job, isAllo
               <button
                 onClick={handleDowload}
                 disabled={!isAllowed}
-                className={`text-white mb-3 px-4 py-2 rounded ${
-                  isAllowed ? 'bg-black hover:bg-gray-800 cursor-pointer' : 'bg-gray-400 cursor-not-allowed'
+                className={`text-white mb-3 px-4 py-2 rounded flex items-center gap-2 text-white mb-4 bg-blue-600 ${
+                  isAllowed ? 'bg-green-600 hover:bg-gray-800 cursor-pointer' : 'bg-gray-400 cursor-not-allowed'
                 }`}
-              >
+              > <Award className="w-5 h-5" />
                 Click to Download Certificate of Completion
               </button>
               {!isAllowed && (

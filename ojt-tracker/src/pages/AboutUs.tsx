@@ -12,8 +12,9 @@ interface AboutUsProps {
 const AboutUs = ({ handleLogout }: AboutUsProps) => {
   const [isProfileOpen, setProfileOpen] = useState(false);
   const [userName, setUserName] = useState("");
-  const [userRole, setUserRole] = useState(null);
-  const [profilePicture, setProfilePicture] = useState(null);
+  const [userRole, setUserRole] = useState<string | null>(null);
+  const [profilePicture, setProfilePicture] = useState<string | null>(null);
+  const [hasApplied, setHasApplied] = useState(false);
   const [activeSection, setActiveSection] = useState("about");
   const navigate = useNavigate();
   const location = useLocation();
@@ -34,11 +35,39 @@ const AboutUs = ({ handleLogout }: AboutUsProps) => {
           setUserRole(roleData.role);
           setProfilePicture(roleData.profilePicture);
         }
+
+        // Check if user has applied for any position
+        if (roleData?.role === "student") {
+          const { data: applicationData } = await supabase
+            .from("application")
+            .select("id")
+            .eq("student_id", user.id)
+            .limit(1);
+          
+          // Fix here: Ensure we're setting a boolean value
+          setHasApplied(applicationData !== null && applicationData !== undefined && applicationData.length > 0);
+        }
       }
     };
 
     fetchUserData();
   }, []);
+
+  // Handle home button navigation based on user role and application status
+  const handleHomeNavigation = () => {
+    if (userRole === "admin") {
+      navigate("/admin");
+    } else if (userRole === "student") {
+      if (hasApplied) {
+        navigate("/student-dashboard");
+      } else {
+        navigate("/dashboard");
+      }
+    } else {
+      // Default route if role is undefined or not recognized
+      navigate("/dashboard");
+    }
+  };
 
   // Team members data with their details
   const teamMembers = [
@@ -47,35 +76,15 @@ const AboutUs = ({ handleLogout }: AboutUsProps) => {
       role: "Scrum Master",
       github: "https://github.com/JulianaMancera",
       expertise: "Team Lead, Project Management, Full Stack Developement, UI/UX Design",
-      experience: "3 years in web development",
-      avatar: "https://via.placeholder.com/150",
+      avatar: "https://avatars.githubusercontent.com/u/133284711?v=4",
       position: "center"
-    },
-    {
-      name: "Renard B. Macorol",
-      role: "Developer 1",
-      github: "https://github.com/RenardMacorol",
-      expertise: "Backend Development, React",
-      experience: "2 years in React development",
-      avatar: "https://via.placeholder.com/150",
-      position: "other"
-    },
-    {
-      name: "Dan Lloyd A. Cabanilla",
-      role: "Developer 2",
-      github: "https://github.com/DLAyatoCabanilla",
-      expertise: "Backend Development, Database Design",
-      experience: "4 years in software engineering",
-      avatar: "https://via.placeholder.com/150",
-      position: "other"
     },
     {
       name: "Vince D. Campos",
       role: "Analyst",
       github: "https://github.com/VinceCampos",
-      expertise: "UI/UX Design, Frontend Developement",
-      experience: "3 years in system analysis",
-      avatar: "https://via.placeholder.com/150",
+      expertise: "UI/UX Design, Fullstack Developement, Tester",
+      avatar: "https://avatars.githubusercontent.com/u/152839517?v=4",
       position: "other"
     },
     {
@@ -83,8 +92,24 @@ const AboutUs = ({ handleLogout }: AboutUsProps) => {
       role: "Tester",
       github: "https://github.com/AlyssaMaeSanPedro",
       expertise: "Full Stack Developement, UI/UX Design, Database Design",
-      experience: "2 years in software testing",
-      avatar: "https://via.placeholder.com/150",
+      avatar: "https://avatars.githubusercontent.com/u/163331805?v=4",
+      position: "other"
+    },
+    {
+      name: "Renard B. Macorol",
+      role: "Developer 1",
+      github: "https://github.com/RenardMacorol",
+      expertise: "Backend Development, React",
+      avatar: "https://avatars.githubusercontent.com/u/84180143?v=4",
+      position: "other"
+    },
+    {
+
+      name: "Dan Lloyd A. Cabanilla",
+      role: "Developer 2",
+      github: "https://github.com/DLAyatoCabanilla",
+      expertise: "Backend Development, Database Design",
+      avatar: "https://avatars.githubusercontent.com/u/139518282?v=4",
       position: "other"
     },
   ];
@@ -130,7 +155,7 @@ const AboutUs = ({ handleLogout }: AboutUsProps) => {
         <div className="flex items-center space-x-4">
           <img src={OJTLogo} alt="OJT Link Logo" className="w-[220px] h-[220px] ml-15" />
           <button
-            onClick={() => navigate("/student-dashboard")}
+            onClick={handleHomeNavigation}
             className={`text-white px-5 py-2 rounded-full transition-all duration-300 shadow-md hover:shadow-lg ${
               isHomePage ? "bg-blue-700 hover:brightness-110" : "bg-transparent hover:bg-blue-700"
             }`}
@@ -355,7 +380,7 @@ const AboutUs = ({ handleLogout }: AboutUsProps) => {
                       >
                         <div className="relative h-32 bg-gradient-to-r from-blue-600 to-indigo-800 rounded-t-2xl">
                           <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2">
-                            <div className="w-32 h-32 rounded-full bg-white p-1">
+                            <div className="w-35 h-35 rounded-full bg-white p-1 border-4 border-blue-300">
                               <img
                                 src={member.avatar}
                                 alt={`${member.name}'s avatar`}
@@ -364,7 +389,7 @@ const AboutUs = ({ handleLogout }: AboutUsProps) => {
                               />
                             </div>
                           </div>
-                          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-40 h-20 bg-white rounded-t-full"></div>
+                          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-40 h-20 rounded-t-full"></div>
                         </div>
                         <div className="pt-20 px-8 pb-8 text-center">
                           <h3 className="text-2xl font-bold text-gray-800">{member.name}</h3>
@@ -377,10 +402,7 @@ const AboutUs = ({ handleLogout }: AboutUsProps) => {
                               <p className="text-lg text-gray-600">{member.expertise}</p>
                             </div>
                             <div className="flex items-start justify-center">
-                              <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center mt-1 mr-4">
-                                <div className="w-2 h-2 rounded-full bg-blue-600"></div>
-                              </div>
-                              <p className="text-lg text-gray-600">{member.experience}</p>
+                             
                             </div>
                           </div>
                           <a
@@ -404,8 +426,8 @@ const AboutUs = ({ handleLogout }: AboutUsProps) => {
                           className="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-100"
                         >
                           <div className="relative h-32 bg-gradient-to-r from-blue-600 to-indigo-800 rounded-t-2xl">
-                            <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2">
-                              <div className="w-32 h-32 rounded-full bg-white p-1">
+                            <div className="absolute top-10 left-1/2 transform -translate-x-1/2">
+                              <div className="w-35 h-35 rounded-full bg-white p-1 border-4 border-blue-300">
                                 <img
                                   src={member.avatar}
                                   alt={`${member.name}'s avatar`}
@@ -414,7 +436,7 @@ const AboutUs = ({ handleLogout }: AboutUsProps) => {
                                 />
                               </div>
                             </div>
-                            <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-40 h-20 bg-white rounded-t-full"></div>
+                            <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-40 h-20 rounded-t-full"></div>
                           </div>
                           <div className="pt-20 px-6 pb-8 text-center">
                             <h3 className="text-xl font-bold text-gray-800">{member.name}</h3>
@@ -427,10 +449,7 @@ const AboutUs = ({ handleLogout }: AboutUsProps) => {
                                 <p className="text-base text-gray-600">{member.expertise}</p>
                               </div>
                               <div className="flex items-start justify-center">
-                                <div className="w-5 h-5 rounded-full bg-blue-100 flex items-center justify-center mt-1 mr-3">
-                                  <div className="w-2 h-2 rounded-full bg-blue-600"></div>
-                                </div>
-                                <p className="text-base text-gray-600">{member.experience}</p>
+                               
                               </div>
                             </div>
                             <a
@@ -453,7 +472,7 @@ const AboutUs = ({ handleLogout }: AboutUsProps) => {
                     Have questions about NEU OJT-Link or interested in collaborating with our team?
                   </p>
                   <a
-                    href="mailto:real.julianamancera@gmail.com"
+                    href="https://www.linkedin.com/in/juliana-mancera-84947b309/"
                     className="inline-flex items-center px-8 py-4 rounded-full bg-gradient-to-r from-blue-600 to-indigo-700 text-white font-medium text-lg hover:from-blue-700 hover:to-indigo-800 transition-all shadow-md"
                     style={{ color: 'white' }}
                   >

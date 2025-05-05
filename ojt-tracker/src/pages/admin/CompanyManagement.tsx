@@ -52,6 +52,7 @@ const CompanyManagement = () => {
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [message, setMessage] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
   const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
   const [isProfileOpen, setProfileOpen] = useState(false);
@@ -139,7 +140,10 @@ const CompanyManagement = () => {
     if (!newCompany.address?.trim()) errors.address = "Address is required";
     if (!newCompany.email?.trim()) errors.email = "Email is required";
     else if (!/\S+@\S+\.\S+/.test(newCompany.email)) errors.email = "Email is invalid";
-    if (!newCompany.contact_no?.trim()) errors.contact_no = "Contact number is required";
+    // Ito error dahil hindi number yung string. Trim function ay only for string, not for number.
+    if (!String(newCompany.contact_no ?? "").trim()) { 
+     errors.contact_no = "Contact number is required";
+    }; 
     if (!newCompany.supervisor?.trim()) errors.supervisor = "Supervisor name is required";
 
     const startHour = parseInt(newCompany.start_hour || '06');
@@ -211,22 +215,23 @@ const CompanyManagement = () => {
   };
 
   const handleAddOrUpdateCompany = async () => {
-    if (!validateForm()) return;
-
-    try {
-      const logo_url = await handleFileUpload();
-      const startHour = parseInt(newCompany.start_hour || '06');
-      const startMinute = newCompany.start_minute || '00';
-      const startPeriod = newCompany.start_period || 'AM';
-      const endHour = parseInt(newCompany.end_hour || '05');
-      const endMinute = newCompany.end_minute || '00';
-      const endPeriod = newCompany.end_period || 'PM';
-
-      const startTime24 = `${((startHour % 12) + (startPeriod === 'PM' && startHour !== 12 ? 12 : 0) || (startPeriod === 'AM' && startHour === 12 ? 0 : startHour)).toString().padStart(2, '0')}:${startMinute}`;
-      const endTime24 = `${((endHour % 12) + (endPeriod === 'PM' && endHour !== 12 ? 12 : 0) || (endPeriod === 'AM' && endHour === 12 ? 0 : endHour)).toString().padStart(2, '0')}:${endMinute}`;
-
+  if (!validateForm()) return;
+  
+  try {
+    const logo_url = await handleFileUpload();
+    const startHour = parseInt(newCompany.start_hour || '06');
+    const startMinute = newCompany.start_minute || '00';
+    const startPeriod = newCompany.start_period || 'AM';
+    const endHour = parseInt(newCompany.end_hour || '05');
+    const endMinute = newCompany.end_minute || '00';
+    const endPeriod = newCompany.end_period || 'PM';
+    
+    const startTime24 = `${((startHour % 12) + (startPeriod === 'PM' && startHour !== 12 ? 12 : 0) || (startPeriod === 'AM' && startHour === 12 ? 0 : startHour)).toString().padStart(2, '0')}:${startMinute}`;
+    const endTime24 = `${((endHour % 12) + (endPeriod === 'PM' && endHour !== 12 ? 12 : 0) || (endPeriod === 'AM' && endHour === 12 ? 0 : endHour)).toString().padStart(2, '0')}:${endMinute}`;
+    
+    if (editingCompanyId) {
       const companyData: Company = {
-        company_id: editingCompanyId || '',
+        company_id: editingCompanyId,
         name: newCompany.name || '',
         address: newCompany.address || '',
         email: newCompany.email || '',
@@ -238,55 +243,58 @@ const CompanyManagement = () => {
         supervisor: newCompany.supervisor || ''
       };
 
-      if (editingCompanyId) {
-        const { data, error } = await supabase
-          .from("company")
-          .update({
-            name: companyData.name,
-            address: companyData.address,
-            email: companyData.email,
-            contact_no: companyData.contact_no,
-            logo_url: companyData.logo_url,
-            start_time: companyData.start_time,
-            end_time: companyData.end_time,
-            companyRestrict: companyData.companyRestrict,
-            supervisor: companyData.supervisor
-          })
-          .eq("company_id", editingCompanyId)
-          .select()
-          .single();
+      const { data, error } = await supabase
+        .from("company")
+        .update(companyData)
+        .eq("company_id", editingCompanyId)
+        .select()
+        .single();
+        
+      if (error) throw new Error(error.message);
+      if (!data) throw new Error("No data returned from update");
+        
+      setCompanies(prev => prev.map(c => c.company_id === editingCompanyId ? data : c));
+      setFilteredCompanies(prev => prev.map(c => c.company_id === editingCompanyId ? data : c));
+      
+      setError('');
+      setMessage('✅ Company updated successfully!');
+    } else {
+      const companyData = {
+        name: newCompany.name || '',
+        address: newCompany.address || '',
+        email: newCompany.email || '',
+        contact_no: newCompany.contact_no || '',
+        logo_url,
+        start_time: startTime24,
+        end_time: endTime24,
+        companyRestrict: newCompany.companyRestrict || 'Active',
+        supervisor: newCompany.supervisor || ''
+      };
 
-        if (error) throw new Error(error.message);
-        if (!data) throw new Error("No data returned from update");
-
-        setCompanies((prev) =>
-          prev.map((c) =>
-            c.company_id === editingCompanyId ? { ...companyData, company_id: editingCompanyId } : c
-          )
-        );
-        setFilteredCompanies((prev) =>
-          prev.map((c) =>
-            c.company_id === editingCompanyId ? { ...companyData, company_id: editingCompanyId } : c
-          )
-        );
-      } else {
-        const { data: inserted, error } = await supabase
-          .from("company")
-          .insert([companyData])
-          .select()
-          .single();
-
-        if (error || !inserted) throw new Error(error?.message || "Insert failed");
-        setCompanies((prev) => [...prev, inserted as Company]);
-        setFilteredCompanies((prev) => [...prev, inserted as Company]);
-      }
-      resetModal();
-    } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : String(err);
-      console.error("Company operation error:", errorMessage);
-      setError(`Failed to ${editingCompanyId ? 'update' : 'add'} company: ${errorMessage}`);
+      const { data: inserted, error } = await supabase
+        .from("company")
+        .insert([companyData])
+        .select()
+        .single();
+        
+      if (error || !inserted) throw new Error(error?.message || "Insert failed");
+      
+      setCompanies(prev => [...prev, inserted]);
+      setFilteredCompanies(prev => [...prev, inserted]);
+      
+      setError('');
+      setMessage('✅ Company added successfully!');
     }
-  };
+    
+    setTimeout(() => setMessage(''), 3000);
+    resetModal();
+  } catch (err: unknown) {
+    const errorMessage = err instanceof Error ? err.message : String(err);
+    console.error("Company operation error:", errorMessage);
+    setMessage('');
+    setError(`Failed to ${editingCompanyId ? 'update' : 'add'} company: ${errorMessage}`);
+  }
+};
 
   const resetModal = () => {
     setNewCompany({
@@ -446,7 +454,11 @@ const CompanyManagement = () => {
         {error && (
           <div className="bg-red-100 text-red-700 p-3 rounded mb-4 text-center">{error}</div>
         )}
-
+        {message && (
+          <div className="bg-green-100 text-green-700 p-3 rounded mb-4 text-center">
+            {message}
+          </div>
+        )}
         <div className="flex justify-center items-center gap-4 mb-6">
           <input
             type="text"
