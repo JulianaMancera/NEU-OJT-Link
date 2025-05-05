@@ -113,6 +113,7 @@ const WeeklyReport = ({ isOpen, onClose, editingReport }: WeeklyReportProps) => 
     let completed = 0;
     const errors: string[] = [];
 
+    //This is the whole scanner
     for (const file of files) {
       const fileName = file.name;
       if (file.type !== "application/pdf") {

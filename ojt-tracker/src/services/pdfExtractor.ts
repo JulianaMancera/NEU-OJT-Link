@@ -9,6 +9,7 @@ export interface TimeEntry {
   task: string;
   remarks: string;
 }
+//handle
 
 const mergeSplitTimes = (rowData: string[]): string[] => {
   const merged: string[] = [];
