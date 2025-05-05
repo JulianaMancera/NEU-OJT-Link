@@ -260,7 +260,9 @@ const Reports = () => {
 
   return (
     <div className="relative min-h-screen w-screen bg-gradient-to-b from-[#5F74C9] to-[#0A279C] p-8">
-     <div className="w-full h-[80px] fixed left-0 top-0 bg-gradient-to-b from-[#578FCA] to-[#2B4764] border-black flex items-center justify-between px-6 z-10">
+
+      <div className="w-full h-[80px] fixed absolute left-0 top-0 bg-gradient-to-b from-[#578FCA] to-[#2B4764] border-black flex items-center justify-between px-6 z-10">
+
         <img src={OJTLogo} alt="OJT Link Logo" className="w-[220px] h-[220px] ml-15" />
         <div className="flex items-center">
           <button
