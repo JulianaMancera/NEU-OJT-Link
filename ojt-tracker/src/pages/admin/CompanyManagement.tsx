@@ -52,6 +52,7 @@ const CompanyManagement = () => {
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [message, setMessage] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
   const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
   const [isProfileOpen, setProfileOpen] = useState(false);
@@ -139,8 +140,9 @@ const CompanyManagement = () => {
     if (!newCompany.address?.trim()) errors.address = "Address is required";
     if (!newCompany.email?.trim()) errors.email = "Email is required";
     else if (!/\S+@\S+\.\S+/.test(newCompany.email)) errors.email = "Email is invalid";
+    // Ito error dahil hindi number yung string. Trim function ay only for string, not for number.
     if (!String(newCompany.contact_no ?? "").trim()) { 
-      errors.contact_no = "Contact number is required";
+     errors.contact_no = "Contact number is required";
     }; 
     if (!newCompany.supervisor?.trim()) errors.supervisor = "Supervisor name is required";
 
@@ -213,22 +215,23 @@ const CompanyManagement = () => {
   };
 
   const handleAddOrUpdateCompany = async () => {
-    if (!validateForm()) return;
-
-    try {
-      const logo_url = await handleFileUpload();
-      const startHour = parseInt(newCompany.start_hour || '06');
-      const startMinute = newCompany.start_minute || '00';
-      const startPeriod = newCompany.start_period || 'AM';
-      const endHour = parseInt(newCompany.end_hour || '05');
-      const endMinute = newCompany.end_minute || '00';
-      const endPeriod = newCompany.end_period || 'PM';
-
-      const startTime24 = `${((startHour % 12) + (startPeriod === 'PM' && startHour !== 12 ? 12 : 0) || (startPeriod === 'AM' && startHour === 12 ? 0 : startHour)).toString().padStart(2, '0')}:${startMinute}`;
-      const endTime24 = `${((endHour % 12) + (endPeriod === 'PM' && endHour !== 12 ? 12 : 0) || (endPeriod === 'AM' && endHour === 12 ? 0 : endHour)).toString().padStart(2, '0')}:${endMinute}`;
-
+  if (!validateForm()) return;
+  
+  try {
+    const logo_url = await handleFileUpload();
+    const startHour = parseInt(newCompany.start_hour || '06');
+    const startMinute = newCompany.start_minute || '00';
+    const startPeriod = newCompany.start_period || 'AM';
+    const endHour = parseInt(newCompany.end_hour || '05');
+    const endMinute = newCompany.end_minute || '00';
+    const endPeriod = newCompany.end_period || 'PM';
+    
+    const startTime24 = `${((startHour % 12) + (startPeriod === 'PM' && startHour !== 12 ? 12 : 0) || (startPeriod === 'AM' && startHour === 12 ? 0 : startHour)).toString().padStart(2, '0')}:${startMinute}`;
+    const endTime24 = `${((endHour % 12) + (endPeriod === 'PM' && endHour !== 12 ? 12 : 0) || (endPeriod === 'AM' && endHour === 12 ? 0 : endHour)).toString().padStart(2, '0')}:${endMinute}`;
+    
+    if (editingCompanyId) {
       const companyData: Company = {
-        company_id: editingCompanyId || '',
+        company_id: editingCompanyId,
         name: newCompany.name || '',
         address: newCompany.address || '',
         email: newCompany.email || '',
@@ -240,55 +243,58 @@ const CompanyManagement = () => {
         supervisor: newCompany.supervisor || ''
       };
 
-      if (editingCompanyId) {
-        const { data, error } = await supabase
-          .from("company")
-          .update({
-            name: companyData.name,
-            address: companyData.address,
-            email: companyData.email,
-            contact_no: companyData.contact_no,
-            logo_url: companyData.logo_url,
-            start_time: companyData.start_time,
-            end_time: companyData.end_time,
-            companyRestrict: companyData.companyRestrict,
-            supervisor: companyData.supervisor
-          })
-          .eq("company_id", editingCompanyId)
-          .select()
-          .single();
+      const { data, error } = await supabase
+        .from("company")
+        .update(companyData)
+        .eq("company_id", editingCompanyId)
+        .select()
+        .single();
+        
+      if (error) throw new Error(error.message);
+      if (!data) throw new Error("No data returned from update");
+        
+      setCompanies(prev => prev.map(c => c.company_id === editingCompanyId ? data : c));
+      setFilteredCompanies(prev => prev.map(c => c.company_id === editingCompanyId ? data : c));
+      
+      setError('');
+      setMessage('✅ Company updated successfully!');
+    } else {
+      const companyData = {
+        name: newCompany.name || '',
+        address: newCompany.address || '',
+        email: newCompany.email || '',
+        contact_no: newCompany.contact_no || '',
+        logo_url,
+        start_time: startTime24,
+        end_time: endTime24,
+        companyRestrict: newCompany.companyRestrict || 'Active',
+        supervisor: newCompany.supervisor || ''
+      };
 
-        if (error) throw new Error(error.message);
-        if (!data) throw new Error("No data returned from update");
-
-        setCompanies((prev) =>
-          prev.map((c) =>
-            c.company_id === editingCompanyId ? { ...companyData, company_id: editingCompanyId } : c
-          )
-        );
-        setFilteredCompanies((prev) =>
-          prev.map((c) =>
-            c.company_id === editingCompanyId ? { ...companyData, company_id: editingCompanyId } : c
-          )
-        );
-      } else {
-        const { data: inserted, error } = await supabase
-          .from("company")
-          .insert([companyData])
-          .select()
-          .single();
-
-        if (error || !inserted) throw new Error(error?.message || "Insert failed");
-        setCompanies((prev) => [...prev, inserted as Company]);
-        setFilteredCompanies((prev) => [...prev, inserted as Company]);
-      }
-      resetModal();
-    } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : String(err);
-      console.error("Company operation error:", errorMessage);
-      setError(`Failed to ${editingCompanyId ? 'update' : 'add'} company: ${errorMessage}`);
+      const { data: inserted, error } = await supabase
+        .from("company")
+        .insert([companyData])
+        .select()
+        .single();
+        
+      if (error || !inserted) throw new Error(error?.message || "Insert failed");
+      
+      setCompanies(prev => [...prev, inserted]);
+      setFilteredCompanies(prev => [...prev, inserted]);
+      
+      setError('');
+      setMessage('✅ Company added successfully!');
     }
-  };
+    
+    setTimeout(() => setMessage(''), 3000);
+    resetModal();
+  } catch (err: unknown) {
+    const errorMessage = err instanceof Error ? err.message : String(err);
+    console.error("Company operation error:", errorMessage);
+    setMessage('');
+    setError(`Failed to ${editingCompanyId ? 'update' : 'add'} company: ${errorMessage}`);
+  }
+};
 
   const resetModal = () => {
     setNewCompany({
@@ -382,17 +388,6 @@ const CompanyManagement = () => {
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "Active":
-        return "bg-green-100 text-green-800 border-green-300";
-      case "Restricted":
-        return "bg-red-100 text-red-800 border-red-300";
-      default:
-        return "bg-gray-100 text-gray-800 border-gray-300";
-    }
-  };
-
   return (
     <div className="relative min-h-screen w-screen bg-gradient-to-b from-[#5F74C9] to-[#0A279C] p-8">
       <div className="w-screen h-[80px] fixed left-0 top-0 bg-gradient-to-b from-[#578FCA] to-[#2B4764] border-b border-black flex items-center justify-between px-6 z-10">
@@ -453,13 +448,17 @@ const CompanyManagement = () => {
       </div>
       <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 
-      <div className="mt-24 bg-[#FFFCF9] border border-black rounded-lg p-6 max-w-8xl mx-auto text-black shadow-lg">
+      <div className="mt-24 bg-[#FFFCF9] border border-black rounded-lg p-6 max-w-8xl mx-auto text-black">
         <h2 className="text-center justify-center py-4 font-bold text-5xl mb-6">Company Management</h2>
 
         {error && (
           <div className="bg-red-100 text-red-700 p-3 rounded mb-4 text-center">{error}</div>
         )}
-
+        {message && (
+          <div className="bg-green-100 text-green-700 p-3 rounded mb-4 text-center">
+            {message}
+          </div>
+        )}
         <div className="flex justify-center items-center gap-4 mb-6">
           <input
             type="text"
@@ -486,70 +485,56 @@ const CompanyManagement = () => {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full border-collapse shadow-sm">
-            <thead className="bg-gray-900 text-white">
+          <table className="w-full border-collapse">
+            <thead className="bg-black text-white">
               <tr>
-                <th className="p-3 text-left">Logo</th>
-                <th className="p-3 text-center">Name</th>
-                <th className="p-3 text-center">Email</th>
-                <th className="p-3 text-center">Contact</th>
-                <th className="p-3 text-left">Address</th>
-                <th className="p-3 text-left">Supervisor</th>
-                <th className="p-3 text-center">Start Time</th>
-                <th className="p-3 text-center">End Time</th>
-                <th className="p-3 text-center">Status</th>
-                <th className="p-3 text-center">Actions</th>
+                <th className="p-3 border border-gray-300">Logo</th>
+                <th className="p-3 border border-gray-300">Name</th>
+                <th className="p-3 border border-gray-300">Email</th>
+                <th className="p-3 border border-gray-300">Contact</th>
+                <th className="p-3 border border-gray-300">Address</th>
+                <th className="p-3 border border-gray-300">Supervisor</th>
+                <th className="p-3 border border-gray-300">Start Time</th>
+                <th className="p-3 border border-gray-300">End Time</th>
+                <th className="p-3 border border-gray-300">Status</th>
+                <th className="p-3 border border-gray-300">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {filteredCompanies.length === 0 ? (
-                <tr>
-                  <td colSpan={10} className="p-8 text-center text-gray-500">
-                    No companies found matching your filters.
+              {filteredCompanies.map((company, index) => (
+                <tr
+                  key={company.company_id}
+                  className={`text-center ${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'}`}
+                >
+                  <td className="p-3 border border-gray-300">
+                    {company.logo_url && (
+                      <img src={company.logo_url} alt="Logo" className="h-10 mx-auto" />
+                    )}
+                  </td>
+                  <td className="p-3 border border-gray-300">{company.name}</td>
+                  <td className="p-3 border border-gray-300">{company.email}</td>
+                  <td className="p-3 border border-gray-300">{company.contact_no}</td>
+                  <td className="p-3 border border-gray-300">{company.address}</td>
+                  <td className="p-3 border border-gray-300">{company.supervisor}</td>
+                  <td className="p-3 border border-gray-300">{company.start_time ? formatTo12Hour(company.start_time) : '-'}</td>
+                  <td className="p-3 border border-gray-300">{company.end_time ? formatTo12Hour(company.end_time) : '-'}</td>
+                  <td className="p-3 border border-gray-300">{company.companyRestrict}</td>
+                  <td className="p-3 border border-gray-300 space-x-2">
+                    <button
+                      onClick={() => handleEdit(company)}
+                      className="bg-blue-400 text-white px-3 py-1 rounded hover:bg-blue-600"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleRestrictCompany(company.company_id, company.companyRestrict === 'Active' ? 'Restricted' : 'Active')}
+                      className={`px-3 py-1 rounded text-white ${company.companyRestrict === 'Active' ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600'}`}
+                    >
+                      {company.companyRestrict === 'Active' ? 'Restrict' : 'Unrestrict'}
+                    </button>
                   </td>
                 </tr>
-              ) : (
-                filteredCompanies.map((company, index) => (
-                  <tr
-                    key={company.company_id}
-                    className={`border-b hover:bg-gray-50 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}
-                  >
-                    <td className="p-3">
-                      {company.logo_url && (
-                        <img src={company.logo_url} alt="Logo" className="h-10 mx-auto" />
-                      )}
-                    </td>
-                    <td className="p-3">{company.name}</td>
-                    <td className="p-3">{company.email}</td>
-                    <td className="p-3 text-center">{company.contact_no}</td>
-                    <td className="p-3">{company.address}</td>
-                    <td className="p-3">{company.supervisor}</td>
-                    <td className="p-3 text-center">{company.start_time ? formatTo12Hour(company.start_time) : '-'}</td>
-                    <td className="p-3 text-center">{company.end_time ? formatTo12Hour(company.end_time) : '-'}</td>
-                    <td className="p-3 text-center">
-                      <span
-                        className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(company.companyRestrict)}`}
-                      >
-                        {company.companyRestrict}
-                      </span>
-                    </td>
-                    <td className="p-3 text-center space-x-2">
-                      <button
-                        onClick={() => handleEdit(company)}
-                        className="bg-blue-400 text-white px-3 py-1 rounded hover:bg-blue-600"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => handleRestrictCompany(company.company_id, company.companyRestrict === 'Active' ? 'Restricted' : 'Active')}
-                        className={`px-3 py-1 rounded text-white ${company.companyRestrict === 'Active' ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600'}`}
-                      >
-                        {company.companyRestrict === 'Active' ? 'Restrict' : 'Unrestrict'}
-                      </button>
-                    </td>
-                  </tr>
-                ))
-              )}
+              ))}
             </tbody>
           </table>
         </div>

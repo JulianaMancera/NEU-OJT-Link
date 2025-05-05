@@ -80,26 +80,10 @@ const AboutUs = ({ handleLogout }: AboutUsProps) => {
       position: "center"
     },
     {
-      name: "Renard B. Macorol",
-      role: "Developer 1",
-      github: "https://github.com/RenardMacorol",
-      expertise: "Backend Development, React",
-      avatar: "https://avatars.githubusercontent.com/u/84180143?v=4",
-      position: "other"
-    },
-    {
-      name: "Dan Lloyd A. Cabanilla",
-      role: "Developer 2",
-      github: "https://github.com/DLAyatoCabanilla",
-      expertise: "Backend Development, Database Design",
-      avatar: "https://avatars.githubusercontent.com/u/139518282?v=4",
-      position: "other"
-    },
-    {
       name: "Vince D. Campos",
       role: "Analyst",
       github: "https://github.com/VinceCampos",
-      expertise: "UI/UX Design, Frontend Developement",
+      expertise: "UI/UX Design, Fullstack Developement, Tester",
       avatar: "https://avatars.githubusercontent.com/u/152839517?v=4",
       position: "other"
     },
@@ -109,6 +93,23 @@ const AboutUs = ({ handleLogout }: AboutUsProps) => {
       github: "https://github.com/AlyssaMaeSanPedro",
       expertise: "Full Stack Developement, UI/UX Design, Database Design",
       avatar: "https://avatars.githubusercontent.com/u/163331805?v=4",
+      position: "other"
+    },
+    {
+      name: "Renard B. Macorol",
+      role: "Developer 1",
+      github: "https://github.com/RenardMacorol",
+      expertise: "Backend Development, React",
+      avatar: "https://avatars.githubusercontent.com/u/84180143?v=4",
+      position: "other"
+    },
+    {
+
+      name: "Dan Lloyd A. Cabanilla",
+      role: "Developer 2",
+      github: "https://github.com/DLAyatoCabanilla",
+      expertise: "Backend Development, Database Design",
+      avatar: "https://avatars.githubusercontent.com/u/139518282?v=4",
       position: "other"
     },
   ];
