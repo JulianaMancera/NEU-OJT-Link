@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "../../../supabase";
 import { FaCloudUploadAlt, FaTrash } from "react-icons/fa";
 import { extractTableFromPdf } from "../../services/pdfFileExtractor";
+import { computeEndDate } from "../../services/ComputeDate/EndDate";
 
 interface WeeklyReportProps {
   isOpen: boolean;
@@ -205,6 +206,7 @@ const WeeklyReport = ({ isOpen, onClose, editingReport }: WeeklyReportProps) => 
               uploaded_at: new Date().toISOString(),
               submitted_by: userName,
               start_date: new Date().toISOString(),
+              end_date: computeEndDate(new Date()),
               user_id: user.id,
               week_number: extractedWeek,
               total_hours: totalHours,
