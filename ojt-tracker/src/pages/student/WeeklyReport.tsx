@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react"; 
 import { supabase } from "../../../supabase";
 import { FaCloudUploadAlt, FaTrash } from "react-icons/fa";
-import { extractTableFromPdf } from "../../services/pdfFileExtractor";
-
+import * as pdfjs from 'pdfjs-dist';
+// Set worker path explicitly to version 2.10.377
+pdfjs.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.worker.min.js';
 
 interface WeeklyReportProps {
   isOpen: boolean;
@@ -31,17 +32,14 @@ const WeeklyReport = ({ isOpen, onClose, editingReport }: WeeklyReportProps) => 
 
   useEffect(() => {
     if (!isOpen) {
-      resetState();
+      setFiles([]);
+      setMessage("");
+      setProgress(null);
+      setExtractedEntries([]);
+      setTotalHours(0);
+      setSelectedFileWeek(null);
     }
   }, [isOpen]);
-
-  const resetState = () => {
-    setFiles([]);
-    setMessage("");
-    setProgress(null);
-    setExtractedEntries([]);
-    setTotalHours(0);
-  };
 
   const resetMessage = () => setMessage("");
 
@@ -231,7 +229,8 @@ const WeeklyReport = ({ isOpen, onClose, editingReport }: WeeklyReportProps) => 
               errors.push(`Failed to clear existing time entries: ${deleteError.message}`);
             }
           }
-
+          
+          // Insert new time entries
           const timeEntriesToInsert = extractedEntries.map(entry => ({
             user_id: user.id,
             date: entry.date,
@@ -306,56 +305,116 @@ const WeeklyReport = ({ isOpen, onClose, editingReport }: WeeklyReportProps) => 
             className="hidden"
           />
         </label>
-        {files.length > 0 && (
-          <div className="mt-4 text-gray-700">
-            <h3 className="text-lg font-semibold">Files Selected</h3>
-            <ul className="bg-white list-disc pl-6 mt-2">
-              {files.map((file, idx) => (
-                <li key={idx} className="flex items-center justify-between">
-                  <span>{file.name}</span>
-                  <button
-                    onClick={() => removeFile(idx)}
-                    className="text-red-500 hover:underline flex items-center space-x-1"
-                  >
-                    <FaTrash />
-                    <span>Remove</span>
-                  </button>
-                </li>
-              ))}
-            </ul>
+
+        {isExtracting && (
+          <div className="mt-4 p-2 bg-blue-100 text-blue-700 rounded flex items-center justify-center">
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-700 mr-2"></div>
+            Extracting table data from PDF...
           </div>
-      )}
-      {progress !== null && (
-        <div className="mt-4 text-blue-600 font-semibold">
-          Upload Progress: {progress}%
-        </div>
-      )}
-      {isExtracting && (
-        <div className="mt-2 text-yellow-600">Extracting PDF contents...</div>
-      )}
-      {message && (
-        <div className="mt-4 text-sm text-gray-800 bg-gray-100 p-3 rounded shadow">
-          {message}
-        </div>
-      )}
-      <div className="mt-6 flex justify-end space-x-4">
-        <button
-          onClick={onClose}
-          className="bg-gray-400 hover:bg-gray-500 text-white font-semibold px-4 py-2 rounded"
-        >
-          Cancel
-        </button>
-        <button
-          onClick={handleUpload}
-          disabled={uploading || isExtracting}
-          className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded disabled:opacity-50"
-        >
-          {uploading ? "Uploading..." : "Submit"}
-        </button>
+        )}
+
+        {uploading && progress !== null && (
+          <div className="mt-4">
+            <p className="text-sm text-gray-700">Uploading... {Math.round(progress)}%</p>
+            <div className="w-full bg-gray-300 h-2 rounded">
+              <div className="bg-blue-600 h-2 rounded" style={{ width: `${progress}%` }}></div>
+            </div>
+          </div>
+        )}
+
+        {files.length > 0 && (
+          <div className="mt-4">
+            <h3 className="text-gray-700 font-medium mb-2">Selected File</h3>
+            {files.map((file, index) => (
+              <div key={index} className="flex items-center justify-between bg-white p-2 border rounded mb-2">
+                <span className="text-gray-700 truncate">{file.name}</span>
+                <button onClick={() => removeFile(index)} className="text-red-600 hover:text-red-800">
+                  <FaTrash />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Extracted Time Entries */}
+        {extractedEntries.length > 0 && (
+          <div className="mt-4">
+            <h3 className="text-gray-700 font-medium mb-2">Extracted Time Entries</h3>
+            <div className="bg-white rounded border overflow-x-auto">
+              <table className="min-w-full">
+                <thead>
+                  <tr className="bg-gray-100">
+                    <th className="py-2 px-3 text-left text-xs font-medium text-gray-600 uppercase">Date</th>
+                    <th className="py-2 px-3 text-left text-xs font-medium text-gray-600 uppercase">Time In</th>
+                    <th className="py-2 px-3 text-left text-xs font-medium text-gray-600 uppercase">Time Out</th>
+                    <th className="py-2 px-3 text-left text-xs font-medium text-gray-600 uppercase">Hours</th>
+                    <th className="py-2 px-3 text-left text-xs font-medium text-gray-600 uppercase">Task</th>
+                    <th className="py-2 px-3 text-left text-xs font-medium text-gray-600 uppercase">Remarks</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {extractedEntries.map((entry, index) => (
+                    <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                      <td className="py-2 px-3 text-sm text-gray-700">{entry.date}</td>
+                      <td className="py-2 px-3 text-sm text-gray-700">{entry.timeIn}</td>
+                      <td className="py-2 px-3 text-sm text-gray-700">{entry.timeOut}</td>
+                      <td className="py-2 px-3 text-sm text-gray-700">{entry.hours}</td>
+                      <td className="py-2 px-3 text-sm text-gray-700">{entry.task}</td>
+                      <td className="py-2 px-3 text-sm text-gray-700">{entry.remarks}</td>
+                    </tr>
+                  ))}
+                  <tr className="bg-gray-200 font-medium">
+                    <td colSpan={3} className="py-2 px-3 text-sm text-gray-700 text-right">Total Hours:</td>
+                    <td className="py-2 px-3 text-sm text-gray-700">{totalHours}</td>
+                    <td colSpan={2}></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {message && (
+          <p className={`mt-4 text-center font-medium p-2 rounded ${
+            message.includes("❌") 
+              ? "bg-red-100 text-red-600" 
+              : message.includes("⚠️") || message.includes("🔍") 
+                ? "bg-yellow-100 text-yellow-600" 
+                : "bg-green-100 text-green-600"
+          }`}>
+            {message}
+          </p>
+        )}
+          <button
+            onClick={handleUpload}
+            disabled={uploadDisabled}
+            className="w-full bg-blue-600 text-white py-2 mt-4 rounded-lg text-lg font-semibold hover:bg-blue-700 disabled:bg-gray-400"
+          >
+            {editingReport
+              ? "UPDATE REPORT"
+              : `UPLOAD WEEK ${nextExpectedWeek} REPORT`}
+          </button>
       </div>
     </div>
-  </div>
-);
+  );
 };
+
 export default WeeklyReport;
 
+function mergeSplitTimes(data : string[]): string[] {
+  const merged: string[] = [];
+  let i = 0;
+  while (i < data.length) {
+    const current = data[i].trim();
+    const next = data[i + 1]?.trim();
+
+    if (/\d{1,2}:\d{2}/.test(current) && /^(AM|PM)$/i.test(next)) {
+      merged.push(current + next.toUpperCase());
+      i += 2; // Skip next
+    } else {
+      merged.push(current);
+      i += 1;
+    }
+  }
+  return merged;
+}
