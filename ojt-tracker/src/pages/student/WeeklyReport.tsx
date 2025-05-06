@@ -3,6 +3,7 @@ import { supabase } from "../../../supabase";
 import { FaCloudUploadAlt, FaTrash } from "react-icons/fa";
 import { extractTableFromPdf } from "../../services/pdfFileExtractor";
 
+
 interface WeeklyReportProps {
   isOpen: boolean;
   onClose: () => void;
@@ -17,8 +18,6 @@ interface TimeEntry {
   timeIn: string;
   timeOut: string;
   hours: number;
-  task: string;
-  remarks: string;
 }
 
 const WeeklyReport = ({ isOpen, onClose, editingReport }: WeeklyReportProps) => {
@@ -325,7 +324,6 @@ const WeeklyReport = ({ isOpen, onClose, editingReport }: WeeklyReportProps) => 
               ))}
             </ul>
           </div>
-       
       )}
       {progress !== null && (
         <div className="mt-4 text-blue-600 font-semibold">
@@ -359,5 +357,5 @@ const WeeklyReport = ({ isOpen, onClose, editingReport }: WeeklyReportProps) => 
   </div>
 );
 };
-
 export default WeeklyReport;
+
