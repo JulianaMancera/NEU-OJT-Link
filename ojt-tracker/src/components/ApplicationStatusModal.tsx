@@ -10,6 +10,8 @@ interface ApplicationStatusModalProps {
   onClose: () => void;
   status: 'submitted' | 'approved' | 'availability_submitted' | 'endorsement_submitted';
   companyName: string;
+  companyAddress: string;
+  companyEmail: string;
   companyId: string;
   applicationId: string;
   job: {
@@ -25,6 +27,8 @@ const ApplicationStatusModal: React.FC<ApplicationStatusModalProps> = ({
   onClose,
   status,
   companyName,
+  companyAddress,
+  companyEmail,
   companyId,
   applicationId,
   job,
@@ -140,8 +144,8 @@ const ApplicationStatusModal: React.FC<ApplicationStatusModalProps> = ({
             company={{
               company_id: companyId,
               name: companyName,
-              address: '',
-              email: '',
+              address: companyEmail,
+              email: companyAddress,
               contact_no: ''
             }}
             job={{
@@ -171,8 +175,8 @@ const ApplicationStatusModal: React.FC<ApplicationStatusModalProps> = ({
             company={{
               company_id: companyId,
               name: companyName,
-              address: '',
-              email: '',
+              address: companyAddress,
+              email: companyEmail,
               contact_no: ''
             }}
             job={job}

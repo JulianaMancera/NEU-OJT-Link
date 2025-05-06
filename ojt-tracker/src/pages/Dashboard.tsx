@@ -75,6 +75,8 @@ const Dashboard = () => {
           status={applicationStatus}
           companyName={approvedCompany.name}
           companyId={approvedCompany.company_id}
+          companyEmail={approvedCompany.email}
+          companyAddress={approvedCompany.address}
           applicationId={applicationId || ""}
           job={approvedJob || {
             job_id: '',

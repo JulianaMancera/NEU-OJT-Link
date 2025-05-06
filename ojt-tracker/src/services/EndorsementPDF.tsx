@@ -5,14 +5,23 @@ const styles = StyleSheet.create({
     page:{
         padding: 40,
         fontFamily: "Helvetica",
-        fontSize: 10,
+        fontSize: 13,
         lineHeight: 1.5,
     },
-    section: {marginBottom:10},
+    section: {
+        marginBottom:10,
+    },
+    justifySection: {
+        textAlign: "justify"
+    },
     signature:{
         width:150,
         height:80,
         marginTop: 20,
+    },
+    img_header:{
+        width: '100%',
+        marginBottom: 20,
     }
 })
 
@@ -23,16 +32,22 @@ interface userInfo{
     companyAddress:string,
     companyEmail:string,
     date: string,
-    signatureUrl: string
+    signatureUrl: string,
+    endorsementHeader:string,
     dean: string
 }
 
-const EndorsementPDF : React.FC<userInfo> =({name,position,company, companyAddress, companyEmail,date,signatureUrl,dean}) => {
+const EndorsementPDF : React.FC<userInfo> =({name,position,company, companyAddress, companyEmail,date,signatureUrl, endorsementHeader, dean}) => {
     return(
     //Warning wag tularan 
     <Document>
         <Page size="A4" style={styles.page}>
         {/*Letter Header*/} 
+        { endorsementHeader &&(
+            <Image src={endorsementHeader} style={styles.img_header}/>
+        )
+
+        }
         <View style={styles.section}>
             <Text>Date: {date}</Text>
         </View>
@@ -40,12 +55,14 @@ const EndorsementPDF : React.FC<userInfo> =({name,position,company, companyAddre
             <Text>To: {company}</Text>
             <Text>To: {companyAddress}</Text>
             <Text>To: {companyEmail}</Text>
-            <Text>Dear Hiring Manager,</Text>
         </View>
 
+        <View style={styles.section}>
+          <Text>Dear Hiring Manager,</Text>
+        </View>
         {/*Letter Content*/} 
         <View style={styles.section}>
-        <Text>
+        <Text style={styles.justifySection}>
           I am writing to formally endorse <Text>{name}</Text>  to be  <Text>{position}</Text> in
           your organization. Their contributions and dedication make them an
           excellent fit for your team. I highly recommend them without
@@ -54,7 +71,7 @@ const EndorsementPDF : React.FC<userInfo> =({name,position,company, companyAddre
         </View>
 
         <View>
-            <Text>
+            <Text style={styles.justifySection}>
                 Thank You for your consideration
             </Text>
         </View>
@@ -62,7 +79,6 @@ const EndorsementPDF : React.FC<userInfo> =({name,position,company, companyAddre
         <View>
             <Text>Sincerly,</Text>
             <Text>{dean}</Text>
-            <Text>NEUCutie</Text>
             {/*This is the image */}
             {signatureUrl && (<Image src={signatureUrl} style={styles.signature}/>)}
         </View>

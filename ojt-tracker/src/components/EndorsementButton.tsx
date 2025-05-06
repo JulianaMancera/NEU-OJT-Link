@@ -34,6 +34,7 @@ const EndorsementButton: React.FC<EndorsmentProps> = ({companyProps, job}) =>  {
                 companyEmail: companyProps.company.email,
                 date: new Date().toISOString().slice(0,10),
                 signatureUrl:"https://ecearoibslwhyaxuhato.supabase.co/storage/v1/object/public/signatures//img.png",
+                endorsementHeader:"https://ecearoibslwhyaxuhato.supabase.co/storage/v1/object/public/template//endrosementHeader.png",
                 dean: currentDean.name,
 
             }
