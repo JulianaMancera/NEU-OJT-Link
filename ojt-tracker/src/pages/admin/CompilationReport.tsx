@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import Sidebar from "./SideBar";
 import OJTLogo from "/src/assets/ojt-white.png";
 import { supabase } from "../../../supabase";
-import { Folder, User, Settings, CircleHelp, LogOut, UserCog } from "lucide-react";
+import { Folder, User, LogOut, UserCog } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 // Types
@@ -273,16 +273,6 @@ const CompilationReport = () => {
                     className="w-full text-left px-6 py-3 hover:bg-gray-100 flex items-center transition-all duration-200"
                   >
                     <User className="w-5 h-5 mr-3" /> Profile
-                  </button>
-                </li>
-                <li>
-                  <button className="w-full text-left px-6 py-3 hover:bg-gray-100 flex items-center transition-all duration-200">
-                    <Settings className="w-5 h-5 mr-3" /> Settings
-                  </button>
-                </li>
-                <li>
-                  <button className="w-full text-left px-6 py-3 hover:bg-gray-100 flex items-center transition-all duration-200">
-                    <CircleHelp className="w-5 h-5 mr-3" /> Help & Support
                   </button>
                 </li>
                 {userRole === "admin" && (

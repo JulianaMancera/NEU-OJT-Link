@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { supabase } from "../../../supabase";
 import Sidebar from "./SideBar";
 import OJTLogo from "/src/assets/ojt-white.png";
-import { User, Settings, CircleHelp, LogOut, UserCog, Filter, FileText, Calendar, Search } from "lucide-react";
+import { User, LogOut, UserCog, Filter, FileText, Calendar, Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import type { WeeklyReportRow } from "../../types/WeeklyReportRow";
 import type { MonthlyReportRow }  from "../../types/MonthlyReportRow";
@@ -330,16 +330,6 @@ const Reports = () => {
                     className="w-full text-left px-6 py-4 hover:bg-gray-100 flex items-center transition-all duration-200"
                   >
                     <User className="w-6 h-6 mr-3" /> Profile
-                  </button>
-                </li>
-                <li>
-                  <button className="w-full text-left px-6 py-4 hover:bg-gray-100 flex items-center transition-all duration-200">
-                    <Settings className="w-6 h-6 mr-3" /> Settings
-                  </button>
-                </li>
-                <li>
-                  <button className="w-full text-left px-6 py-4 hover:bg-gray-100 flex items-center transition-all duration-200">
-                    <CircleHelp className="w-6 h-6 mr-3" /> Help & Support
                   </button>
                 </li>
                 {userRole === "admin" && (
