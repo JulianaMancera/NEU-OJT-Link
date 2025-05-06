@@ -99,7 +99,7 @@ const GenerateMonthlyReport: React.FC<GenMonthlyProps> = ({ companyName, job }) 
       );
       if (filtered.length === 0) return;
 
-      const reportData = filtered.map((entry) => ({
+      const reportData = filtered.sort((a,b) => a.week_number - b.week_number).map((entry) => ({
         week: entry.week_number,
         date: entry.start_date,
         hours: String(entry.total_hours || 0),
