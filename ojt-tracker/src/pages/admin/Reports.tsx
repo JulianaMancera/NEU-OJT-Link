@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { supabase } from "../../../supabase";
 import Sidebar from "./SideBar";
 import OJTLogo from "/src/assets/ojt-white.png";
-import { User, Settings, CircleHelp, LogOut, UserCog, Filter, FileText, Calendar, Search } from "lucide-react"; //'Settings', Circle, LogOut, UserCog is declared but its value is never read.ts(6133)
+import { User, Settings, CircleHelp, LogOut, UserCog, Filter, FileText, Calendar, Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import type { WeeklyReportRow } from "../../types/WeeklyReportRow";
 import type { MonthlyReportRow }  from "../../types/MonthlyReportRow";
@@ -60,12 +60,10 @@ const Reports = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate();
 
-  // Placeholder user data (replace with actual auth data from Supabase)
-  const [userName, setUserName] = useState<string>("Admin User"); //'userName' is declared but its value is never read.ts(6133)
-  const [userRole, setUserRole] = useState<string>("admin"); //'userRole' is declared but its value is never read.ts(6133)
+  const [userName, setUserName] = useState<string>("Admin User");
+  const [userRole, setUserRole] = useState<string>("admin");
   const [profilePicture, setProfilePicture] = useState<string | null>(null);
 
-  // Fetch current user data
   useEffect(() => {
     const fetchCurrentUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -85,7 +83,7 @@ const Reports = () => {
     fetchCurrentUser();
   }, []);
 
-  const handleLogout = async () => { //handleLogout is declared but its value is never read.ts(6133)
+  const handleLogout = async () => {
     try {
       await supabase.auth.signOut();
       navigate("/");
@@ -97,25 +95,16 @@ const Reports = () => {
   useEffect(() => {
     if (view === 'weekly') fetchWeeklyReports();
     else if (view === 'monthly') fetchMonthlyReports();
-    else if ( view === 'journal') fetchWeeklyJournals(); 
+    else if (view === 'journal') fetchWeeklyJournals();
   }, [view]);
 
-  // Apply filters whenever status filter or data changes
-  useEffect(() => {
-    applyFilters();
-  }, [statusFilter, weeklyReports, monthlyReports, weeklyJournals, searchTerm]);
-
-  
-  const applyFilters = () => {
-    // Filter weekly reports
+  const applyFilters = useCallback(() => {
     let filteredWeekly = [...weeklyReports];
     
-    // Apply status filter
     if (statusFilter !== "all") {
       filteredWeekly = filteredWeekly.filter(report => report.status === statusFilter);
     }
     
-    // Apply search term if any
     if (searchTerm) {
       filteredWeekly = filteredWeekly.filter(report => 
         report.submitted_by.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -125,15 +114,12 @@ const Reports = () => {
     
     setFilteredWeeklyReports(filteredWeekly);
 
-    // Filter monthly reports
     let filteredMonthly = [...monthlyReports];
     
-    // Apply status filter
     if (statusFilter !== "all") {
       filteredMonthly = filteredMonthly.filter(report => report.status === statusFilter);
     }
     
-    // Apply search term if any
     if (searchTerm) {
       filteredMonthly = filteredMonthly.filter(report => 
         report.submitted_by.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -144,7 +130,6 @@ const Reports = () => {
     
     setFilteredMonthlyReports(filteredMonthly);
 
-    // Filter weekly journals
     let filteredJournal = [...weeklyJournals];
     if (statusFilter !== 'all') {
       filteredJournal = filteredJournal.filter(j => j.status === statusFilter);
@@ -156,8 +141,11 @@ const Reports = () => {
       );
     }
     setFilteredWeeklyJournals(filteredJournal);
+  }, [statusFilter, weeklyReports, monthlyReports, weeklyJournals, searchTerm]);
 
-  };
+  useEffect(() => {
+    applyFilters();
+  }, [applyFilters]);
 
   const fetchWeeklyReports = async () => {
     setLoading(true);
@@ -238,6 +226,7 @@ const Reports = () => {
 };
   
 
+
   const handleWeeklyStatusChange = async (id: string, newStatus: string) => {
     setLoading(true);
     const { error } = await supabase
@@ -282,7 +271,6 @@ const Reports = () => {
     }
     setLoading(false);
   };
-  
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -299,8 +287,9 @@ const Reports = () => {
 
   return (
     <div className="relative min-h-screen w-screen bg-gradient-to-b from-[#5F74C9] to-[#0A279C] p-8">
-      {/* Header */}
-      <div className="w-full h-[80px] fixed absolute left-0 top-0 bg-gradient-to-b from-[#578FCA] to-[#2B4764] border-black flex items-center justify-between px-6">
+
+      <div className="w-full h-[80px] fixed absolute left-0 top-0 bg-gradient-to-b from-[#578FCA] to-[#2B4764] border-black flex items-center justify-between px-6 z-10">
+
         <img src={OJTLogo} alt="OJT Link Logo" className="w-[220px] h-[220px] ml-15" />
         <div className="flex items-center">
           <button
@@ -384,7 +373,6 @@ const Reports = () => {
           Reports Management
         </h2>
 
-        {/* Top Action Bar */}
         <div className="flex flex-wrap justify-center items-center gap-4 mb-6">
           <button
             onClick={() => setView('weekly')}
@@ -410,7 +398,6 @@ const Reports = () => {
           </button>
         </div>
 
-        {/* Search & Filter */}
         <div className="bg-gray-50 p-4 rounded-lg mb-6 shadow-sm border flex flex-wrap gap-4 items-center justify-between">
           <div className="relative flex-grow max-w-md">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -487,7 +474,6 @@ const Reports = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {/* weekly rows */}
                   {view === 'weekly' && filteredWeeklyReports.map((weeklyReport, idx) => (
                     <tr
                       key={weeklyReport.weekly_report_id}
@@ -540,7 +526,6 @@ const Reports = () => {
                     </tr>
                   ))}
 
-                  {/* monthly rows */}
                   {view === 'monthly' && filteredMonthlyReports.map((monthlyReport, idxMon) => (
                     <tr
                       key={monthlyReport.monthly_report_id}
@@ -588,7 +573,6 @@ const Reports = () => {
                     </tr>
                   ))}
 
-                  {/* journal rows */}
                   {view === 'journal' && filteredWeeklyJournals.map((journalEntry, idxJour) => (
                     <tr
                       key={journalEntry.weekly_journal_id}
@@ -641,7 +625,6 @@ const Reports = () => {
                     </tr>
                   ))}
 
-                  {/* no‑data row */}
                   {(
                     (view === 'weekly' && filteredWeeklyReports.length === 0) ||
                     (view === 'monthly' && filteredMonthlyReports.length === 0) ||
@@ -662,7 +645,6 @@ const Reports = () => {
               </table>
             </div>
 
-            {/* summary + clear filters */}
             <div className="mt-4 text-sm text-gray-500 flex items-center justify-between">
               <div>
                 Showing{' '}
