@@ -95,14 +95,17 @@ const MonthlyReport = ({ isOpen, onClose }: MonthlyReportProps) => {
         return;
       }
 
+      const currentMonth = new Date().getMonth() + 1;
       const userName = user.user_metadata.full_name || "Unknown User";
 
       const { error: insertError } = await supabase.from("monthly_report").insert([
+        
         {
           file_name: file.name,
           file_url: fileData.publicUrl,
           uploaded_at: new Date().toISOString(),
           submitted_by: userName,
+          month: currentMonth
         },
       ]);
 
