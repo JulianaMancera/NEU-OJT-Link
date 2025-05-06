@@ -38,7 +38,7 @@ const GenerateCertButton: React.FC<CertifacteProps> = ({companyInfo, job, isAllo
             const url = URL.createObjectURL(blob)
             const link = document.createElement("a")
             link.href = url
-            link.download = "Panggap Certificate.pdf"
+            link.download = "Completion Certificate.pdf"
             link.click();
 
             URL.revokeObjectURL(url)
