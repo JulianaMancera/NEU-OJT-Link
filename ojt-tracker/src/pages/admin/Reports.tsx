@@ -4,6 +4,10 @@ import Sidebar from "./SideBar";
 import OJTLogo from "/src/assets/ojt-white.png";
 import { User, Settings, CircleHelp, LogOut, UserCog, Filter, FileText, Calendar, Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import type { WeeklyReportRow } from "../../types/WeeklyReportRow";
+import type { MonthlyReportRow }  from "../../types/MonthlyReportRow";
+import type { WeeklyJournalRow }  from "../../types/WeeklyJournalRow";
+
 
 interface WeeklyReport {
   weekly_report_id: string;
@@ -146,59 +150,82 @@ const Reports = () => {
   const fetchWeeklyReports = async () => {
     setLoading(true);
     const { data, error } = await supabase
-      .from('weekly_report')
-      .select(`*, user: user_id ( name )
-      `);
+    .from<"weekly_report", WeeklyReportRow>("weekly_report")
+    .select("*, user: user_id ( name )");
   
     if (error) {
       console.error('Error fetching weekly reports:', error.message);
     } else if (data) {
-      const enriched = data.map((r: any) => ({
-        ...r,
-        userName: r.user.name,        
-        submitted_by: r.user.name,    
+      const enriched: WeeklyReport[] = data.map(r => ({
+        weekly_report_id: r.weekly_report_id,
+        userName:         r.user.name,
+        submitted_by:     r.user.name,
+        start_date:       r.start_date,
+        end_date:         r.end_date,
+        week_number:      r.week_number,
+        status:           r.status,
+        file_name:        r.file_name,
+        file_url:         r.file_url,
+        total_hours:      r.total_hours,
       }));
+  
       setWeeklyReports(enriched);
       setFilteredWeeklyReports(enriched);
     }
+  
     setLoading(false);
   };
   
 
   const fetchMonthlyReports = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from('monthly_report')
-      .select('*, user: user_id ( name )');
-    if (error) console.error('Error fetching monthly reports:', error.message);
-    else {const enriched = data.map((r:any) => ({
-      ...r,
-      userName: r.user.name,
-      submitted_by: r.user.name,
-    }));
-    setMonthlyReports(enriched);
-    setFilteredMonthlyReports(enriched);
+    const { data: monthlyData } = await supabase
+    .from<"monthly_report", MonthlyReportRow>("monthly_report")
+    .select("*, user: user_id ( name )");
+
+    if (monthlyData) {
+      const enriched = monthlyData.map((r) => ({
+        monthly_report_id: r.monthly_report_id,
+        userName:          r.user.name,
+        submitted_by:      r.user.name,
+        month:             r.month,
+        year:              r.year,
+        status:            r.status,
+        hours_rendered:    r.hours_rendered,
+        file_name:         r.file_name,
+        file_url:          r.file_url,
+      }));
+      setMonthlyReports(enriched);
+      setFilteredMonthlyReports(enriched);
     }
     setLoading(false);
   };
 
   const fetchWeeklyJournals = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from('weekly_journal')
-      .select('*, user: user_id ( name )');
-    if (error) console.error('Error fetching weekly journals:', error.message);
-    else {
-      const enriched = data.map((r:any) => ({
-        ...r,
-        userName: r.user.name,
-        submitted_by: r.user.name,
+    const { data: journalData } = await supabase
+    .from<"weekly_journal", WeeklyJournalRow>("weekly_journal")
+    .select("*, user: user_id ( name )");
+
+    if (journalData) {
+      const enriched = journalData.map((r) => ({
+        weekly_journal_id: r.weekly_journal_id,
+        userName:          r.user.name,
+        submitted_by:      r.user.name,
+        start_date:        r.start_date,
+        uploaded_at:       r.uploaded_at,
+        status:            r.status,
+        file_name:         r.file_name,
+        file_url:          r.file_url,
       }));
       setWeeklyJournals(enriched);
       setFilteredWeeklyJournals(enriched);
     }
-    setLoading(false);
-  };
+
+  setLoading(false);
+};
+  
+
 
   const handleWeeklyStatusChange = async (id: string, newStatus: string) => {
     setLoading(true);

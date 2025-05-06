@@ -1,7 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect } from "react"; 
 import { supabase } from "../../../supabase";
 import { FaCloudUploadAlt, FaTrash } from "react-icons/fa";
-import { extractTableFromPdf } from "../../services/pdfExtractor";
+import * as pdfjs from 'pdfjs-dist';
+// Set worker path explicitly to version 2.10.377
+pdfjs.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.worker.min.js';
 
 interface WeeklyReportProps {
   isOpen: boolean;
@@ -35,6 +37,7 @@ const WeeklyReport = ({ isOpen, onClose, editingReport }: WeeklyReportProps) => 
       setProgress(null);
       setExtractedEntries([]);
       setTotalHours(0);
+      setSelectedFileWeek(null);
     }
   }, [isOpen]);
 
@@ -216,7 +219,6 @@ const WeeklyReport = ({ isOpen, onClose, editingReport }: WeeklyReportProps) => 
 
         // Insert time entries from the extracted table data
         if (extractedEntries.length > 0) {
-          // First, delete any existing time entries for this report if editing
           if (editingReport) {
             const { error: deleteError } = await supabase
               .from("time_entries")
@@ -225,10 +227,9 @@ const WeeklyReport = ({ isOpen, onClose, editingReport }: WeeklyReportProps) => 
 
             if (deleteError) {
               errors.push(`Failed to clear existing time entries: ${deleteError.message}`);
-              // Continue anyway to try inserting new entries
             }
           }
-
+          
           // Insert new time entries
           const timeEntriesToInsert = extractedEntries.map(entry => ({
             user_id: user.id,
@@ -236,6 +237,8 @@ const WeeklyReport = ({ isOpen, onClose, editingReport }: WeeklyReportProps) => 
             time_in: entry.timeIn,
             time_out: entry.timeOut,
             hours: entry.hours,
+            task: entry.task,
+            remarks: entry.remarks,
             created_at: new Date().toISOString()
           }));
 
@@ -245,7 +248,6 @@ const WeeklyReport = ({ isOpen, onClose, editingReport }: WeeklyReportProps) => 
 
           if (timeEntryError) {
             errors.push(`Failed to insert time entries: ${timeEntryError.message}`);
-            // Continue the upload process despite this error
           }
         }
 
@@ -261,17 +263,11 @@ const WeeklyReport = ({ isOpen, onClose, editingReport }: WeeklyReportProps) => 
     setUploading(false);
 
     if (errors.length > 0) {
-      if (completed > 0) {
-        setMessage(`✅ Uploaded ${completed} report(s) successfully with ${errors.length} errors.`);
-      } else {
-        setMessage(`❌ Upload failed. ${errors[0]}`);
-      }
+      setMessage(`✅ Uploaded ${completed} report(s) successfully with ${errors.length} errors.`);
       console.error("Upload errors:", errors);
     } else {
       setMessage(`✅ Uploaded ${completed} report(s) successfully.`);
-      setFiles([]);
-      setExtractedEntries([]);
-      setTotalHours(0);
+      resetState();
     }
   };
 
@@ -309,25 +305,6 @@ const WeeklyReport = ({ isOpen, onClose, editingReport }: WeeklyReportProps) => 
             className="hidden"
           />
         </label>
-        {files.length > 0 && (
-          <div className="mt-4 text-gray-700">
-            <h3 className="text-lg font-semibold">Files Selected</h3>
-            <ul className="bg-white list-disc pl-6 mt-2">
-              {files.map((file, idx) => (
-                <li key={idx} className="flex items-center justify-between">
-                  <span>{file.name}</span>
-                  <button
-                    onClick={() => removeFile(idx)}
-                    className="text-red-500 hover:underline flex items-center space-x-1"
-                  >
-                    <FaTrash />
-                    <span>Remove</span>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
 
         {isExtracting && (
           <div className="mt-4 p-2 bg-blue-100 text-blue-700 rounded flex items-center justify-center">
@@ -338,75 +315,106 @@ const WeeklyReport = ({ isOpen, onClose, editingReport }: WeeklyReportProps) => 
 
         {uploading && progress !== null && (
           <div className="mt-4">
-            <p className="text-sm text-gray-700">
-              Uploading... {Math.round(progress)}%
-            </p>
+            <p className="text-sm text-gray-700">Uploading... {Math.round(progress)}%</p>
             <div className="w-full bg-gray-300 h-2 rounded">
-              <div
-                className="h-2 bg-green-500"
-                style={{ width: `${progress}%` }}
-              ></div>
+              <div className="bg-blue-600 h-2 rounded" style={{ width: `${progress}%` }}></div>
             </div>
           </div>
         )}
 
-        {extractedEntries.length > 0 && (
-          <div className="mt-6">
-            <h3 className=" text-gray-700 text-xl font-semibold mb-4">
-              Extracted Time Entries
-            </h3>
-            <table className="table-auto w-full text-left">
-              <thead>
-                <tr className="bg-gray-50 text-gray-700">
-                  <th>Date</th>
-                  <th>Time In</th>
-                  <th>Time Out</th>
-                  <th>Hours</th>
-                </tr>
-              </thead>
-              <tbody>
-                {extractedEntries.map((entry, idx) => (
-                  <tr key={idx}>
-                    <td className="bg-white text-gray-700">{entry.date}</td>
-                    <td className="bg-white text-gray-700">{entry.timeIn}</td>
-                    <td className="bg-white text-gray-700">{entry.timeOut}</td>
-                    <td className="bg-white text-gray-700">{entry.hours}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            <div className=" text-gray-700  mt-4">
-              <div className="bg-white">
-                <strong>Total Hours:</strong> {totalHours}
-                {message && (
-                  <div className="bg-white mt-4 text-center text-sm text-gray-700">
-                    <p>{message}</p>
-                  </div>
-                )}
+        {files.length > 0 && (
+          <div className="mt-4">
+            <h3 className="text-gray-700 font-medium mb-2">Selected File</h3>
+            {files.map((file, index) => (
+              <div key={index} className="flex items-center justify-between bg-white p-2 border rounded mb-2">
+                <span className="text-gray-700 truncate">{file.name}</span>
+                <button onClick={() => removeFile(index)} className="text-red-600 hover:text-red-800">
+                  <FaTrash />
+                </button>
               </div>
+            ))}
+          </div>
+        )}
+
+        {/* Extracted Time Entries */}
+        {extractedEntries.length > 0 && (
+          <div className="mt-4">
+            <h3 className="text-gray-700 font-medium mb-2">Extracted Time Entries</h3>
+            <div className="bg-white rounded border overflow-x-auto">
+              <table className="min-w-full">
+                <thead>
+                  <tr className="bg-gray-100">
+                    <th className="py-2 px-3 text-left text-xs font-medium text-gray-600 uppercase">Date</th>
+                    <th className="py-2 px-3 text-left text-xs font-medium text-gray-600 uppercase">Time In</th>
+                    <th className="py-2 px-3 text-left text-xs font-medium text-gray-600 uppercase">Time Out</th>
+                    <th className="py-2 px-3 text-left text-xs font-medium text-gray-600 uppercase">Hours</th>
+                    <th className="py-2 px-3 text-left text-xs font-medium text-gray-600 uppercase">Task</th>
+                    <th className="py-2 px-3 text-left text-xs font-medium text-gray-600 uppercase">Remarks</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {extractedEntries.map((entry, index) => (
+                    <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                      <td className="py-2 px-3 text-sm text-gray-700">{entry.date}</td>
+                      <td className="py-2 px-3 text-sm text-gray-700">{entry.timeIn}</td>
+                      <td className="py-2 px-3 text-sm text-gray-700">{entry.timeOut}</td>
+                      <td className="py-2 px-3 text-sm text-gray-700">{entry.hours}</td>
+                      <td className="py-2 px-3 text-sm text-gray-700">{entry.task}</td>
+                      <td className="py-2 px-3 text-sm text-gray-700">{entry.remarks}</td>
+                    </tr>
+                  ))}
+                  <tr className="bg-gray-200 font-medium">
+                    <td colSpan={3} className="py-2 px-3 text-sm text-gray-700 text-right">Total Hours:</td>
+                    <td className="py-2 px-3 text-sm text-gray-700">{totalHours}</td>
+                    <td colSpan={2}></td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
           </div>
         )}
 
-        <div className="mt-6 flex justify-between">
+        {message && (
+          <p className={`mt-4 text-center font-medium p-2 rounded ${
+            message.includes("❌") 
+              ? "bg-red-100 text-red-600" 
+              : message.includes("⚠️") || message.includes("🔍") 
+                ? "bg-yellow-100 text-yellow-600" 
+                : "bg-green-100 text-green-600"
+          }`}>
+            {message}
+          </p>
+        )}
           <button
             onClick={handleUpload}
-            disabled={uploading || isExtracting}
-            className="bg-green-500 text-white py-2 px-4 rounded-lg flex items-center space-x-2 disabled:bg-gray-400"
+            disabled={uploadDisabled}
+            className="w-full bg-blue-600 text-white py-2 mt-4 rounded-lg text-lg font-semibold hover:bg-blue-700 disabled:bg-gray-400"
           >
-            <span>Upload</span>
+            {editingReport
+              ? "UPDATE REPORT"
+              : `UPLOAD WEEK ${nextExpectedWeek} REPORT`}
           </button>
-          <button
-            onClick={() => setFiles([])}
-            className="text-red-500 hover:underline flex items-center space-x-2"
-          >
-            <FaTrash />
-            <span>Clear</span>
-          </button>
-        </div>
       </div>
     </div>
   );
 };
 
 export default WeeklyReport;
+
+function mergeSplitTimes(data : string[]): string[] {
+  const merged: string[] = [];
+  let i = 0;
+  while (i < data.length) {
+    const current = data[i].trim();
+    const next = data[i + 1]?.trim();
+
+    if (/\d{1,2}:\d{2}/.test(current) && /^(AM|PM)$/i.test(next)) {
+      merged.push(current + next.toUpperCase());
+      i += 2; // Skip next
+    } else {
+      merged.push(current);
+      i += 1;
+    }
+  }
+  return merged;
+}
