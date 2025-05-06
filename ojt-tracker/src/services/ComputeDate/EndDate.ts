@@ -1,8 +1,8 @@
-export const computeEndDate =(dateRaw : Date) : Date =>{
-    const date = new Date(dateRaw)
-    const day = dateRaw.getDate(); 
-    const daysBeforeSat  = (6 - day + 7) % 7
-    date.setDate(date.getDate() + daysBeforeSat);
-    date.setHours(23, 59,59,99)
+export const computeEndDate = (dateRaw: Date): Date => {
+    const date = new Date(dateRaw);
+    const dayOfWeek = date.getDay(); 
+    const daysUntilSaturday = (6 - dayOfWeek);
+    date.setDate(date.getDate() + daysUntilSaturday);
+    date.setHours(23, 59, 59, 999); 
     return date;
 }
