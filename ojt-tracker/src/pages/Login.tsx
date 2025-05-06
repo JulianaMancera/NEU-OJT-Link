@@ -33,8 +33,11 @@ const Auth = () => {
         .eq('user_id', user.id)
         .single();
 
-      if (!existingUser) {
         const fullname = user.user_metadata?.full_name || "User";
+        localStorage.setItem("lastLoggedInUser", fullname);
+        setUsername(fullname);      
+
+      if (!existingUser) {
         const { error: insertError } = await supabase.from("user").insert({
           user_id: user.id,
           name: fullname,
