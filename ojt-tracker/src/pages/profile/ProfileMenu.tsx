@@ -1,4 +1,4 @@
-import { User, Settings, CircleHelp, LogOut, Info, UserCog } from "lucide-react";
+import { User, LogOut, Info, UserCog } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../../supabase";
@@ -118,20 +118,6 @@ export const ProfileMenu = ({ userName: initialName, userRole, profilePicture, o
                 className="w-full text-left px-6 py-4 hover:bg-gray-100 flex items-center transition-all duration-200"
               >
                 <User className="w-6 h-6 mr-3" /> Profile
-              </button>
-            </li>
-            <li>
-              <button
-                className="w-full text-left px-6 py-4 hover:bg-gray-100 flex items-center transition-all duration-200"
-              >
-                <Settings className="w-6 h-6 mr-3" /> Settings
-              </button>
-            </li>
-            <li>
-              <button
-                className="w-full text-left px-6 py-4 hover:bg-gray-100 flex items-center transition-all duration-200"
-              >
-                <CircleHelp className="w-6 h-6 mr-3" /> Help & Support
               </button>
             </li>
             {role === "admin" && (

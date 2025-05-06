@@ -4,7 +4,7 @@ import { User as SupabaseUser } from "@supabase/supabase-js";
 import Sidebar from "./SideBar";
 import OJTLogo from "/src/assets/ojt-white.png";
 import { Loading } from "../../components/Loading";
-import { Folder, User, Settings, CircleHelp, LogOut, UserCog, Filter, Search} from "lucide-react";
+import { Folder, User, LogOut, UserCog, Filter, Search} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { updateAllJobSlots } from "../../services/JobService";
 
@@ -272,16 +272,6 @@ const ApplicationApproval = () => {
                     className="w-full text-left px-6 py-4 hover:bg-gray-100 flex items-center transition-all duration-200"
                   >
                     <User className="w-6 h-6 mr-3" /> Profile
-                  </button>
-                </li>
-                <li>
-                  <button className="w-full text-left px-6 py-4 hover:bg-gray-100 flex items-center transition-all duration-200">
-                    <Settings className="w-6 h-6 mr-3" /> Settings
-                  </button>
-                </li>
-                <li>
-                  <button className="w-full text-left px-6 py-4 hover:bg-gray-100 flex items-center transition-all duration-200">
-                    <CircleHelp className="w-6 h-6 mr-3 " /> Help & Support
                   </button>
                 </li>
                 {userRole === "admin" && (
