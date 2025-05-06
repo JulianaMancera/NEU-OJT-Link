@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect } from "react"; 
 import { supabase } from "../../../supabase";
 import { FaCloudUploadAlt, FaTrash } from "react-icons/fa";
-import { extractTableFromPdf } from "../../services/pdfExtractor";
+import { extractTableFromPdf } from "../../services/pdfFileExtractor";
+
 
 interface WeeklyReportProps {
   isOpen: boolean;
@@ -30,13 +31,17 @@ const WeeklyReport = ({ isOpen, onClose, editingReport }: WeeklyReportProps) => 
 
   useEffect(() => {
     if (!isOpen) {
-      setFiles([]);
-      setMessage("");
-      setProgress(null);
-      setExtractedEntries([]);
-      setTotalHours(0);
+      resetState();
     }
   }, [isOpen]);
+
+  const resetState = () => {
+    setFiles([]);
+    setMessage("");
+    setProgress(null);
+    setExtractedEntries([]);
+    setTotalHours(0);
+  };
 
   const resetMessage = () => setMessage("");
 
@@ -216,7 +221,6 @@ const WeeklyReport = ({ isOpen, onClose, editingReport }: WeeklyReportProps) => 
 
         // Insert time entries from the extracted table data
         if (extractedEntries.length > 0) {
-          // First, delete any existing time entries for this report if editing
           if (editingReport) {
             const { error: deleteError } = await supabase
               .from("time_entries")
@@ -225,17 +229,17 @@ const WeeklyReport = ({ isOpen, onClose, editingReport }: WeeklyReportProps) => 
 
             if (deleteError) {
               errors.push(`Failed to clear existing time entries: ${deleteError.message}`);
-              // Continue anyway to try inserting new entries
             }
           }
 
-          // Insert new time entries
           const timeEntriesToInsert = extractedEntries.map(entry => ({
             user_id: user.id,
             date: entry.date,
             time_in: entry.timeIn,
             time_out: entry.timeOut,
             hours: entry.hours,
+            task: entry.task,
+            remarks: entry.remarks,
             created_at: new Date().toISOString()
           }));
 
@@ -245,7 +249,6 @@ const WeeklyReport = ({ isOpen, onClose, editingReport }: WeeklyReportProps) => 
 
           if (timeEntryError) {
             errors.push(`Failed to insert time entries: ${timeEntryError.message}`);
-            // Continue the upload process despite this error
           }
         }
 
@@ -261,17 +264,11 @@ const WeeklyReport = ({ isOpen, onClose, editingReport }: WeeklyReportProps) => 
     setUploading(false);
 
     if (errors.length > 0) {
-      if (completed > 0) {
-        setMessage(`✅ Uploaded ${completed} report(s) successfully with ${errors.length} errors.`);
-      } else {
-        setMessage(`❌ Upload failed. ${errors[0]}`);
-      }
+      setMessage(`✅ Uploaded ${completed} report(s) successfully with ${errors.length} errors.`);
       console.error("Upload errors:", errors);
     } else {
       setMessage(`✅ Uploaded ${completed} report(s) successfully.`);
-      setFiles([]);
-      setExtractedEntries([]);
-      setTotalHours(0);
+      resetState();
     }
   };
 
@@ -327,86 +324,38 @@ const WeeklyReport = ({ isOpen, onClose, editingReport }: WeeklyReportProps) => 
               ))}
             </ul>
           </div>
-        )}
-
-        {isExtracting && (
-          <div className="mt-4 p-2 bg-blue-100 text-blue-700 rounded flex items-center justify-center">
-            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-700 mr-2"></div>
-            Extracting table data from PDF...
-          </div>
-        )}
-
-        {uploading && progress !== null && (
-          <div className="mt-4">
-            <p className="text-sm text-gray-700">
-              Uploading... {Math.round(progress)}%
-            </p>
-            <div className="w-full bg-gray-300 h-2 rounded">
-              <div
-                className="h-2 bg-green-500"
-                style={{ width: `${progress}%` }}
-              ></div>
-            </div>
-          </div>
-        )}
-
-        {extractedEntries.length > 0 && (
-          <div className="mt-6">
-            <h3 className=" text-gray-700 text-xl font-semibold mb-4">
-              Extracted Time Entries
-            </h3>
-            <table className="table-auto w-full text-left">
-              <thead>
-                <tr className="bg-gray-50 text-gray-700">
-                  <th>Date</th>
-                  <th>Time In</th>
-                  <th>Time Out</th>
-                  <th>Hours</th>
-                </tr>
-              </thead>
-              <tbody>
-                {extractedEntries.map((entry, idx) => (
-                  <tr key={idx}>
-                    <td className="bg-white text-gray-700">{entry.date}</td>
-                    <td className="bg-white text-gray-700">{entry.timeIn}</td>
-                    <td className="bg-white text-gray-700">{entry.timeOut}</td>
-                    <td className="bg-white text-gray-700">{entry.hours}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            <div className=" text-gray-700  mt-4">
-              <div className="bg-white">
-                <strong>Total Hours:</strong> {totalHours}
-                {message && (
-                  <div className="bg-white mt-4 text-center text-sm text-gray-700">
-                    <p>{message}</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
-
-        <div className="mt-6 flex justify-between">
-          <button
-            onClick={handleUpload}
-            disabled={uploading || isExtracting}
-            className="bg-green-500 text-white py-2 px-4 rounded-lg flex items-center space-x-2 disabled:bg-gray-400"
-          >
-            <span>Upload</span>
-          </button>
-          <button
-            onClick={() => setFiles([])}
-            className="text-red-500 hover:underline flex items-center space-x-2"
-          >
-            <FaTrash />
-            <span>Clear</span>
-          </button>
+      )}
+      {progress !== null && (
+        <div className="mt-4 text-blue-600 font-semibold">
+          Upload Progress: {progress}%
         </div>
+      )}
+      {isExtracting && (
+        <div className="mt-2 text-yellow-600">Extracting PDF contents...</div>
+      )}
+      {message && (
+        <div className="mt-4 text-sm text-gray-800 bg-gray-100 p-3 rounded shadow">
+          {message}
+        </div>
+      )}
+      <div className="mt-6 flex justify-end space-x-4">
+        <button
+          onClick={onClose}
+          className="bg-gray-400 hover:bg-gray-500 text-white font-semibold px-4 py-2 rounded"
+        >
+          Cancel
+        </button>
+        <button
+          onClick={handleUpload}
+          disabled={uploading || isExtracting}
+          className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded disabled:opacity-50"
+        >
+          {uploading ? "Uploading..." : "Submit"}
+        </button>
       </div>
     </div>
-  );
+  </div>
+);
 };
-
 export default WeeklyReport;
+
