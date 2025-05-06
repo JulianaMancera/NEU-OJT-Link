@@ -13,6 +13,10 @@ const styles = StyleSheet.create({
         width:150,
         height:80,
         marginTop: 20,
+    },
+    img_header:{
+            width: '100%',
+            marginBottom: 20,
     }
 })
 
@@ -23,16 +27,22 @@ interface userInfo{
     companyAddress:string,
     companyEmail:string,
     date: string,
+    endorsementHeader: string,
     signatureUrl: string
     dean: string
 }
 
-const EndorsementPDF : React.FC<userInfo> =({name,position,company, companyAddress, companyEmail,date,signatureUrl,dean}) => {
+const EndorsementPDF : React.FC<userInfo> =({name,position,company, companyAddress, companyEmail,date, endorsementHeader,signatureUrl,dean}) => {
     return(
     //Warning wag tularan 
     <Document>
         <Page size="A4" style={styles.page}>
-        {/*Letter Header*/} 
+        {/*Letter Header*/}
+        { endorsementHeader &&(
+            <Image src={endorsementHeader} style={styles.img_header}/>
+        )
+
+        } 
         <View style={styles.section}>
             <Text>Date: {date}</Text>
         </View>
