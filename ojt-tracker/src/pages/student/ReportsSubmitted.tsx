@@ -49,7 +49,7 @@ const ReportsSubmitted: React.FC<ReportsSubmittedProps> = ({
       // Weekly Journals
       const { data: journalData, error: journalError } = await supabase
         .from("weekly_journal")
-        .select("weekly_journal_id, start_date, status, file_url")
+        .select("weekly_journal_id, week_number, start_date, status, file_url")
         .eq("submitted_by", fullName);
 
       if (weeklyError || monthlyError || journalError) {
@@ -102,7 +102,8 @@ const ReportsSubmitted: React.FC<ReportsSubmittedProps> = ({
       
 
       const journals = (journalData ?? []).map((r) => ({
-        id:            r.weekly_journal_id, 
+        id:            r.weekly_journal_id,
+        week:          r.week_number, 
         submittedDate: fmt(new Date(r.start_date)),
         dueDate:       calculateDueDate(new Date(r.start_date)),
         status:        r.status as Report["status"],
