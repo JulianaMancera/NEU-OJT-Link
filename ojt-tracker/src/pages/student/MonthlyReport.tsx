@@ -101,6 +101,7 @@ const MonthlyReport = ({ isOpen, onClose }: MonthlyReportProps) => {
       const { error: insertError } = await supabase.from("monthly_report").insert([
         
         {
+          user_id: userID,
           file_name: file.name,
           file_url: fileData.publicUrl,
           uploaded_at: new Date().toISOString(),

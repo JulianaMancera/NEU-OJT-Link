@@ -9,12 +9,8 @@ const styles = StyleSheet.create({
     lineHeight: 1.5,
   },
   headerImage: {
-    width: "100%",
+    width: '100%',
     marginBottom: 20,
-    height: 60,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
   },
   section: { 
     marginBottom: 15 
@@ -100,7 +96,7 @@ const MonthlyReportPDF: React.FC<MonthlyReportProps> = ({
       <Page size="A4" style={styles.page}>
         {/* Header Image Placeholder */}
         <View style={styles.headerImage}>
-            <Image src={'/src/assets/MonthlyReportHeader.png'} style={{ height: "100%" }} />
+            <Image src={'/src/assets/MonthlyReportHeader.png'} />
         </View>
 
         {/* Header */}
