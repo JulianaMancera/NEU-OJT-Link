@@ -60,6 +60,20 @@ const WeeklyJournalReport = ({ isOpen, onClose }: WeeklyJournalReportProps) => {
         return;
       }
 
+      const { count, error: countError } = await supabase
+        .from("weekly_journal")
+        .select("week_number", { count: "exact", head: true })
+        .eq("user_id", userID);
+
+      if (countError) {
+        setMessage("❌ Could not determine your journal week number.");
+        setUploading(false);
+        return;
+      }
+
+        // That will give you `count` of existing journals:
+        const weekNumber = (count ?? 0) + 1;
+
       // Get user metadata
       const userName = user.user_metadata.full_name || "Unknown User";
 
@@ -67,6 +81,7 @@ const WeeklyJournalReport = ({ isOpen, onClose }: WeeklyJournalReportProps) => {
       const { error: insertError } = await supabase.from("weekly_journal").insert([
         {
           user_id: user.id,
+          week_number: weekNumber, // Cannot find name 'weekNumber'.ts(2304)
           file_name: file.name,
           file_url: fileData.publicUrl,
           uploaded_at: new Date().toISOString(),
