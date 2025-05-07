@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { supabase } from "../../../supabase";
 import { FaCloudUploadAlt, FaTrash } from "react-icons/fa";
 import { extractTableFromPdf } from "../../services/pdfFileExtractor";
+import { computeEndDate } from "../../services/ComputeDate/EndDate";
+import { getNextExpectedWeek } from "../../services/WeekValidation/getNextExpectedWeek";
 
 interface WeeklyReportProps {
   isOpen: boolean;
@@ -22,6 +24,8 @@ interface TimeEntry {
 }
 
 const WeeklyReport = ({ isOpen, onClose, editingReport }: WeeklyReportProps) => {
+  const [nextExpectedWeek, setNextExpectedWeek] = useState<number>(1);
+  const [loadingWeek, setLoadingWeek] = useState<boolean>(true);
   const [files, setFiles] = useState<File[]>([]);
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState<number | null>(null);
@@ -31,10 +35,20 @@ const WeeklyReport = ({ isOpen, onClose, editingReport }: WeeklyReportProps) => 
   const [totalHours, setTotalHours] = useState<number>(0);
 
   useEffect(() => {
-    if (!isOpen) {
-      resetState();
-    }
-  }, [isOpen]);
+    if (!isOpen || editingReport) return;
+  
+    setLoadingWeek(true);
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!user) {
+        setNextExpectedWeek(1);
+        setLoadingWeek(false);
+        return;
+      }
+      return getNextExpectedWeek(user.id)
+        .then((n) => setNextExpectedWeek(n))
+        .finally(() => setLoadingWeek(false));
+    });
+  }, [isOpen, editingReport]);
 
   const resetState = () => {
     setFiles([]);
@@ -106,6 +120,19 @@ const WeeklyReport = ({ isOpen, onClose, editingReport }: WeeklyReportProps) => 
       setMessage("❌ Please select at least one file.");
       return;
     }
+
+    if (!editingReport) {
+    if (loadingWeek) {
+      setMessage("🔄 Checking which week comes next…");
+      return;
+    }
+    // pull the week number off your filename
+    const fnWeek = extractWeekNumber(files[0].name);
+    if (fnWeek !== nextExpectedWeek) {
+      setMessage(`❌ Please upload Week ${nextExpectedWeek} next.`);
+      return;
+    }
+  }
 
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
@@ -205,6 +232,7 @@ const WeeklyReport = ({ isOpen, onClose, editingReport }: WeeklyReportProps) => 
               uploaded_at: new Date().toISOString(),
               submitted_by: userName,
               start_date: new Date().toISOString(),
+              end_date: computeEndDate(new Date()),
               user_id: user.id,
               week_number: extractedWeek,
               total_hours: totalHours,

@@ -25,7 +25,7 @@ const ApplicationApproval = () => {
   const [showModalFor, setShowModalFor] = useState<string|null>(null);
   const [showModalName, setShowModalName] = useState<string|null>(null);
   const [docsByFolder, setDocsByFolder] = useState<Record<string,string[]>>({});
-  const folders = ['com','coverLetter','cv','medCert','notarized','psyTest','resume'];
+  const folders = ['com','coverLetter','cv','medCert','notarized','psyTest','resume','endorsement-letter'];
   const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
   const [applications, setApplications] = useState<Application[]>([]);
   const [filteredApplications, setFilteredApplications] = useState<Application[]>([]);
@@ -139,30 +139,54 @@ const ApplicationApproval = () => {
     setSelectedFolder(null);
     const out: Record<string,string[]> = {};
   
-    await Promise.all(folders.map(async folder => {
-      const { data: files, error: listError } =
-        await supabase
+    await Promise.all(folders.map(async (folder) => {
+      // endorsement‑letter lives in endorsement‑letter/{userId}
+      if (folder === 'endorsement-letter') {
+        const path = `endorsement-letter/${user_id}`;
+        const { data: files, error: listError } = await supabase
           .storage
           .from('applicant-documents')
-          .list(folder);
+          .list(path);
+  
+        if (listError || !files) {
+          out[folder] = [];
+          return;
+        }
+  
+        // everything in that folder is theirs, so just map to publicUrl
+        out[folder] = files.map((f) => {
+          const { data: { publicUrl } } = supabase
+            .storage
+            .from('applicant-documents')
+            .getPublicUrl(`${path}/${f.name}`);
+          return publicUrl;
+        });
+  
+        return;
+      }
+  
+      // ——————————————————————————————
+      // otherwise, your flat buckets (cv, com, etc.) are unchanged
+      const { data: files, error: listError } = await supabase
+        .storage
+        .from('applicant-documents')
+        .list(folder);
   
       if (listError || !files) {
         out[folder] = [];
         return;
       }
   
-      const userFiles = files
-        .filter(f => f.name.includes(`_${user_id}_`))
-        .map(f => {
-          const { data: { publicUrl } } =
-            supabase
-              .storage
-              .from('applicant-documents')
-              .getPublicUrl(`${folder}/${f.name}`);
+      // filter only this user’s files by your existing naming convention
+      out[folder] = files
+        .filter((f) => f.name.includes(`_${user_id}_`))
+        .map((f) => {
+          const { data: { publicUrl } } = supabase
+            .storage
+            .from('applicant-documents')
+            .getPublicUrl(`${folder}/${f.name}`);
           return publicUrl;
         });
-  
-      out[folder] = userFiles;
     }));
   
     setDocsByFolder(out);
