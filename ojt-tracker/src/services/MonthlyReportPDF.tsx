@@ -96,7 +96,7 @@ const MonthlyReportPDF: React.FC<MonthlyReportProps> = ({
       <Page size="A4" style={styles.page}>
         {/* Header Image Placeholder */}
         <View style={styles.headerImage}>
-            <Image src={'/src/assets/MonthlyReportHeader.png'} />
+            <Image src={'MonthlyReportHeader.png'} />
         </View>
 
         {/* Header */}
