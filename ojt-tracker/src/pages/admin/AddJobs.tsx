@@ -39,7 +39,6 @@ const AddJobs = () => {
         setJobs(jobsData);
         setFilteredJobs(jobsData);
 
-        // Fetch user profile data
         if (user) {
           setUserName(user.user_metadata?.full_name || "User");
           const { data: roleData } = await supabase
@@ -67,18 +66,16 @@ const AddJobs = () => {
 
   useEffect(() => {
     applyFilters();
-  });
+  }, [jobs, statusFilter, searchTerm, companies]);
 
   const applyFilters = () => {
     let filtered = [...jobs];
 
-    // Apply availability filter
     if (statusFilter !== "all") {
       const isAvailable = statusFilter === "available";
       filtered = filtered.filter((job) => job.isAvailable === isAvailable);
     }
 
-    // Apply search term if any
     if (searchTerm) {
       filtered = filtered.filter(
         (job) =>
@@ -111,14 +108,10 @@ const AddJobs = () => {
     const updateJobsList = (list: Job[]) =>
       list.map((j) => {
         if (j.job_id === jobId) {
-          const newTotalSlots = Math.max(0, (j.total_slots || 0) + delta);
-          const approvedCount = j.approved_application_count || 0;
-          const newAvailableSlots = Math.max(0, newTotalSlots - approvedCount);
-
+          const newSlots = Math.max(0, (j.slots || 0) + delta);
           return {
             ...j,
-            total_slots: newTotalSlots,
-            slots: newAvailableSlots,
+            slots: newSlots,
           };
         }
         return j;
@@ -139,7 +132,7 @@ const AddJobs = () => {
       setLoading(true);
       await updateJob({
         ...job,
-        slots: job.total_slots - (job.approved_application_count || 0),
+        slots: job.slots || 0,
       });
 
       setMessage("✅ Job updated successfully!");
@@ -210,11 +203,9 @@ const AddJobs = () => {
 
   return (
     <div className="relative min-h-screen w-screen bg-gradient-to-b from-[#5F74C9] to-[#0A279C] p-8">
-      {/* Header */}
       <div className="w-full h-[80px] fixed left-0 top-0 bg-gradient-to-b from-[#578FCA] to-[#2B4764] border-black flex items-center justify-between px-6">
         <img src={OJTLogo} alt="OJT Link Logo" className="w-[220px] h-[220px] ml-15" />
         <div className="flex items-center">
-          {/* Profile Section */}
           <button
             onClick={() => setProfileOpen(!isProfileOpen)}
             className="relative p-3 hover:bg-blue-800 rounded-full transition-all duration-300"
@@ -280,7 +271,6 @@ const AddJobs = () => {
               <h2 className="text-2xl font-bold text-black">Job Management</h2>
             </div>
 
-            {/* Action bar */}
             <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
               <button
                 onClick={() => setShowForm(true)}
@@ -290,7 +280,6 @@ const AddJobs = () => {
                 Add New Job
               </button>
 
-              {/* Search & Filter */}
               <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
                 <div className="relative w-full sm:w-64">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -359,7 +348,6 @@ const AddJobs = () => {
                         <th className="p-3 text-center font-semibold">Job Position</th>
                         <th className="p-3 text-center font-semibold">Company</th>
                         <th className="p-3 text-center font-semibold">Available Slots</th>
-                        <th className="p-3 text-center font-semibold">Total Slots</th>
                         <th className="p-3 text-center font-semibold">Status</th>
                         <th className="p-3 text-center font-semibold">Actions</th>
                       </tr>
@@ -401,22 +389,17 @@ const AddJobs = () => {
                               )}
                             </td>
                             <td className="p-3 text-center text-black">
-                              <span className={`${job.slots === 0 ? "text-red-600 font-bold" : ""}`}>
-                                {job.slots || 0}
-                              </span>
-                            </td>
-                            <td className="p-3 text-center text-black">
                               {editMode === job.job_id ? (
                                 <div className="flex items-center justify-center">
                                   <button
                                     onClick={() => handleSlotChange(job.job_id, -1)}
                                     className="px-2 py-1 bg-gray-200 hover:bg-gray-300 rounded-l"
-                                    disabled={(job.total_slots || 0) <= 0}
+                                    disabled={(job.slots || 0) <= 0}
                                   >
                                     -
                                   </button>
                                   <span className="px-3 py-1 border-t border-b min-w-8 inline-block text-center">
-                                    {job.total_slots || 0}
+                                    {job.slots || 0}
                                   </span>
                                   <button
                                     onClick={() => handleSlotChange(job.job_id, 1)}
@@ -426,7 +409,9 @@ const AddJobs = () => {
                                   </button>
                                 </div>
                               ) : (
-                                job.total_slots || 0
+                                <span className={`${job.slots === 0 ? "text-red-600 font-bold" : ""}`}>
+                                  {job.slots || 0}
+                                </span>
                               )}
                             </td>
                             <td className="p-3 text-center">{getStatusBadge(job.isAvailable)}</td>
@@ -477,7 +462,7 @@ const AddJobs = () => {
                         ))
                       ) : (
                         <tr>
-                          <td colSpan={6} className="p-8 text-center text-black">
+                          <td colSpan={5} className="p-8 text-center text-black">
                             {searchTerm || statusFilter !== "all" ? (
                               <div className="flex flex-col items-center">
                                 <svg
@@ -528,7 +513,6 @@ const AddJobs = () => {
                   </table>
                 </div>
 
-                {/* Table Footer & Summary */}
                 <div className="mt-4 text-sm text-black flex items-center justify-between flex-wrap gap-2">
                   <div>
                     Showing {filteredJobs.length} {filteredJobs.length === 1 ? "job" : "jobs"}
