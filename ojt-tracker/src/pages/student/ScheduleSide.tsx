@@ -435,43 +435,54 @@
           return;
         }
 
+        const { error: updateError } = await supabase
+          .from("availability")
+          .update({
+            start_time: convertToTimeInputFormat(editWorkDay.start_time),
+            end_time: convertToTimeInputFormat(editWorkDay.end_time),
+          })
+          .eq("application_id", application.application_id)
+          .eq("day_of_week", editWorkDay.day_of_week)
+          .eq("start_time", convertToTimeInputFormat(editWorkDay.original_start_time || editWorkDay.start_time))
+          .eq("end_time", convertToTimeInputFormat(editWorkDay.original_end_time || editWorkDay.end_time));
+
+        if (updateError) throw updateError;
+
+        for (const slot of newTimeSlots) {
+          if (slot.start_time && slot.end_time && slot.day_of_week) {
+          
+            const { data: existingSlots } = await supabase
+              .from("availability")
+              .select("*")
+              .eq("application_id", application.application_id)
+              .eq("day_of_week", slot.day_of_week)
+              .eq("start_time", slot.start_time)
+              .eq("end_time", slot.end_time);
+
+            if (!existingSlots || existingSlots.length === 0) {
+              const { error: insertError } = await supabase
+                .from("availability")
+                .insert({
+                  application_id: application.application_id,
+                  day_of_week: slot.day_of_week,
+                  start_time: slot.start_time,
+                  end_time: slot.end_time
+                });
+
+              if (insertError) throw insertError;
+            }
+          }
+        }
         if (editWorkDay.toDelete) {
           const { error: deleteError } = await supabase
             .from("availability")
             .delete()
             .eq("application_id", application.application_id)
             .eq("day_of_week", editWorkDay.day_of_week)
-            .eq("start_time", convertToTimeInputFormat(editWorkDay.original_start_time || editWorkDay.start_time))
-            .eq("end_time", convertToTimeInputFormat(editWorkDay.original_end_time || editWorkDay.end_time));
+            .eq("start_time", convertToTimeInputFormat(editWorkDay.start_time))
+            .eq("end_time", convertToTimeInputFormat(editWorkDay.end_time));
 
           if (deleteError) throw deleteError;
-          const { error: updateError } = await supabase
-            .from("availability")
-            .update({
-              start_time: convertToTimeInputFormat(editWorkDay.start_time),
-              end_time: convertToTimeInputFormat(editWorkDay.end_time),
-            })
-            .eq("application_id", application.application_id)
-            .eq("day_of_week", editWorkDay.day_of_week)
-            .eq("start_time", convertToTimeInputFormat(editWorkDay.original_start_time || editWorkDay.start_time))
-            .eq("end_time", convertToTimeInputFormat(editWorkDay.original_end_time || editWorkDay.end_time));
-
-          if (updateError) throw updateError;
-        }
-
-        for (const slot of newTimeSlots) {
-          if (slot.start_time && slot.end_time && slot.day_of_week) {
-            const { error: insertError } = await supabase
-              .from("availability")
-              .insert({
-                application_id: application.application_id,
-                day_of_week: slot.day_of_week,
-                start_time: slot.start_time,
-                end_time: slot.end_time
-              });
-
-            if (insertError) throw insertError;
-          }
         }
 
         const { data: workDaysData, error: workDaysError } = await supabase
@@ -504,6 +515,10 @@
     if (!timeStr) return "";
     
     try {
+      if (!timeStr.includes(' ')) {
+        return timeStr;
+      }
+      
       const [timePart, period] = timeStr.split(' ');
       let [hours, minutes] = timePart.split(':');
       
