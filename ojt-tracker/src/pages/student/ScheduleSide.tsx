@@ -6,10 +6,13 @@
   import 'react-big-calendar/lib/css/react-big-calendar.css';
 
   interface WorkDay {
-    day_of_week: string;
-    start_time: string;
-    end_time: string;
-  }
+  day_of_week: string;
+  start_time: string;
+  end_time: string;
+  original_start_time?: string;
+  original_end_time?: string;
+  toDelete?: boolean;
+}
 
   interface Holiday {
     id: number;
@@ -39,7 +42,37 @@
     const [supervisor, setSupervisor] = useState<string | null>(null);
     const [showModal, setShowModal] = useState(false);
     const [editWorkDay, setEditWorkDay] = useState<WorkDay | null>(null);
-    const [newTimeSlots, setNewTimeSlots] = useState<{ start_time: string; end_time: string }[]>([]);
+    const [newTimeSlots, setNewTimeSlots] = useState<{ day_of_week: string; start_time: string; end_time: string }[]>([]);
+    const [hasMultipleEntries, setHasMultipleEntries] = useState<boolean>(false);
+
+    useEffect(() => {
+      const fetchAvailabilityCount = async () => {
+        if (!userId) return;
+        
+        const { data: application } = await supabase
+          .from("application")
+          .select("application_id")
+          .eq("user_id", userId)
+          .eq("status", "approved")
+          .single();
+
+        if (!application) return;
+
+        const { data, error } = await supabase
+          .from("availability")
+          .select("*")
+          .eq("application_id", application.application_id);
+
+        if (error) {
+          console.error("Error fetching availability count:", error);
+          return;
+        }
+        const hasMultipleEntries = data.length > 1;
+        setHasMultipleEntries(hasMultipleEntries);
+      };
+
+      fetchAvailabilityCount();
+    }, [userId]);
 
     useEffect(() => {
       if (userId && totalHours !== null && totalHours <= 0) {
@@ -213,7 +246,7 @@
       };
 
       fetchData();
-    }, []); // Empty dependency array for one-time fetch
+    }, []);
 
     const formatTime = (time24: string): string => {
       const timeParts = time24.split(':');
@@ -369,12 +402,21 @@
     const progressPercentage = totalHours !== null ? Math.max(0, (totalHours / initialTotalHours) * 100) : 100;
 
     const handleEditWorkDay = (day: WorkDay) => {
-      setEditWorkDay(day);
+      setEditWorkDay({
+        ...day,
+        original_start_time: day.start_time,
+        original_end_time: day.end_time,
+        toDelete: false
+      });
       setNewTimeSlots([]);
     };
 
     const handleAddTimeSlot = () => {
-      setNewTimeSlots([...newTimeSlots, { start_time: "", end_time: "" }]);
+      setNewTimeSlots([...newTimeSlots, { 
+        day_of_week: editWorkDay?.day_of_week || "", 
+        start_time: "", 
+        end_time: "" 
+      }]);
     };
 
     const handleSaveWorkDay = async () => {
@@ -388,28 +430,42 @@
           .eq("status", "approved")
           .single();
 
-        if (!application) return;
+        if (!application) {
+          setError("No approved application found.");
+          return;
+        }
 
-        // Update existing time slot
-        const { error: updateError } = await supabase
-          .from("availability")
-          .update({
-            start_time: editWorkDay.start_time,
-            end_time: editWorkDay.end_time
-          })
-          .eq("application_id", application.application_id)
-          .eq("day_of_week", editWorkDay.day_of_week);
+        if (editWorkDay.toDelete) {
+          const { error: deleteError } = await supabase
+            .from("availability")
+            .delete()
+            .eq("application_id", application.application_id)
+            .eq("day_of_week", editWorkDay.day_of_week)
+            .eq("start_time", convertToTimeInputFormat(editWorkDay.original_start_time || editWorkDay.start_time))
+            .eq("end_time", convertToTimeInputFormat(editWorkDay.original_end_time || editWorkDay.end_time));
 
-        if (updateError) throw updateError;
+          if (deleteError) throw deleteError;
+          const { error: updateError } = await supabase
+            .from("availability")
+            .update({
+              start_time: convertToTimeInputFormat(editWorkDay.start_time),
+              end_time: convertToTimeInputFormat(editWorkDay.end_time),
+            })
+            .eq("application_id", application.application_id)
+            .eq("day_of_week", editWorkDay.day_of_week)
+            .eq("start_time", convertToTimeInputFormat(editWorkDay.original_start_time || editWorkDay.start_time))
+            .eq("end_time", convertToTimeInputFormat(editWorkDay.original_end_time || editWorkDay.end_time));
 
-        // Insert new time slots
+          if (updateError) throw updateError;
+        }
+
         for (const slot of newTimeSlots) {
-          if (slot.start_time && slot.end_time) {
+          if (slot.start_time && slot.end_time && slot.day_of_week) {
             const { error: insertError } = await supabase
               .from("availability")
               .insert({
                 application_id: application.application_id,
-                day_of_week: editWorkDay.day_of_week,
+                day_of_week: slot.day_of_week,
                 start_time: slot.start_time,
                 end_time: slot.end_time
               });
@@ -418,7 +474,6 @@
           }
         }
 
-        // Refresh work days
         const { data: workDaysData, error: workDaysError } = await supabase
           .from("availability")
           .select("day_of_week, start_time, end_time")
@@ -438,11 +493,30 @@
 
         setEditWorkDay(null);
         setNewTimeSlots([]);
+        setError(null);
       } catch (error) {
         console.error("Error saving work day:", error);
         setError("Failed to save work schedule.");
       }
     };
+    
+  const convertToTimeInputFormat = (timeStr: string): string => {
+    if (!timeStr) return "";
+    
+    try {
+      const [timePart, period] = timeStr.split(' ');
+      let [hours, minutes] = timePart.split(':');
+      
+      let hoursNum = parseInt(hours, 10);
+      if (period === 'PM' && hoursNum !== 12) hoursNum += 12;
+      if (period === 'AM' && hoursNum === 12) hoursNum = 0;
+      
+      return `${hoursNum.toString().padStart(2, '0')}:${minutes}`;
+    } catch (e) {
+      console.error("Error converting time format:", e);
+      return "";
+    }
+  };
 
     return (
       <div className="space-y-6">
@@ -488,70 +562,130 @@
             {editWorkDay && (
               <div className="mt-4 p-4 bg-gray-100 rounded-lg">
                 <div className="space-y-4 text-black">
-                  {/* Primary time slot */}
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="time"
-                      value={editWorkDay.start_time}
-                      onChange={(e) => setEditWorkDay({ ...editWorkDay, start_time: e.target.value })}
-                      className="w-1/2 p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    />
-                    <span className="text-sm">-</span>
-                    <input
-                      type="time"
-                      value={editWorkDay.end_time}
-                      onChange={(e) => setEditWorkDay({ ...editWorkDay, end_time: e.target.value })}
-                      className="w-1/2 p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    />
+                  {/* Day selection and time slots in one row */}
+                  <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
+                    <div className="flex-1 w-full">
+                      <div className="flex items-center gap-4">
+                        <span className="flex-1 border border-gray-300 rounded-lg px-4 py-2 bg-gray-100 text-gray-700">
+                          {editWorkDay.day_of_week}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex-1 w-full">
+                      <div className="flex items-center gap-4">                      
+                        <div className="flex items-center gap-2 flex-1">
+                          <input
+                            type="time"
+                            value={convertToTimeInputFormat(editWorkDay.start_time)}
+                            onChange={(e) => setEditWorkDay({ ...editWorkDay, start_time: e.target.value })}
+                            className="w-full p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          />
+                          <input
+                            type="time"
+                            value={convertToTimeInputFormat(editWorkDay.end_time)}
+                            onChange={(e) => setEditWorkDay({ ...editWorkDay, end_time: e.target.value })}
+                            className="w-full p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          />
+                          {hasMultipleEntries && (
+                            <button
+                              onClick={() => setEditWorkDay({ ...editWorkDay, toDelete: !editWorkDay.toDelete })}
+                              className={`text-sm p-2 ${editWorkDay.toDelete ? 'bg-red-600 text-white' : 'text-red-600 hover:text-red-800'}`}
+                            >
+                              {editWorkDay.toDelete ? 'Marked for deletion' : 'Delete'}
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
                   </div>
+
                   {/* Additional time slots */}
                   {newTimeSlots.map((slot, index) => (
-                    <div key={index} className="flex items-center space-x-2">
-                      <input
-                        type="time"
-                        value={slot.start_time}
-                        onChange={(e) => {
-                          const updatedSlots = [...newTimeSlots];
-                          updatedSlots[index].start_time = e.target.value;
-                          setNewTimeSlots(updatedSlots);
-                        }}
-                        className="w-1/2 p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      />
-                      <span className="text-sm">-</span>
-                      <input
-                        type="time"
-                        value={slot.end_time}
-                        onChange={(e) => {
-                          const updatedSlots = [...newTimeSlots];
-                          updatedSlots[index].end_time = e.target.value;
-                          setNewTimeSlots(updatedSlots);
-                        }}
-                        className="w-1/2 p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      />
+                    <div key={index} className="flex flex-col md:flex-row gap-4 items-start md:items-center">
+                      <div className="flex-1 w-full">
+                        <div className="flex items-center gap-4">                  
+                          <select
+                            value={slot.day_of_week}
+                            onChange={(e) => {
+                              const updatedSlots = [...newTimeSlots];
+                              updatedSlots[index].day_of_week = e.target.value;
+                              setNewTimeSlots(updatedSlots);
+                            }}
+                            className="flex-1 border border-gray-300 rounded-lg px-4 py-2 bg-gray-100"
+                          >
+                            <option value="">Select a day</option>
+                            <option value="Monday">Monday</option>
+                            <option value="Tuesday">Tuesday</option>
+                            <option value="Wednesday">Wednesday</option>
+                            <option value="Thursday">Thursday</option>
+                            <option value="Friday">Friday</option>
+                            <option value="Saturday">Saturday</option>
+                            <option value="Sunday">Sunday</option>
+                          </select>
+                        </div>
+                      </div>
+                      <div className="flex-1 w-full">
+                        <div className="flex items-center gap-4">                          
+                          <div className="flex items-center gap-2 flex-1">
+                            <input
+                              type="time"
+                              value={slot.start_time}
+                              onChange={(e) => {
+                                const updatedSlots = [...newTimeSlots];
+                                updatedSlots[index].start_time = e.target.value;
+                                setNewTimeSlots(updatedSlots);
+                              }}
+                              className="w-full p-2 border border-gray-300 rounded-lg text-sm"
+                            />
+                            <input
+                              type="time"
+                              value={slot.end_time}
+                              onChange={(e) => {
+                                const updatedSlots = [...newTimeSlots];
+                                updatedSlots[index].end_time = e.target.value;
+                                setNewTimeSlots(updatedSlots);
+                              }}
+                              className="w-full p-2 border border-gray-300 rounded-lg text-sm"
+                            />
+                            <button
+                              onClick={() => {
+                                const updatedSlots = [...newTimeSlots];
+                                updatedSlots.splice(index, 1);
+                                setNewTimeSlots(updatedSlots);
+                              }}
+                              className="text-red-600 hover:text-red-800 text-sm p-2"
+                            >
+                              Remove
+                            </button>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   ))}
-                  <button
-                    onClick={handleAddTimeSlot}
-                    className="w-full bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors text-sm"
-                  >
-                    Add Time Slot
-                  </button>
-                  <div className="flex justify-end space-x-2">
+
+                  <div className="flex justify-between items-center pt-2">
                     <button
-                      onClick={handleSaveWorkDay}
-                      className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm"
+                      onClick={handleAddTimeSlot}
+                      className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors text-sm"
                     >
-                      Save
+                      Add Another Time Slot
                     </button>
-                    <button
-                      onClick={() => {
-                        setEditWorkDay(null);
-                        setNewTimeSlots([]);
-                      }}
-                      className="text-red-600 hover:text-red-800 text-sm"
-                    >
-                      Cancel
-                    </button>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={handleSaveWorkDay}
+                        className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm">
+                        Save Changes
+                      </button>
+                      <button
+                        onClick={() => {
+                          setEditWorkDay(null);
+                          setNewTimeSlots([]);
+                        }}
+                        className="text-red-600 hover:text-red-800 text-sm">
+                          Cancel
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
