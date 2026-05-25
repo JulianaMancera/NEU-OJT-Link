@@ -16,15 +16,14 @@ import CompilationReport from "./pages/admin/CompilationReport";
 import UserRole from "./pages/admin/UserRole";
 import ViewDashboard from "./components/ViewDashboard";
 import AboutUs from "../src/pages/AboutUs";
-import { supabase } from '../supabase'; 
+import { supabase } from '../supabase';
+import ProtectedRoute from "./components/ProtectedRoute";
 
-
-// Define the handleLogout function
 const handleLogout = async () => {
   try {
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
-    window.location.href = '/'; // Redirect to login page after logout
+    window.location.href = '/';
   } catch (error) {
     console.error('Error logging out:', error);
   }
@@ -33,21 +32,28 @@ const handleLogout = async () => {
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <BrowserRouter>
     <Routes>
+      {/* Public */}
       <Route path="/" element={<Login />} />
-      <Route path="/landing-page" element={<LandingPage />} />
-      <Route path="/dashboard" element={<Dashboard />} />
-      <Route path="/application-approval" element={<ApplicationApproval />} />
-      <Route path="/student-dashboard" element={<StudentDashboard />} />
-      <Route path="/profile" element={<StudentProfile />} />
-      <Route path="/admin" element={<Admin />} />
-      <Route path="/company" element={<CompanyManagement />} />
-      <Route path="/compilation-report" element={<CompilationReport />} />
-      <Route path="/jobs" element={<AddJobs />} />
-      <Route path="/reports" element={<Reports />} />
-      <Route path="/monitoring" element={<Monitoring />} />
-      <Route path="/user-role" element={<UserRole />} />
-      <Route path="/view-dashboard" element={<ViewDashboard />} />
-      <Route path="/about" element={<AboutUs handleLogout={handleLogout} />} />
+
+      {/* Student-only */}
+      <Route path="/landing-page" element={<ProtectedRoute requiredRole="student"><LandingPage /></ProtectedRoute>} />
+      <Route path="/dashboard" element={<ProtectedRoute requiredRole="student"><Dashboard /></ProtectedRoute>} />
+      <Route path="/student-dashboard" element={<ProtectedRoute requiredRole="student"><StudentDashboard /></ProtectedRoute>} />
+      <Route path="/profile" element={<ProtectedRoute requiredRole="student"><StudentProfile /></ProtectedRoute>} />
+
+      {/* Admin-only */}
+      <Route path="/admin" element={<ProtectedRoute requiredRole="admin"><Admin /></ProtectedRoute>} />
+      <Route path="/application-approval" element={<ProtectedRoute requiredRole="admin"><ApplicationApproval /></ProtectedRoute>} />
+      <Route path="/company" element={<ProtectedRoute requiredRole="admin"><CompanyManagement /></ProtectedRoute>} />
+      <Route path="/compilation-report" element={<ProtectedRoute requiredRole="admin"><CompilationReport /></ProtectedRoute>} />
+      <Route path="/jobs" element={<ProtectedRoute requiredRole="admin"><AddJobs /></ProtectedRoute>} />
+      <Route path="/reports" element={<ProtectedRoute requiredRole="admin"><Reports /></ProtectedRoute>} />
+      <Route path="/monitoring" element={<ProtectedRoute requiredRole="admin"><Monitoring /></ProtectedRoute>} />
+      <Route path="/user-role" element={<ProtectedRoute requiredRole="admin"><UserRole /></ProtectedRoute>} />
+
+      {/* Authenticated (any NEU role) */}
+      <Route path="/view-dashboard" element={<ProtectedRoute><ViewDashboard /></ProtectedRoute>} />
+      <Route path="/about" element={<ProtectedRoute><AboutUs handleLogout={handleLogout} /></ProtectedRoute>} />
     </Routes>
   </BrowserRouter>
 );

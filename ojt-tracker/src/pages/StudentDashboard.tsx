@@ -50,9 +50,7 @@ const StudentDashboard: React.FC = () => {
   };
 
   const handleViewChange = (view: "schedule" | "reports") => {
-    console.log("handleViewChange called, new view:", view);
     setActiveView(view);
-    console.log("activeView updated to:", view);
   };
 
   const handleToggleBlur = (isBlurred: boolean) => {
