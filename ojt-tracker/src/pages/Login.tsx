@@ -13,79 +13,78 @@ const Auth = () => {
 
   useEffect(() => {
     const checkUser = async () => {
-      // Get the full name from localStorage instead of just first name
-      const savedUsername = localStorage.getItem("lastLoggedInUser");
-      if (savedUsername && savedUsername !== "undefined" && savedUsername !== "null") {
-        setUsername(savedUsername);
-      }
-      
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
-      
-      if (authError || !user || !user.email?.endsWith("@neu.edu.ph")) {
-        await supabase.auth.signOut();
-        setLoading(false);
-        return;
-      }
-      
-      const { data: existingUser } = await supabase
-        .from('user')
-        .select('*')
-        .eq('user_id', user.id)
-        .single();
+      try {
+        const savedUsername = localStorage.getItem("lastLoggedInUser");
+        if (savedUsername && savedUsername !== "undefined" && savedUsername !== "null") {
+          setUsername(savedUsername);
+        }
+
+        const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+        if (authError || !user || !user.email?.endsWith("@neu.edu.ph")) {
+          await supabase.auth.signOut();
+          return;
+        }
+
+        const { data: existingUser } = await supabase
+          .from('user')
+          .select('*')
+          .eq('user_id', user.id)
+          .single();
 
         const fullname = user.user_metadata?.full_name || "User";
         localStorage.setItem("lastLoggedInUser", fullname);
-        setUsername(fullname);      
+        setUsername(fullname);
 
-      if (!existingUser) {
-        const { error: insertError } = await supabase.from("user").insert({
-          user_id: user.id,
-          name: fullname,
-          email: user.email,
-          date_registered: new Date().toISOString(),
-          course: null,
-          profilePicture: user.user_metadata?.avatar_url
-        });
+        if (!existingUser) {
+          const { error: insertError } = await supabase.from("user").insert({
+            user_id: user.id,
+            name: fullname,
+            email: user.email,
+            date_registered: new Date().toISOString(),
+            course: null,
+            profilePicture: user.user_metadata?.avatar_url
+          });
 
-        if (insertError) {
-          console.error("Error inserting user:", insertError);
+          if (insertError) {
+            console.error("Error inserting user:", insertError);
+            await supabase.auth.signOut();
+            return;
+          }
+        }
+
+        const { data: userData, error: roleError } = await supabase
+          .from('user')
+          .select('role')
+          .eq('user_id', user.id)
+          .single();
+
+        if (roleError) {
+          console.error('Error fetching user role:', roleError);
           await supabase.auth.signOut();
-          setLoading(false);
           return;
         }
-      }
 
-      // Check user role from user table
-      const { data: userData, error: roleError } = await supabase
-        .from('user')
-        .select('role')
-        .eq('user_id', user.id)
-        .single();
-      
-      if (roleError) {
-        console.error('Error fetching user role:', roleError);
-        await supabase.auth.signOut();
-        setLoading(false);
-        return;
-      }
+        if (userData?.role === 'student') {
+          const { data: requirements } = await supabase
+            .from("requirements")
+            .select("endorsement_url")
+            .eq("student_id", user.id)
+            .not("endorsement_url", "is", null);
 
-      if (userData?.role === 'student') {
-        const { data: requirements } = await supabase
-          .from("requirements")
-          .select("endorsement_url")
-          .eq("student_id", user.id)
-          .not("endorsement_url", "is", null);
-        
-        if (requirements && requirements.length > 0) {
-          navigate("/student-dashboard");
-        } else {
-          navigate("/landing-page");
+          if (requirements && requirements.length > 0) {
+            navigate("/student-dashboard");
+          } else {
+            navigate("/landing-page");
+          }
+        } else if (userData?.role) {
+          navigate("/admin");
         }
-      } else if (userData?.role) {
-        navigate("/admin");
+      } catch (err) {
+        console.error("Auth check failed:", err);
+      } finally {
+        setLoading(false);
       }
-
-      setLoading(false);
     };
 
     checkUser();

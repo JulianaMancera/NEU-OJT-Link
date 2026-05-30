@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { User, LogOut, Info } from "lucide-react";
+import { User, LogOut, Info, Users, Briefcase, Building2 } from "lucide-react";
 import { supabase } from "../../../supabase";
 import OJTLogo from "/src/assets/ojt-white.png";
 import Sidebar from "./SideBar";
@@ -45,7 +45,7 @@ const Admin = () => {
   return (
     <div className="relative min-h-screen w-screen bg-gradient-to-b from-blue-100 to-white p-6">
       {/* Topbar/Header */}
-      <header className="fixed top-0 h-[80px] left-0 w-full bg-gradient-to-b from-[#578FCA] to-[#2B4764] text-white px-6 py-4 flex items-center justify-between shadow-md z-50 border-b border-black">
+      <header className="fixed top-0 h-[80px] left-0 w-full bg-gradient-to-b from-[#578FCA] to-[#2B4764] text-white px-6 py-4 flex items-center justify-between shadow-lg z-50">
         <div className="flex items-center space-x-4">
           <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}/>
           <img src={OJTLogo} alt="OJT Link Logo" className="w-[220px] h-[220px] ml-15" />
@@ -138,22 +138,40 @@ const Admin = () => {
           {/* Quick Actions Section */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div
-              className="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer border border-blue-200"
+              onClick={() => navigate("/user-role")}
+              className="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer border border-blue-200 flex items-start gap-4"
             >
-              <h3 className="text-xl font-semibold text-[#2B4764] mb-2">Manage Users</h3>
-              <p className="text-gray-600">View and edit user profiles, roles, and permissions.</p>
+              <div className="p-3 bg-blue-200 rounded-full flex-shrink-0">
+                <Users className="w-5 h-5 text-blue-700" />
+              </div>
+              <div>
+                <h3 className="text-xl font-semibold text-[#2B4764] mb-2">Manage Users</h3>
+                <p className="text-gray-600">View and edit user profiles, roles, and permissions.</p>
+              </div>
             </div>
             <div
-              className="bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer border border-green-200"
+              onClick={() => navigate("/view-dashboard", { state: { isAdminView: true } })}
+              className="bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer border border-green-200 flex items-start gap-4"
             >
-              <h3 className="text-xl font-semibold text-[#2B4764] mb-2">Explore Jobs</h3>
-              <p className="text-gray-600">Review and manage job postings across companies.</p>
+              <div className="p-3 bg-green-200 rounded-full flex-shrink-0">
+                <Briefcase className="w-5 h-5 text-green-700" />
+              </div>
+              <div>
+                <h3 className="text-xl font-semibold text-[#2B4764] mb-2">Explore Jobs</h3>
+                <p className="text-gray-600">Review and manage job postings across companies.</p>
+              </div>
             </div>
             <div
-              className="bg-gradient-to-br from-purple-50 to-purple-100 p-6 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer border border-purple-200"
+              onClick={() => navigate("/company")}
+              className="bg-gradient-to-br from-purple-50 to-purple-100 p-6 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer border border-purple-200 flex items-start gap-4"
             >
-              <h3 className="text-xl font-semibold text-[#2B4764] mb-2">Companies</h3>
-              <p className="text-gray-600">Manage company profiles and their job listings.</p>
+              <div className="p-3 bg-purple-200 rounded-full flex-shrink-0">
+                <Building2 className="w-5 h-5 text-purple-700" />
+              </div>
+              <div>
+                <h3 className="text-xl font-semibold text-[#2B4764] mb-2">Companies</h3>
+                <p className="text-gray-600">Manage company profiles and their job listings.</p>
+              </div>
             </div>
           </div>
 

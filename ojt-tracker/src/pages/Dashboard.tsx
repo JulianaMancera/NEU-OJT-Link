@@ -58,7 +58,7 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <div className="w-full h-[80px] absolute left-0 top-0 bg-gradient-to-b from-[#578FCA] to-[#2B4764] border border-black flex items-center justify-between px-6">
+      <div className="w-full h-[80px] absolute left-0 top-0 bg-gradient-to-b from-[#578FCA] to-[#2B4764] shadow-lg flex items-center justify-between px-6">
         <img src={OJTLogo} alt="Ojt Logo" className="w-[220px] h-[220px] ml-4" />
         <div className="flex space-x-4">
           <ProfileMenu
@@ -96,21 +96,27 @@ const Dashboard = () => {
         userName={applicationUserName || userName}
       />
 
-      <div className="w-screen min-h-screen bg-[linear-gradient(to_bottom,#091545_1%,#1735AB_59%)] flex flex-col items-center p-28">
-        <div className="relative w-full max-w-xl h-12 bg-[#fcfbf4]/85 border-2 border-black flex items-center px-5 mb-6">
+      <div className="w-screen min-h-screen bg-[linear-gradient(to_bottom,#091545_1%,#1735AB_59%)] flex flex-col items-center px-8 pt-28 pb-12">
+        <h2 className="text-4xl md:text-5xl font-bold text-center text-white mb-6">Explore Companies</h2>
+
+        <div className="relative w-full max-w-xl h-12 bg-white/90 border border-white/20 rounded-full flex items-center px-5 mb-10 shadow-md">
           <input
             type="text"
-            placeholder="Company Name or Location"
+            placeholder="Search by company name or location..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="flex-1 bg-transparent outline-none text-[#716969] text-base sm:text-lg"
+            className="flex-1 bg-transparent outline-none text-gray-700 text-base pr-8"
           />
           <div className="absolute right-4">
-            <Search size={25} color="black" />
+            {searchQuery ? (
+              <button onClick={() => setSearchQuery("")}>
+                <X size={20} color="#666" />
+              </button>
+            ) : (
+              <Search size={20} color="#666" />
+            )}
           </div>
         </div>
-
-        <h2 className="text-5xl font-bold text-center text-white p-8">Explore Companies</h2>
 
         <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-3 gap-9 mt-6">
           {companies.map((company: Company) => (
@@ -148,14 +154,14 @@ const Dashboard = () => {
                     onClick={() => setSelectedCompany(null)}
                     className="fixed inset-0 backdrop-blur-sm bg-black/50 z-40"
                   />
-                  <div className="bg-[#FDFBF6] p-6 rounded-lg shadow-lg w-full max-w-[100vh] h-[60vh] overflow-y-auto overflow-x-hidden relative z-50">
-                    <div className="flex justify-center items-center">
-                      <h3 className="text-[1.8rem] font-bold text-black sticky top-0 flex">{company.name}</h3>
-                      <button 
-                        onClick={() => setSelectedCompany(null)} 
-                        className="absolute right-0 bg-black mr-6 p-1 rounded"
+                  <div className="bg-[#FDFBF6] p-6 pt-8 rounded-xl shadow-xl w-full max-w-[100vh] h-[60vh] overflow-y-auto overflow-x-hidden relative z-50">
+                    <div className="flex justify-center items-center mb-4">
+                      <h3 className="text-[1.8rem] font-bold text-black">{company.name}</h3>
+                      <button
+                        onClick={() => setSelectedCompany(null)}
+                        className="absolute right-6 top-6 bg-gray-700 hover:bg-black p-2 rounded-full transition-colors"
                       >
-                        <X size={15} color="white" />
+                        <X size={16} color="white" />
                       </button>
                     </div>
                     <CompanyApplication 

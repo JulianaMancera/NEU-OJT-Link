@@ -78,7 +78,7 @@ const StudentDashboard: React.FC = () => {
 
   return (
     <div className="relative min-h-screen w-screen bg-gradient-to-br from-blue-50 to-blue-200" onClick={handleBackgroundClick}>
-      <header className="fixed top-0 h-[80px] left-0 w-full bg-gradient-to-b from-[#578FCA] to-[#2B4764] text-white px-6 py-4 flex items-center justify-between shadow-md z-50 border-b border-black">
+      <header className="fixed top-0 h-[80px] left-0 w-full bg-gradient-to-b from-[#578FCA] to-[#2B4764] text-white px-6 py-4 flex items-center justify-between shadow-lg z-50">
         <div className="flex items-center space-x-4">
           <button
             onClick={toggleSidebar}

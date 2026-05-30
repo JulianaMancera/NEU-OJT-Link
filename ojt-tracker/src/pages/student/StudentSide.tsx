@@ -1,5 +1,5 @@
 import React from "react";
-import { FileText } from "lucide-react";
+import { Calendar, ClipboardList } from "lucide-react";
 
 interface StudentSideProps {
   onViewChange: (view: "schedule" | "reports") => void;
@@ -48,7 +48,7 @@ const StudentSide: React.FC<StudentSideProps> = ({ onViewChange, activeView, onT
               : "bg-blue-50 text-blue-700 hover:bg-blue-100"
           }`}
         >
-          <FileText className="mr-3 flex-shrink-0 min-w-[24px]" />
+          <Calendar className="mr-3 flex-shrink-0 min-w-[24px]" />
           <span className="flex-1 text-left">Schedule</span>
         </button>
         <button
@@ -59,7 +59,7 @@ const StudentSide: React.FC<StudentSideProps> = ({ onViewChange, activeView, onT
               : "bg-blue-50 text-blue-700 hover:bg-blue-100"
           }`}
         >
-          <FileText className="mr-3 flex-shrink-0 min-w-[24px]" />
+          <ClipboardList className="mr-3 flex-shrink-0 min-w-[24px]" />
           <span className="flex-1 text-left">Reports</span>
         </button>
       </div>
