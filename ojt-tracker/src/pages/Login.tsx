@@ -65,7 +65,9 @@ const Auth = () => {
           return;
         }
 
-        if (userData?.role === 'student') {
+        const role = userData?.role || 'student';
+
+        if (role === 'student') {
           const { data: requirements } = await supabase
             .from("requirements")
             .select("endorsement_url")
@@ -77,7 +79,7 @@ const Auth = () => {
           } else {
             navigate("/landing-page");
           }
-        } else if (userData?.role) {
+        } else {
           navigate("/admin");
         }
       } catch (err) {
