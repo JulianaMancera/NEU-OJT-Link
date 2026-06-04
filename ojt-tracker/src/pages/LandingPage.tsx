@@ -12,7 +12,11 @@ const LandingPage = () => {
     const fetchUser = async () => {
       const { data: { user }, error } = await supabase.auth.getUser();
   
-      if (error || !user || !user.email?.endsWith("@neu.edu.ph")) {
+      const validEmail =
+        user?.email?.endsWith("@neu.edu.ph") ||
+        user?.email?.endsWith("@gmail.com");
+
+      if (error || !user || !validEmail) {
         navigate("/"); // Redirect to login if not logged in
       } else {
         // Use the full name if available, otherwise use the email username

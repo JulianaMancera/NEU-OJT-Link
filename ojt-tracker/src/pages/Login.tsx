@@ -21,7 +21,11 @@ const Auth = () => {
 
         const { data: { user }, error: authError } = await supabase.auth.getUser();
 
-        if (authError || !user || !user.email?.endsWith("@neu.edu.ph")) {
+        const validEmail =
+          user?.email?.endsWith("@neu.edu.ph") ||
+          user?.email?.endsWith("@gmail.com");
+
+        if (authError || !user || !validEmail) {
           await supabase.auth.signOut();
           return;
         }

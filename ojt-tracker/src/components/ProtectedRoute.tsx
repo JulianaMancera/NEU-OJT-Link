@@ -13,9 +13,13 @@ const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
 
   useEffect(() => {
     const check = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user }, error } = await supabase.auth.getUser();
 
-      if (!user || !user.email?.endsWith("@neu.edu.ph")) {
+      const validEmail =
+          user?.email?.endsWith("@neu.edu.ph") ||
+          user?.email?.endsWith("@gmail.com");
+
+      if (error || !user || !validEmail) {
         setStatus("deny");
         return;
       }
