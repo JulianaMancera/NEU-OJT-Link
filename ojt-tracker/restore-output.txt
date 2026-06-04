@@ -1,0 +1,1427 @@
+invalid command \restrict
+SET
+SET
+SET
+ERROR:  role "anon" already exists
+ERROR:  "anon" is a reserved role, only superusers can modify it
+ERROR:  role "authenticated" already exists
+ERROR:  "authenticated" is a reserved role, only superusers can modify it
+ERROR:  role "authenticator" already exists
+ERROR:  "authenticator" is a reserved role, only superusers can modify it
+ERROR:  role "dashboard_user" already exists
+ERROR:  "dashboard_user" is a reserved role, only superusers can modify it
+ERROR:  role "pgbouncer" already exists
+ERROR:  "pgbouncer" is a reserved role, only superusers can modify it
+ERROR:  role "pgsodium_keyholder" already exists
+ERROR:  permission denied to alter role
+DETAIL:  Only roles with the SUPERUSER attribute may alter roles with the SUPERUSER attribute.
+ERROR:  role "pgsodium_keyiduser" already exists
+ERROR:  permission denied to alter role
+DETAIL:  Only roles with the SUPERUSER attribute may alter roles with the SUPERUSER attribute.
+ERROR:  role "pgsodium_keymaker" already exists
+ERROR:  permission denied to alter role
+DETAIL:  Only roles with the SUPERUSER attribute may alter roles with the SUPERUSER attribute.
+ERROR:  role "postgres" already exists
+ERROR:  permission denied to alter role
+DETAIL:  Only superusers can alter privileged roles.
+ERROR:  role "service_role" already exists
+ERROR:  "service_role" is a reserved role, only superusers can modify it
+ERROR:  role "supabase_admin" already exists
+ERROR:  "supabase_admin" is a reserved role, only superusers can modify it
+ERROR:  role "supabase_auth_admin" already exists
+ERROR:  "supabase_auth_admin" is a reserved role, only superusers can modify it
+ERROR:  role "supabase_etl_admin" already exists
+ERROR:  permission denied to alter role
+DETAIL:  Only roles with the SUPERUSER attribute may alter roles with the SUPERUSER attribute.
+ERROR:  role "supabase_read_only_user" already exists
+ERROR:  "supabase_read_only_user" is a reserved role, only superusers can modify it
+ERROR:  role "supabase_realtime_admin" already exists
+ERROR:  permission denied to alter role
+DETAIL:  Only roles with the SUPERUSER attribute may alter roles with the SUPERUSER attribute.
+ERROR:  role "supabase_replication_admin" already exists
+ERROR:  "supabase_replication_admin" is a reserved role, only superusers can modify it
+ERROR:  role "supabase_storage_admin" already exists
+ERROR:  "supabase_storage_admin" is a reserved role, only superusers can modify it
+ALTER ROLE
+ALTER ROLE
+ERROR:  permission denied to set parameter "session_preload_libraries"
+ALTER ROLE
+ALTER ROLE
+ALTER ROLE
+ERROR:  "supabase_admin" is a reserved role, only superusers can modify it
+ERROR:  "supabase_admin" is a reserved role, only superusers can modify it
+ERROR:  "supabase_auth_admin" is a reserved role, only superusers can modify it
+ERROR:  "supabase_auth_admin" is a reserved role, only superusers can modify it
+ERROR:  "supabase_auth_admin" is a reserved role, only superusers can modify it
+ERROR:  "supabase_read_only_user" is a reserved role, only superusers can modify it
+ERROR:  "supabase_storage_admin" is a reserved role, only superusers can modify it
+ERROR:  "supabase_storage_admin" is a reserved role, only superusers can modify it
+NOTICE:  role "authenticator" is already a member of role "anon"
+GRANT ROLE
+ERROR:  must be superuser to set grantor
+NOTICE:  role "authenticator" is already a member of role "authenticated"
+GRANT ROLE
+ERROR:  must be superuser to set grantor
+ERROR:  "authenticator" role memberships are reserved, only superusers can grant them
+ERROR:  must be superuser to set grantor
+ERROR:  must be superuser to set grantor
+NOTICE:  role "supabase_etl_admin" is already a member of role "pg_read_all_data"
+GRANT ROLE
+ERROR:  "supabase_read_only_user" is a reserved role, only superusers can modify it
+ERROR:  must be superuser to set grantor
+ERROR:  must be superuser to set grantor
+ERROR:  must be superuser to set grantor
+ERROR:  must be superuser to set grantor
+ERROR:  must be superuser to set grantor
+ERROR:  must be superuser to set grantor
+ERROR:  must be superuser to set grantor
+ERROR:  must be superuser to set grantor
+NOTICE:  role "authenticator" is already a member of role "service_role"
+GRANT ROLE
+ERROR:  must be superuser to set grantor
+ERROR:  must be superuser to set grantor
+invalid command \unrestrict
+You are now connected to database "template1" as user "postgres".
+invalid command \restrict
+SET
+SET
+SET
+SET
+SET
+ set_config 
+------------
+ 
+(1 row)
+
+SET
+SET
+SET
+invalid command \unrestrict
+SET
+invalid command \restrict
+You are now connected to database "postgres" as user "postgres".
+SET
+SET
+SET
+SET
+SET
+ set_config 
+------------
+ 
+(1 row)
+
+SET
+SET
+SET
+SET
+ERROR:  schema "auth" already exists
+ALTER SCHEMA
+ERROR:  schema "extensions" already exists
+ALTER SCHEMA
+ERROR:  schema "graphql" already exists
+ALTER SCHEMA
+ERROR:  schema "graphql_public" already exists
+ALTER SCHEMA
+ERROR:  schema "pgbouncer" already exists
+ALTER SCHEMA
+ERROR:  schema "pgsodium" already exists
+ALTER SCHEMA
+CREATE EXTENSION
+COMMENT
+ALTER SCHEMA
+ALTER SCHEMA
+ALTER SCHEMA
+CREATE EXTENSION
+ERROR:  schema "realtime" already exists
+ERROR:  schema "storage" already exists
+ERROR:  schema "vault" already exists
+COMMENT
+CREATE EXTENSION
+COMMENT
+CREATE EXTENSION
+COMMENT
+CREATE EXTENSION
+COMMENT
+CREATE EXTENSION
+COMMENT
+CREATE EXTENSION
+COMMENT
+ERROR:  type "aal_level" already exists
+ALTER TYPE
+ERROR:  type "code_challenge_method" already exists
+ALTER TYPE
+ALTER TYPE
+ALTER TYPE
+ERROR:  type "factor_status" already exists
+ERROR:  type "factor_type" already exists
+ERROR:  type "oauth_registration_type" already exists
+ALTER TYPE
+ERROR:  type "one_time_token_type" already exists
+ALTER TYPE
+ERROR:  type "application_status_enum" already exists
+ALTER TYPE
+ERROR:  type "companyRestrict" already exists
+ALTER TYPE
+ERROR:  type "report_type_enum" already exists
+ALTER TYPE
+ERROR:  type "user_role" already exists
+ERROR:  type "action" already exists
+ALTER TYPE
+ALTER TYPE
+ERROR:  type "equality_op" already exists
+ALTER TYPE
+ERROR:  type "user_defined_filter" already exists
+ALTER TYPE
+ERROR:  type "wal_column" already exists
+ALTER TYPE
+ERROR:  type "wal_rls" already exists
+ALTER TYPE
+ERROR:  function "email" already exists with same argument types
+ALTER FUNCTION
+COMMENT
+ERROR:  function "jwt" already exists with same argument types
+ALTER FUNCTION
+ERROR:  function "role" already exists with same argument types
+ALTER FUNCTION
+COMMENT
+ERROR:  function "uid" already exists with same argument types
+ALTER FUNCTION
+COMMENT
+ERROR:  function "grant_pg_cron_access" already exists with same argument types
+ERROR:  must be member of role "supabase_admin"
+COMMENT
+ERROR:  function "grant_pg_graphql_access" already exists with same argument types
+ALTER FUNCTION
+ERROR:  must be owner of function extensions.grant_pg_graphql_access
+ERROR:  function "grant_pg_net_access" already exists with same argument types
+ERROR:  must be member of role "supabase_admin"
+COMMENT
+ERROR:  function "pgrst_ddl_watch" already exists with same argument types
+ALTER FUNCTION
+ERROR:  function "pgrst_drop_watch" already exists with same argument types
+ALTER FUNCTION
+ERROR:  function "set_graphql_placeholder" already exists with same argument types
+ALTER FUNCTION
+ERROR:  must be owner of function extensions.set_graphql_placeholder
+ERROR:  permission denied for schema pgbouncer
+ERROR:  must be member of role "supabase_admin"
+ERROR:  function "update_updated_at_column" already exists with same argument types
+ALTER FUNCTION
+ERROR:  function "apply_rls" already exists with same argument types
+ALTER FUNCTION
+ERROR:  function "broadcast_changes" already exists with same argument types
+ALTER FUNCTION
+ERROR:  function "build_prepared_statement_sql" already exists with same argument types
+ALTER FUNCTION
+ERROR:  function "cast" already exists with same argument types
+ALTER FUNCTION
+ERROR:  function "check_equality_op" already exists with same argument types
+ALTER FUNCTION
+ERROR:  function "is_visible_through_filters" already exists with same argument types
+ALTER FUNCTION
+ERROR:  permission denied to set parameter "log_min_messages"
+ALTER FUNCTION
+ERROR:  function "quote_wal2json" already exists with same argument types
+ALTER FUNCTION
+ERROR:  function "send" already exists with same argument types
+ALTER FUNCTION
+ERROR:  function "subscription_check_filters" already exists with same argument types
+ALTER FUNCTION
+ERROR:  function "to_regrole" already exists with same argument types
+ALTER FUNCTION
+ERROR:  function "topic" already exists with same argument types
+ALTER FUNCTION
+ERROR:  function "can_insert_object" already exists with same argument types
+ALTER FUNCTION
+ERROR:  function "extension" already exists with same argument types
+ALTER FUNCTION
+ERROR:  function "filename" already exists with same argument types
+ALTER FUNCTION
+ERROR:  function "foldername" already exists with same argument types
+ALTER FUNCTION
+ERROR:  function "get_size_by_bucket" already exists with same argument types
+ALTER FUNCTION
+ERROR:  function "list_multipart_uploads_with_delimiter" already exists with same argument types
+ALTER FUNCTION
+ERROR:  function "list_objects_with_delimiter" already exists with same argument types
+ALTER FUNCTION
+ERROR:  function "operation" already exists with same argument types
+ALTER FUNCTION
+ERROR:  function "search" already exists with same argument types
+ALTER FUNCTION
+ERROR:  function "update_updated_at_column" already exists with same argument types
+ALTER FUNCTION
+ERROR:  function "secrets_encrypt_secret_secret" already exists with same argument types
+ALTER FUNCTION
+SET
+SET
+ERROR:  relation "audit_log_entries" already exists
+ALTER TABLE
+COMMENT
+ERROR:  relation "flow_state" already exists
+ALTER TABLE
+COMMENT
+ERROR:  relation "identities" already exists
+ALTER TABLE
+COMMENT
+COMMENT
+ERROR:  relation "instances" already exists
+ALTER TABLE
+COMMENT
+ERROR:  relation "mfa_amr_claims" already exists
+ALTER TABLE
+COMMENT
+ERROR:  relation "mfa_challenges" already exists
+ALTER TABLE
+COMMENT
+ERROR:  relation "mfa_factors" already exists
+ALTER TABLE
+COMMENT
+ERROR:  relation "oauth_clients" already exists
+ALTER TABLE
+ERROR:  relation "one_time_tokens" already exists
+ALTER TABLE
+ERROR:  relation "refresh_tokens" already exists
+ALTER TABLE
+COMMENT
+ERROR:  relation "refresh_tokens_id_seq" already exists
+ALTER TABLE
+ALTER SEQUENCE
+ERROR:  relation "saml_providers" already exists
+ALTER TABLE
+COMMENT
+ERROR:  relation "saml_relay_states" already exists
+ALTER TABLE
+COMMENT
+ERROR:  relation "schema_migrations" already exists
+ALTER TABLE
+COMMENT
+ERROR:  relation "sessions" already exists
+ALTER TABLE
+COMMENT
+COMMENT
+ERROR:  relation "sso_domains" already exists
+ALTER TABLE
+COMMENT
+ERROR:  relation "sso_providers" already exists
+ALTER TABLE
+COMMENT
+COMMENT
+ERROR:  relation "users" already exists
+ALTER TABLE
+COMMENT
+COMMENT
+ERROR:  relation "admin" already exists
+ALTER TABLE
+ERROR:  relation "application" already exists
+ALTER TABLE
+ERROR:  relation "availability" already exists
+ALTER TABLE
+ERROR:  relation "company" already exists
+ALTER TABLE
+ERROR:  relation "holidays" already exists
+ALTER TABLE
+ERROR:  relation "holidays_id_seq" already exists
+ALTER TABLE
+ALTER SEQUENCE
+ERROR:  relation "hours_logs" already exists
+ALTER TABLE
+ERROR:  relation "job" already exists
+ALTER TABLE
+ERROR:  relation "job_job_id_seq" already exists
+ERROR:  relation "monthly_report" already exists
+ALTER TABLE
+ERROR:  relation "report" already exists
+ALTER TABLE
+ERROR:  relation "requirements" already exists
+ALTER TABLE
+ERROR:  relation "time_entries" already exists
+ALTER TABLE
+ERROR:  relation "uploaded_certificates" already exists
+ALTER TABLE
+ERROR:  relation "user" already exists
+ALTER TABLE
+ERROR:  relation "user_hours" already exists
+ALTER TABLE
+ERROR:  relation "weekly_journal" already exists
+ALTER TABLE
+ERROR:  relation "weekly_journal_weekly_journal_id_seq" already exists
+ERROR:  relation "weekly_report" already exists
+ALTER TABLE
+ERROR:  relation "messages" already exists
+ALTER TABLE
+ERROR:  relation "messages_2025_05_04" already exists
+ERROR:  must be member of role "supabase_admin"
+ERROR:  relation "messages_2025_05_05" already exists
+ERROR:  must be member of role "supabase_admin"
+ERROR:  relation "messages_2025_05_06" already exists
+ERROR:  must be member of role "supabase_admin"
+ERROR:  relation "messages_2025_05_07" already exists
+ERROR:  must be member of role "supabase_admin"
+ERROR:  relation "messages_2025_05_08" already exists
+ERROR:  must be member of role "supabase_admin"
+ERROR:  relation "messages_2025_05_09" already exists
+ERROR:  must be member of role "supabase_admin"
+ERROR:  relation "messages_2025_05_10" already exists
+ERROR:  must be member of role "supabase_admin"
+ERROR:  relation "messages_2025_05_19" already exists
+ERROR:  must be member of role "supabase_admin"
+ERROR:  relation "messages_2025_05_20" already exists
+ERROR:  must be member of role "supabase_admin"
+ERROR:  relation "messages_2025_05_21" already exists
+ERROR:  must be member of role "supabase_admin"
+ERROR:  relation "messages_2025_05_22" already exists
+ERROR:  must be member of role "supabase_admin"
+ERROR:  relation "messages_2025_05_23" already exists
+ERROR:  must be member of role "supabase_admin"
+ERROR:  relation "schema_migrations" already exists
+ERROR:  must be owner of table schema_migrations
+ERROR:  relation "subscription" already exists
+ERROR:  must be owner of table subscription
+ERROR:  must be owner of table subscription
+ERROR:  relation "buckets" already exists
+ALTER TABLE
+COMMENT
+ERROR:  relation "migrations" already exists
+ALTER TABLE
+ERROR:  relation "objects" already exists
+ALTER TABLE
+COMMENT
+ERROR:  relation "s3_multipart_uploads" already exists
+ALTER TABLE
+ERROR:  relation "s3_multipart_uploads_parts" already exists
+ALTER TABLE
+ERROR:  "messages_2025_05_04" is already a partition
+ERROR:  "messages_2025_05_05" is already a partition
+ERROR:  "messages_2025_05_06" is already a partition
+ERROR:  "messages_2025_05_07" is already a partition
+ERROR:  "messages_2025_05_08" is already a partition
+ERROR:  "messages_2025_05_09" is already a partition
+ERROR:  "messages_2025_05_10" is already a partition
+ERROR:  "messages_2025_05_19" is already a partition
+ERROR:  "messages_2025_05_20" is already a partition
+ERROR:  "messages_2025_05_21" is already a partition
+ERROR:  "messages_2025_05_22" is already a partition
+ERROR:  "messages_2025_05_23" is already a partition
+ALTER TABLE
+ALTER TABLE
+ERROR:  duplicate key value violates unique constraint "audit_log_entries_pkey"
+DETAIL:  Key (id)=(c081bf99-1866-47f3-b5a2-ca8fd091902f) already exists.
+CONTEXT:  COPY audit_log_entries, line 1
+COPY 0
+COPY 17
+COPY 0
+ERROR:  insert or update on table "mfa_amr_claims" violates foreign key constraint "mfa_amr_claims_session_id_fkey"
+DETAIL:  Key (session_id)=(312ceae5-df90-46a8-b65c-36bab74687f0) is not present in table "sessions".
+COPY 0
+COPY 0
+ERROR:  column "client_id" of relation "oauth_clients" does not exist
+invalid command \.
+COPY 1
+ERROR:  insert or update on table "refresh_tokens" violates foreign key constraint "refresh_tokens_session_id_fkey"
+DETAIL:  Key (session_id)=(bae823d5-c19c-417d-a079-77417fa02578) is not present in table "sessions".
+COPY 0
+COPY 0
+ERROR:  duplicate key value violates unique constraint "schema_migrations_pkey"
+DETAIL:  Key (version)=(20171026211738) already exists.
+CONTEXT:  COPY schema_migrations, line 1
+COPY 15
+COPY 0
+COPY 0
+ERROR:  duplicate key value violates unique constraint "users_pkey"
+DETAIL:  Key (id)=(ac804cfb-1134-4e2d-a226-2c7a88bf9469) already exists.
+CONTEXT:  COPY users, line 1
+COPY 0
+COPY 0
+ERROR:  duplicate key value violates unique constraint "applications_pkey"
+DETAIL:  Key (application_id)=(bc42e3b1-22e5-498d-9542-a3eeb766c451) already exists.
+CONTEXT:  COPY application, line 1
+ERROR:  duplicate key value violates unique constraint "availability_pkey"
+DETAIL:  Key (id)=(e08e2b98-a19d-4f76-b909-5e7b3acc9bdd) already exists.
+CONTEXT:  COPY availability, line 1
+ERROR:  duplicate key value violates unique constraint "CompanyList_pkey"
+DETAIL:  Key (company_id)=(3f260450-bfae-4ab1-bd21-2622c05b9cbc) already exists.
+CONTEXT:  COPY company, line 1
+ERROR:  duplicate key value violates unique constraint "holidays_pkey"
+DETAIL:  Key (id)=(1) already exists.
+CONTEXT:  COPY holidays, line 1
+COPY 0
+ERROR:  duplicate key value violates unique constraint "job_pkey"
+DETAIL:  Key (job_id)=(8) already exists.
+CONTEXT:  COPY job, line 1
+ERROR:  duplicate key value violates unique constraint "monthly_report_pkey"
+DETAIL:  Key (monthly_report_id)=(a951d6c5-d5b5-4e5c-9af0-962da2f80a03) already exists.
+CONTEXT:  COPY monthly_report, line 1
+COPY 0
+ERROR:  duplicate key value violates unique constraint "requirements_pkey"
+DETAIL:  Key (requirement_id)=(040d2ea3-a9d3-4867-b56f-63c188462de0) already exists.
+CONTEXT:  COPY requirements, line 1
+ERROR:  duplicate key value violates unique constraint "time_entires_pkey"
+DETAIL:  Key (weekly_entry_id)=(1db3c5b4-336a-4dfb-8e4c-af3d92a2ff67) already exists.
+CONTEXT:  COPY time_entries, line 1
+ERROR:  duplicate key value violates unique constraint "uploaded_certificates_pkey"
+DETAIL:  Key (cert_id)=(8cb7ade9-1396-4798-bec2-3db923def871) already exists.
+CONTEXT:  COPY uploaded_certificates, line 1
+ERROR:  duplicate key value violates unique constraint "users_email_key"
+DETAIL:  Key (email)=(vince.campos@neu.edu.ph) already exists.
+CONTEXT:  COPY user, line 1
+ERROR:  duplicate key value violates unique constraint "user_hours_pkey"
+DETAIL:  Key (user_id)=(a880e27a-0b00-436a-868c-4eb9dcda8198) already exists.
+CONTEXT:  COPY user_hours, line 1
+ERROR:  duplicate key value violates unique constraint "weekly_journal_pkey"
+DETAIL:  Key (weekly_journal_id)=(6) already exists.
+CONTEXT:  COPY weekly_journal, line 1
+ERROR:  duplicate key value violates unique constraint "weekly_report_pkey"
+DETAIL:  Key (weekly_report_id)=(22f46acc-3384-4fee-a18e-b461274dc5c6) already exists.
+CONTEXT:  COPY weekly_report, line 1
+COPY 0
+COPY 0
+COPY 0
+COPY 0
+COPY 0
+COPY 0
+COPY 0
+COPY 0
+COPY 0
+COPY 0
+COPY 0
+COPY 0
+ERROR:  duplicate key value violates unique constraint "schema_migrations_pkey"
+DETAIL:  Key (version)=(20211116024918) already exists.
+CONTEXT:  COPY schema_migrations, line 1
+COPY 0
+ERROR:  duplicate key value violates unique constraint "buckets_pkey"
+DETAIL:  Key (id)=(endorsement) already exists.
+CONTEXT:  COPY buckets, line 1: "endorsement	endorsement	\N	2025-03-24 15:37:25.790323+00	2025-03-24 15:37:25.790323+00	f	f	\N	\N	\N"
+ERROR:  duplicate key value violates unique constraint "migrations_pkey"
+DETAIL:  Key (id)=(0) already exists.
+CONTEXT:  COPY migrations, line 1
+ERROR:  duplicate key value violates unique constraint "objects_pkey"
+DETAIL:  Key (id)=(e0e86979-8c58-48fe-9909-002bd05357b9) already exists.
+CONTEXT:  COPY objects, line 1
+COPY 0
+COPY 0
+COPY 0
+ setval 
+--------
+   1310
+(1 row)
+
+ setval 
+--------
+      1
+(1 row)
+
+ setval 
+--------
+     32
+(1 row)
+
+ setval 
+--------
+     27
+(1 row)
+
+ setval 
+--------
+     18
+(1 row)
+
+ setval 
+--------
+      1
+(1 row)
+
+ERROR:  multiple primary keys for table "mfa_amr_claims" are not allowed
+ERROR:  multiple primary keys for table "audit_log_entries" are not allowed
+ERROR:  multiple primary keys for table "flow_state" are not allowed
+ERROR:  multiple primary keys for table "identities" are not allowed
+ERROR:  relation "identities_provider_id_provider_unique" already exists
+ERROR:  multiple primary keys for table "instances" are not allowed
+ERROR:  relation "mfa_amr_claims_session_id_authentication_method_pkey" already exists
+ERROR:  multiple primary keys for table "mfa_challenges" are not allowed
+ERROR:  relation "mfa_factors_last_challenged_at_key" already exists
+ERROR:  multiple primary keys for table "mfa_factors" are not allowed
+ERROR:  column "client_id" named in key does not exist
+ERROR:  multiple primary keys for table "oauth_clients" are not allowed
+ERROR:  multiple primary keys for table "one_time_tokens" are not allowed
+ERROR:  multiple primary keys for table "refresh_tokens" are not allowed
+ERROR:  relation "refresh_tokens_token_unique" already exists
+ERROR:  relation "saml_providers_entity_id_key" already exists
+ERROR:  multiple primary keys for table "saml_providers" are not allowed
+ERROR:  multiple primary keys for table "saml_relay_states" are not allowed
+ERROR:  multiple primary keys for table "schema_migrations" are not allowed
+ERROR:  multiple primary keys for table "sessions" are not allowed
+ERROR:  multiple primary keys for table "sso_domains" are not allowed
+ERROR:  multiple primary keys for table "sso_providers" are not allowed
+ERROR:  relation "users_phone_key" already exists
+ERROR:  multiple primary keys for table "users" are not allowed
+ERROR:  multiple primary keys for table "company" are not allowed
+ERROR:  multiple primary keys for table "admin" are not allowed
+ERROR:  multiple primary keys for table "application" are not allowed
+ERROR:  multiple primary keys for table "availability" are not allowed
+ERROR:  multiple primary keys for table "holidays" are not allowed
+ERROR:  multiple primary keys for table "hours_logs" are not allowed
+ERROR:  multiple primary keys for table "job" are not allowed
+ERROR:  multiple primary keys for table "monthly_report" are not allowed
+ERROR:  multiple primary keys for table "report" are not allowed
+ERROR:  multiple primary keys for table "requirements" are not allowed
+ERROR:  multiple primary keys for table "time_entries" are not allowed
+ERROR:  relation "unique_application_day" already exists
+ERROR:  multiple primary keys for table "uploaded_certificates" are not allowed
+ERROR:  multiple primary keys for table "user_hours" are not allowed
+ERROR:  relation "users_email_key" already exists
+ERROR:  multiple primary keys for table "user" are not allowed
+ERROR:  multiple primary keys for table "weekly_journal" are not allowed
+ERROR:  multiple primary keys for table "weekly_report" are not allowed
+ERROR:  multiple primary keys for table "messages" are not allowed
+ERROR:  multiple primary keys for table "messages_2025_05_04" are not allowed
+ERROR:  multiple primary keys for table "messages_2025_05_05" are not allowed
+ERROR:  multiple primary keys for table "messages_2025_05_06" are not allowed
+ERROR:  multiple primary keys for table "messages_2025_05_07" are not allowed
+ERROR:  multiple primary keys for table "messages_2025_05_08" are not allowed
+ERROR:  multiple primary keys for table "messages_2025_05_09" are not allowed
+ERROR:  multiple primary keys for table "messages_2025_05_10" are not allowed
+ERROR:  multiple primary keys for table "messages_2025_05_19" are not allowed
+ERROR:  multiple primary keys for table "messages_2025_05_20" are not allowed
+ERROR:  multiple primary keys for table "messages_2025_05_21" are not allowed
+ERROR:  multiple primary keys for table "messages_2025_05_22" are not allowed
+ERROR:  multiple primary keys for table "messages_2025_05_23" are not allowed
+ERROR:  must be owner of table subscription
+ERROR:  must be owner of table schema_migrations
+ERROR:  multiple primary keys for table "buckets" are not allowed
+ERROR:  relation "migrations_name_key" already exists
+ERROR:  multiple primary keys for table "migrations" are not allowed
+ERROR:  multiple primary keys for table "objects" are not allowed
+ERROR:  multiple primary keys for table "s3_multipart_uploads_parts" are not allowed
+ERROR:  multiple primary keys for table "s3_multipart_uploads" are not allowed
+ERROR:  relation "audit_logs_instance_id_idx" already exists
+ERROR:  relation "confirmation_token_idx" already exists
+ERROR:  relation "email_change_token_current_idx" already exists
+ERROR:  relation "email_change_token_new_idx" already exists
+ERROR:  relation "factor_id_created_at_idx" already exists
+ERROR:  relation "flow_state_created_at_idx" already exists
+ERROR:  relation "identities_email_idx" already exists
+COMMENT
+ERROR:  relation "identities_user_id_idx" already exists
+ERROR:  relation "idx_auth_code" already exists
+ERROR:  relation "idx_user_id_auth_method" already exists
+ERROR:  relation "mfa_challenge_created_at_idx" already exists
+ERROR:  relation "mfa_factors_user_friendly_name_unique" already exists
+ERROR:  relation "mfa_factors_user_id_idx" already exists
+ERROR:  column "client_id" does not exist
+ERROR:  relation "oauth_clients_deleted_at_idx" already exists
+ERROR:  relation "one_time_tokens_relates_to_hash_idx" already exists
+ERROR:  relation "one_time_tokens_token_hash_hash_idx" already exists
+ERROR:  relation "one_time_tokens_user_id_token_type_key" already exists
+ERROR:  relation "reauthentication_token_idx" already exists
+ERROR:  relation "recovery_token_idx" already exists
+ERROR:  relation "refresh_tokens_instance_id_idx" already exists
+ERROR:  relation "refresh_tokens_instance_id_user_id_idx" already exists
+ERROR:  relation "refresh_tokens_parent_idx" already exists
+ERROR:  relation "refresh_tokens_session_id_revoked_idx" already exists
+ERROR:  relation "refresh_tokens_updated_at_idx" already exists
+ERROR:  relation "saml_providers_sso_provider_id_idx" already exists
+ERROR:  relation "saml_relay_states_created_at_idx" already exists
+ERROR:  relation "saml_relay_states_for_email_idx" already exists
+ERROR:  relation "saml_relay_states_sso_provider_id_idx" already exists
+ERROR:  relation "sessions_not_after_idx" already exists
+ERROR:  relation "sessions_user_id_idx" already exists
+ERROR:  relation "sso_domains_domain_idx" already exists
+ERROR:  relation "sso_domains_sso_provider_id_idx" already exists
+ERROR:  relation "sso_providers_resource_id_idx" already exists
+ERROR:  relation "sso_providers_resource_id_pattern_idx" already exists
+ERROR:  relation "unique_phone_factor_per_user" already exists
+ERROR:  relation "user_id_created_at_idx" already exists
+ERROR:  relation "users_email_partial_key" already exists
+ERROR:  relation "users_instance_id_email_idx" already exists
+ERROR:  relation "users_instance_id_idx" already exists
+ERROR:  relation "users_is_anonymous_idx" already exists
+ERROR:  relation "idx_applications_company_id" already exists
+ERROR:  relation "idx_applications_user_id" already exists
+ERROR:  relation "idx_reports_user_id" already exists
+ERROR:  relation "idx_users_email" already exists
+ERROR:  must be owner of table subscription
+ERROR:  must be owner of table subscription
+ERROR:  relation "bname" already exists
+COMMENT
+ERROR:  relation "bucketid_objname" already exists
+ERROR:  relation "idx_multipart_uploads_list" already exists
+ALTER INDEX
+ERROR:  relation "idx_objects_bucket_id_name" already exists
+ERROR:  relation "name_prefix_search" already exists
+ALTER INDEX
+ALTER INDEX
+ALTER INDEX
+ALTER INDEX
+ALTER INDEX
+ALTER INDEX
+ALTER INDEX
+ALTER INDEX
+ALTER INDEX
+ALTER INDEX
+ALTER INDEX
+ERROR:  trigger "update_user_hours_updated_at" for relation "user_hours" already exists
+ERROR:  trigger "tr_check_filters" for relation "subscription" already exists
+ERROR:  trigger "update_objects_updated_at" for relation "objects" already exists
+ERROR:  constraint "identities_user_id_fkey" for relation "identities" already exists
+ERROR:  constraint "mfa_amr_claims_session_id_fkey" for relation "mfa_amr_claims" already exists
+ERROR:  constraint "mfa_challenges_auth_factor_id_fkey" for relation "mfa_challenges" already exists
+ERROR:  constraint "mfa_factors_user_id_fkey" for relation "mfa_factors" already exists
+ERROR:  constraint "one_time_tokens_user_id_fkey" for relation "one_time_tokens" already exists
+ERROR:  constraint "refresh_tokens_session_id_fkey" for relation "refresh_tokens" already exists
+ERROR:  constraint "saml_providers_sso_provider_id_fkey" for relation "saml_providers" already exists
+ERROR:  constraint "saml_relay_states_flow_state_id_fkey" for relation "saml_relay_states" already exists
+ERROR:  constraint "saml_relay_states_sso_provider_id_fkey" for relation "saml_relay_states" already exists
+ERROR:  constraint "sessions_user_id_fkey" for relation "sessions" already exists
+ERROR:  constraint "sso_domains_sso_provider_id_fkey" for relation "sso_domains" already exists
+ERROR:  constraint "admins_admin_id_fkey" for relation "admin" already exists
+ERROR:  constraint "admins_target_id_fkey" for relation "admin" already exists
+ERROR:  constraint "application_job_id_fkey" for relation "application" already exists
+ERROR:  constraint "application_user_id_fkey" for relation "application" already exists
+ERROR:  constraint "applications_company_id_fkey" for relation "application" already exists
+ERROR:  constraint "availability_application_id_fkey" for relation "availability" already exists
+ERROR:  constraint "hours_logs_user_id_fkey" for relation "hours_logs" already exists
+ERROR:  constraint "job_company_id_fkey" for relation "job" already exists
+ERROR:  constraint "monthly_report_user_id_fkey" for relation "monthly_report" already exists
+ERROR:  constraint "reports_user_id_fkey" for relation "report" already exists
+ERROR:  constraint "requirements_company_id_fkey" for relation "requirements" already exists
+ERROR:  constraint "requirements_student_id_fkey" for relation "requirements" already exists
+ERROR:  constraint "time_entries_user_id_fkey" for relation "time_entries" already exists
+ERROR:  constraint "user_hours_user_id_fkey" for relation "user_hours" already exists
+ERROR:  constraint "weekly_journal_user_id_fkey" for relation "weekly_journal" already exists
+ERROR:  constraint "weekly_report_user_id_fkey" for relation "weekly_report" already exists
+ERROR:  constraint "objects_bucketId_fkey" for relation "objects" already exists
+ERROR:  constraint "s3_multipart_uploads_bucket_id_fkey" for relation "s3_multipart_uploads" already exists
+ERROR:  constraint "s3_multipart_uploads_parts_bucket_id_fkey" for relation "s3_multipart_uploads_parts" already exists
+ERROR:  constraint "s3_multipart_uploads_parts_upload_id_fkey" for relation "s3_multipart_uploads_parts" already exists
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ERROR:  policy "Admins can select all applications" for table "application" already exists
+ERROR:  policy "Admins can update application status" for table "application" already exists
+ERROR:  policy "Admins can update journals" for table "weekly_journal" already exists
+ERROR:  policy "Admins can update weekly status" for table "weekly_report" already exists
+ERROR:  policy "Allow all authenticated users to read user table" for table "user" already exists
+ERROR:  policy "Allow authenticated users to insert availability" for table "availability" already exists
+ERROR:  policy "Allow authenticated users to update jobs" for table "job" already exists
+ERROR:  policy "Allow public read access to holidays" for table "holidays" already exists
+ERROR:  policy "Allow users to view their own availability" for table "availability" already exists
+ERROR:  policy "Can insert own journals" for table "weekly_journal" already exists
+ERROR:  policy "Can update own journals" for table "weekly_journal" already exists
+ERROR:  policy "Can view journals" for table "weekly_journal" already exists
+ERROR:  policy "Can view own journals" for table "weekly_journal" already exists
+ERROR:  policy "Enable deletion" for table "availability" already exists
+ERROR:  policy "Enable deletion of report" for table "weekly_report" already exists
+ERROR:  policy "Enable insert for authenticated users only" for table "application" already exists
+ERROR:  policy "Enable insert for authenticated users only" for table "job" already exists
+ERROR:  policy "Enable insert for authenticated users only" for table "requirements" already exists
+ERROR:  policy "Enable insert for authenticated users only" for table "time_entries" already exists
+ERROR:  policy "Enable insert for authenticated users only" for table "uploaded_certificates" already exists
+ERROR:  policy "Enable insert for authenticated users only" for table "user" already exists
+ERROR:  policy "Enable insert for authenticated users only" for table "weekly_journal" already exists
+ERROR:  policy "Enable insert for authenticated users only" for table "weekly_report" already exists
+ERROR:  policy "Enable read access for all users" for table "application" already exists
+ERROR:  policy "Enable read access for all users" for table "company" already exists
+ERROR:  policy "Enable read access for all users" for table "job" already exists
+ERROR:  policy "Enable read access for all users" for table "requirements" already exists
+ERROR:  policy "Enable read access for all users" for table "time_entries" already exists
+ERROR:  policy "Enable read access for all users" for table "uploaded_certificates" already exists
+ERROR:  policy "Enable read access for all users" for table "weekly_report" already exists
+ERROR:  policy "Enable status updates for authenticated users" for table "application" already exists
+ERROR:  policy "Enable update for users based on email" for table "user" already exists
+ERROR:  policy "Enable updating schedule" for table "availability" already exists
+ERROR:  policy "Enable updating weekly report" for table "weekly_report" already exists
+ERROR:  policy "Enable users to view their own data only" for table "weekly_journal" already exists
+ERROR:  policy "Enable users to view their own data only" for table "weekly_report" already exists
+ERROR:  policy "Update for users" for table "requirements" already exists
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ERROR:  policy "update last active" for table "user" already exists
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ERROR:  policy "user_hours_access" for table "user_hours" already exists
+ERROR:  policy "user_hours_logs_insert" for table "hours_logs" already exists
+ERROR:  policy "user_hours_logs_select" for table "hours_logs" already exists
+ALTER TABLE
+ERROR:  policy "Allow Authenticated Users to Upload Monthly lrl14v_0" for table "objects" already exists
+ERROR:  policy "Allow Authenticated Users to View Monthly lrl14v_0" for table "objects" already exists
+ERROR:  policy "Allow Authenticated Users to View Weekly Journal 1hlqrrw_0" for table "objects" already exists
+ERROR:  policy "Allow Authenticated Users to View Weekly Journal 1hlqrrw_1" for table "objects" already exists
+ERROR:  policy "Allow uploads to logos bucket 1peuqw_0" for table "objects" already exists
+ERROR:  policy "Allow uploads to logos bucket 1peuqw_1" for table "objects" already exists
+ERROR:  policy "Allow uploads to logos bucket 1peuqw_2" for table "objects" already exists
+ERROR:  policy "Allow users to upload their weekly report" for table "objects" already exists
+ERROR:  policy "Check user endorsement 1r70ast_0" for table "objects" already exists
+ERROR:  policy "Dowload Endorsement 10psfi_0" for table "objects" already exists
+ERROR:  policy "Give users authenticated access to folder lj47wh_0" for table "objects" already exists
+ERROR:  policy "Read 1h6xdx7_0" for table "objects" already exists
+ERROR:  policy "Upload User 1r70ast_0" for table "objects" already exists
+ERROR:  policy "allow viewing lj47wh_0" for table "objects" already exists
+ALTER TABLE
+ERROR:  policy "download templates wrvard_0" for table "objects" already exists
+ALTER TABLE
+ALTER TABLE
+ERROR:  policy "read waepav_0" for table "objects" already exists
+ALTER TABLE
+ALTER TABLE
+ERROR:  policy "upload waepav_0" for table "objects" already exists
+ERROR:  publication "supabase_realtime" already exists
+ALTER PUBLICATION
+ERROR:  publication "supabase_realtime_messages_publication" already exists
+ERROR:  must be member of role "supabase_admin"
+ERROR:  relation "messages" is already member of publication "supabase_realtime_messages_publication"
+WARNING:  no privileges were granted for "auth"
+GRANT
+WARNING:  no privileges were granted for "auth"
+GRANT
+WARNING:  no privileges were granted for "auth"
+GRANT
+WARNING:  no privileges were granted for "auth"
+GRANT
+WARNING:  no privileges were granted for "auth"
+GRANT
+WARNING:  no privileges were granted for "auth"
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+WARNING:  no privileges were granted for "realtime"
+GRANT
+WARNING:  no privileges were granted for "realtime"
+GRANT
+WARNING:  no privileges were granted for "realtime"
+GRANT
+WARNING:  no privileges were granted for "realtime"
+GRANT
+WARNING:  no privileges were granted for "realtime"
+GRANT
+WARNING:  no privileges were granted for "storage"
+GRANT
+WARNING:  no privileges were granted for "storage"
+GRANT
+WARNING:  no privileges were granted for "storage"
+GRANT
+WARNING:  no privileges were granted for "storage"
+GRANT
+WARNING:  no privileges were granted for "storage"
+GRANT
+WARNING:  no privileges were granted for "storage"
+GRANT
+WARNING:  no privileges were granted for "vault"
+GRANT
+WARNING:  no privileges were granted for "vault"
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+ERROR:  grant options cannot be granted back to your own grantor
+GRANT
+ERROR:  grant options cannot be granted back to your own grantor
+GRANT
+ERROR:  grant options cannot be granted back to your own grantor
+GRANT
+ERROR:  grant options cannot be granted back to your own grantor
+GRANT
+ERROR:  grant options cannot be granted back to your own grantor
+GRANT
+ERROR:  grant options cannot be granted back to your own grantor
+GRANT
+ERROR:  grant options cannot be granted back to your own grantor
+GRANT
+ERROR:  grant options cannot be granted back to your own grantor
+GRANT
+ERROR:  grant options cannot be granted back to your own grantor
+GRANT
+ERROR:  grant options cannot be granted back to your own grantor
+GRANT
+ERROR:  grant options cannot be granted back to your own grantor
+GRANT
+ERROR:  grant options cannot be granted back to your own grantor
+GRANT
+ERROR:  grant options cannot be granted back to your own grantor
+GRANT
+ERROR:  grant options cannot be granted back to your own grantor
+GRANT
+ERROR:  grant options cannot be granted back to your own grantor
+GRANT
+REVOKE
+GRANT
+GRANT
+GRANT
+ERROR:  grant options cannot be granted back to your own grantor
+REVOKE
+GRANT
+GRANT
+GRANT
+ERROR:  grant options cannot be granted back to your own grantor
+GRANT
+ERROR:  grant options cannot be granted back to your own grantor
+GRANT
+ERROR:  grant options cannot be granted back to your own grantor
+GRANT
+ERROR:  grant options cannot be granted back to your own grantor
+GRANT
+ERROR:  grant options cannot be granted back to your own grantor
+GRANT
+ERROR:  grant options cannot be granted back to your own grantor
+GRANT
+ERROR:  grant options cannot be granted back to your own grantor
+GRANT
+ERROR:  grant options cannot be granted back to your own grantor
+GRANT
+ERROR:  grant options cannot be granted back to your own grantor
+GRANT
+ERROR:  grant options cannot be granted back to your own grantor
+GRANT
+ERROR:  grant options cannot be granted back to your own grantor
+GRANT
+ERROR:  grant options cannot be granted back to your own grantor
+GRANT
+ERROR:  grant options cannot be granted back to your own grantor
+GRANT
+ERROR:  grant options cannot be granted back to your own grantor
+GRANT
+ERROR:  grant options cannot be granted back to your own grantor
+GRANT
+ERROR:  grant options cannot be granted back to your own grantor
+GRANT
+ERROR:  grant options cannot be granted back to your own grantor
+GRANT
+ERROR:  grant options cannot be granted back to your own grantor
+GRANT
+ERROR:  grant options cannot be granted back to your own grantor
+GRANT
+ERROR:  grant options cannot be granted back to your own grantor
+GRANT
+ERROR:  grant options cannot be granted back to your own grantor
+GRANT
+ERROR:  grant options cannot be granted back to your own grantor
+GRANT
+ERROR:  grant options cannot be granted back to your own grantor
+GRANT
+ERROR:  grant options cannot be granted back to your own grantor
+GRANT
+ERROR:  grant options cannot be granted back to your own grantor
+GRANT
+ERROR:  grant options cannot be granted back to your own grantor
+ERROR:  grant options cannot be granted back to your own grantor
+ERROR:  grant options cannot be granted back to your own grantor
+ERROR:  grant options cannot be granted back to your own grantor
+GRANT
+ERROR:  grant options cannot be granted back to your own grantor
+GRANT
+ERROR:  grant options cannot be granted back to your own grantor
+GRANT
+ERROR:  grant options cannot be granted back to your own grantor
+GRANT
+ERROR:  grant options cannot be granted back to your own grantor
+GRANT
+ERROR:  grant options cannot be granted back to your own grantor
+GRANT
+ERROR:  grant options cannot be granted back to your own grantor
+GRANT
+ERROR:  grant options cannot be granted back to your own grantor
+GRANT
+ERROR:  grant options cannot be granted back to your own grantor
+GRANT
+ERROR:  grant options cannot be granted back to your own grantor
+GRANT
+ERROR:  grant options cannot be granted back to your own grantor
+GRANT
+ERROR:  grant options cannot be granted back to your own grantor
+GRANT
+ERROR:  grant options cannot be granted back to your own grantor
+GRANT
+ERROR:  grant options cannot be granted back to your own grantor
+GRANT
+ERROR:  grant options cannot be granted back to your own grantor
+GRANT
+WARNING:  no privileges were granted for "graphql"
+GRANT
+WARNING:  no privileges were granted for "graphql"
+GRANT
+WARNING:  no privileges were granted for "graphql"
+GRANT
+WARNING:  no privileges were granted for "graphql"
+GRANT
+REVOKE
+GRANT
+GRANT
+GRANT
+GRANT
+WARNING:  no privileges were granted for "crypto_aead_det_keygen"
+GRANT
+GRANT
+GRANT
+GRANT
+WARNING:  no privileges were granted for "apply_rls"
+GRANT
+WARNING:  no privileges were granted for "apply_rls"
+GRANT
+WARNING:  no privileges were granted for "apply_rls"
+GRANT
+WARNING:  no privileges were granted for "apply_rls"
+GRANT
+WARNING:  no privileges were granted for "apply_rls"
+GRANT
+WARNING:  no privileges were granted for "apply_rls"
+GRANT
+WARNING:  no privileges were granted for "broadcast_changes"
+GRANT
+WARNING:  no privileges were granted for "broadcast_changes"
+GRANT
+WARNING:  no privileges were granted for "build_prepared_statement_sql"
+GRANT
+WARNING:  no privileges were granted for "build_prepared_statement_sql"
+GRANT
+WARNING:  no privileges were granted for "build_prepared_statement_sql"
+GRANT
+WARNING:  no privileges were granted for "build_prepared_statement_sql"
+GRANT
+WARNING:  no privileges were granted for "build_prepared_statement_sql"
+GRANT
+WARNING:  no privileges were granted for "build_prepared_statement_sql"
+GRANT
+WARNING:  no privileges were granted for "cast"
+GRANT
+WARNING:  no privileges were granted for "cast"
+GRANT
+WARNING:  no privileges were granted for "cast"
+GRANT
+WARNING:  no privileges were granted for "cast"
+GRANT
+WARNING:  no privileges were granted for "cast"
+GRANT
+WARNING:  no privileges were granted for "cast"
+GRANT
+WARNING:  no privileges were granted for "check_equality_op"
+GRANT
+WARNING:  no privileges were granted for "check_equality_op"
+GRANT
+WARNING:  no privileges were granted for "check_equality_op"
+GRANT
+WARNING:  no privileges were granted for "check_equality_op"
+GRANT
+WARNING:  no privileges were granted for "check_equality_op"
+GRANT
+WARNING:  no privileges were granted for "check_equality_op"
+GRANT
+WARNING:  no privileges were granted for "is_visible_through_filters"
+GRANT
+WARNING:  no privileges were granted for "is_visible_through_filters"
+GRANT
+WARNING:  no privileges were granted for "is_visible_through_filters"
+GRANT
+WARNING:  no privileges were granted for "is_visible_through_filters"
+GRANT
+WARNING:  no privileges were granted for "is_visible_through_filters"
+GRANT
+WARNING:  no privileges were granted for "is_visible_through_filters"
+GRANT
+WARNING:  no privileges were granted for "list_changes"
+GRANT
+WARNING:  no privileges were granted for "list_changes"
+GRANT
+WARNING:  no privileges were granted for "list_changes"
+GRANT
+WARNING:  no privileges were granted for "list_changes"
+GRANT
+WARNING:  no privileges were granted for "list_changes"
+GRANT
+WARNING:  no privileges were granted for "list_changes"
+GRANT
+WARNING:  no privileges were granted for "quote_wal2json"
+GRANT
+WARNING:  no privileges were granted for "quote_wal2json"
+GRANT
+WARNING:  no privileges were granted for "quote_wal2json"
+GRANT
+WARNING:  no privileges were granted for "quote_wal2json"
+GRANT
+WARNING:  no privileges were granted for "quote_wal2json"
+GRANT
+WARNING:  no privileges were granted for "quote_wal2json"
+GRANT
+WARNING:  no privileges were granted for "send"
+GRANT
+WARNING:  no privileges were granted for "send"
+GRANT
+WARNING:  no privileges were granted for "subscription_check_filters"
+GRANT
+WARNING:  no privileges were granted for "subscription_check_filters"
+GRANT
+WARNING:  no privileges were granted for "subscription_check_filters"
+GRANT
+WARNING:  no privileges were granted for "subscription_check_filters"
+GRANT
+WARNING:  no privileges were granted for "subscription_check_filters"
+GRANT
+WARNING:  no privileges were granted for "subscription_check_filters"
+GRANT
+WARNING:  no privileges were granted for "to_regrole"
+GRANT
+WARNING:  no privileges were granted for "to_regrole"
+GRANT
+WARNING:  no privileges were granted for "to_regrole"
+GRANT
+WARNING:  no privileges were granted for "to_regrole"
+GRANT
+WARNING:  no privileges were granted for "to_regrole"
+GRANT
+WARNING:  no privileges were granted for "to_regrole"
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+ERROR:  function vault._crypto_aead_det_decrypt(bytea, bytea, bigint, bytea, bytea) does not exist
+ERROR:  function vault._crypto_aead_det_decrypt(bytea, bytea, bigint, bytea, bytea) does not exist
+WARNING:  no privileges were granted for "create_secret"
+GRANT
+WARNING:  no privileges were granted for "create_secret"
+GRANT
+WARNING:  no privileges were granted for "update_secret"
+GRANT
+WARNING:  no privileges were granted for "update_secret"
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+ERROR:  grant options cannot be granted back to your own grantor
+GRANT
+ERROR:  grant options cannot be granted back to your own grantor
+GRANT
+WARNING:  no privileges were granted for "decrypted_key"
+GRANT
+WARNING:  no privileges were granted for "masking_rule"
+GRANT
+WARNING:  no privileges were granted for "mask_columns"
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+WARNING:  no privileges were granted for "schema_migrations"
+GRANT
+WARNING:  no privileges were granted for "schema_migrations"
+GRANT
+WARNING:  no privileges were granted for "schema_migrations"
+GRANT
+WARNING:  no privileges were granted for "schema_migrations"
+GRANT
+WARNING:  no privileges were granted for "schema_migrations"
+GRANT
+WARNING:  no privileges were granted for "schema_migrations"
+GRANT
+WARNING:  no privileges were granted for "subscription"
+GRANT
+WARNING:  no privileges were granted for "subscription"
+GRANT
+WARNING:  no privileges were granted for "subscription"
+GRANT
+WARNING:  no privileges were granted for "subscription"
+GRANT
+WARNING:  no privileges were granted for "subscription"
+GRANT
+WARNING:  no privileges were granted for "subscription"
+GRANT
+WARNING:  no privileges were granted for "subscription_id_seq"
+GRANT
+WARNING:  no privileges were granted for "subscription_id_seq"
+GRANT
+WARNING:  no privileges were granted for "subscription_id_seq"
+GRANT
+WARNING:  no privileges were granted for "subscription_id_seq"
+GRANT
+WARNING:  no privileges were granted for "subscription_id_seq"
+GRANT
+WARNING:  no privileges were granted for "subscription_id_seq"
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+WARNING:  no privileges were granted for "secrets"
+GRANT
+WARNING:  no privileges were granted for "secrets"
+GRANT
+WARNING:  no privileges were granted for "decrypted_secrets"
+GRANT
+WARNING:  no privileges were granted for "decrypted_secrets"
+GRANT
+ALTER DEFAULT PRIVILEGES
+ALTER DEFAULT PRIVILEGES
+ALTER DEFAULT PRIVILEGES
+ALTER DEFAULT PRIVILEGES
+ALTER DEFAULT PRIVILEGES
+ALTER DEFAULT PRIVILEGES
+ERROR:  must be member of role "supabase_admin"
+ERROR:  must be member of role "supabase_admin"
+ERROR:  must be member of role "supabase_admin"
+ERROR:  must be member of role "supabase_admin"
+ERROR:  must be member of role "supabase_admin"
+ERROR:  must be member of role "supabase_admin"
+ERROR:  must be member of role "supabase_admin"
+ERROR:  must be member of role "supabase_admin"
+ERROR:  must be member of role "supabase_admin"
+ERROR:  must be member of role "supabase_admin"
+ERROR:  must be member of role "supabase_admin"
+ERROR:  must be member of role "supabase_admin"
+ERROR:  must be member of role "supabase_admin"
+ERROR:  must be member of role "supabase_admin"
+ERROR:  must be member of role "supabase_admin"
+ERROR:  must be member of role "supabase_admin"
+ERROR:  must be member of role "supabase_admin"
+ERROR:  must be member of role "supabase_admin"
+ERROR:  must be member of role "supabase_admin"
+ERROR:  must be member of role "supabase_admin"
+ERROR:  must be member of role "supabase_admin"
+ERROR:  must be member of role "supabase_admin"
+ERROR:  must be member of role "supabase_admin"
+ERROR:  must be member of role "supabase_admin"
+ERROR:  must be member of role "supabase_admin"
+ERROR:  must be member of role "supabase_admin"
+ERROR:  must be member of role "supabase_admin"
+ERROR:  must be member of role "supabase_admin"
+ERROR:  must be member of role "supabase_admin"
+ERROR:  must be member of role "supabase_admin"
+ERROR:  must be member of role "supabase_admin"
+ERROR:  must be member of role "supabase_admin"
+ALTER DEFAULT PRIVILEGES
+ALTER DEFAULT PRIVILEGES
+ALTER DEFAULT PRIVILEGES
+ALTER DEFAULT PRIVILEGES
+ERROR:  must be member of role "supabase_admin"
+ERROR:  must be member of role "supabase_admin"
+ERROR:  must be member of role "supabase_admin"
+ERROR:  must be member of role "supabase_admin"
+ALTER DEFAULT PRIVILEGES
+ALTER DEFAULT PRIVILEGES
+ALTER DEFAULT PRIVILEGES
+ALTER DEFAULT PRIVILEGES
+ERROR:  must be member of role "supabase_admin"
+ERROR:  must be member of role "supabase_admin"
+ERROR:  must be member of role "supabase_admin"
+ERROR:  must be member of role "supabase_admin"
+ALTER DEFAULT PRIVILEGES
+ALTER DEFAULT PRIVILEGES
+ALTER DEFAULT PRIVILEGES
+ALTER DEFAULT PRIVILEGES
+ERROR:  must be member of role "supabase_admin"
+ERROR:  must be member of role "supabase_admin"
+ERROR:  must be member of role "supabase_admin"
+ERROR:  must be member of role "supabase_admin"
+ERROR:  must be member of role "supabase_admin"
+ERROR:  must be member of role "supabase_admin"
+ERROR:  must be member of role "supabase_admin"
+ERROR:  must be member of role "supabase_admin"
+ERROR:  must be member of role "supabase_admin"
+ERROR:  must be member of role "supabase_admin"
+ALTER DEFAULT PRIVILEGES
+ALTER DEFAULT PRIVILEGES
+ALTER DEFAULT PRIVILEGES
+ALTER DEFAULT PRIVILEGES
+ALTER DEFAULT PRIVILEGES
+ALTER DEFAULT PRIVILEGES
+ALTER DEFAULT PRIVILEGES
+ALTER DEFAULT PRIVILEGES
+ALTER DEFAULT PRIVILEGES
+ALTER DEFAULT PRIVILEGES
+ALTER DEFAULT PRIVILEGES
+ALTER DEFAULT PRIVILEGES
+ERROR:  permission denied to create event trigger "issue_graphql_placeholder"
+HINT:  Must be superuser to create an event trigger.
+ALTER EVENT TRIGGER
+ERROR:  permission denied to create event trigger "issue_pg_cron_access"
+HINT:  Must be superuser to create an event trigger.
+ALTER EVENT TRIGGER
+ERROR:  permission denied to create event trigger "issue_pg_graphql_access"
+HINT:  Must be superuser to create an event trigger.
+ALTER EVENT TRIGGER
+ERROR:  permission denied to create event trigger "issue_pg_net_access"
+HINT:  Must be superuser to create an event trigger.
+ALTER EVENT TRIGGER
+ERROR:  permission denied to create event trigger "pgrst_ddl_watch"
+HINT:  Must be superuser to create an event trigger.
+ALTER EVENT TRIGGER
+ERROR:  permission denied to create event trigger "pgrst_drop_watch"
+HINT:  Must be superuser to create an event trigger.
+invalid command \unrestrict
+ALTER EVENT TRIGGER
